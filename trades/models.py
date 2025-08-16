@@ -53,3 +53,15 @@ class Trade(models.Model):
         if self.sell_price is None:
             return None
         return self.sell_price - self.buy_price
+
+    @property
+    def pnl_value(self):
+        if self.sell_price is None:
+            return None
+        return (self.sell_price or Decimal("0")) - (self.buy_price or Decimal("0"))
+
+    @property
+    def pnl_percent(self):
+        if self.sell_price is None or not self.buy_price:
+            return None
+        return (self.pnl_value / self.buy_price) * Decimal("100")

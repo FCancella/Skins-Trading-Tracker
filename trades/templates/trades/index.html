@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load form_extras %}
+{% load currency %}
 {% load static %}
 
 {% block content %}
   <!-- Summary -->
   <div class="row g-3">
-    <div class="col-12 col-lg-8">
+    <div class="col-12">
       <div class="card">
         <div class="card-header">Summary</div>
         <div class="card-body">
@@ -24,7 +25,10 @@
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Realized PnL</div>
-              <div class="val">{{ summary.total_realized_pnl|floatformat:2 }}</div>
+              <!-- grande: R$ -->
+              <div class="val">{{ summary.total_realized_pnl|currency_brl }}</div>
+              <!-- pequeno: % -->
+              <small class="text-muted-2">{{ summary.total_realized_pnl_pct|pct }}</small>
             </div>
           </div>
         </div>
@@ -32,16 +36,20 @@
     </div>
 
     <!-- Add Item -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12">
       <div class="card">
         <div class="card-header">Add Item</div>
         <div class="card-body">
           <form method="post" action="{% url 'index' %}" class="row g-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="add" />
-            <div class="col-12">
+            <div class="col-6">
               <label class="form-label">Item Name</label>
               {{ add_form.item_name|add_class:"form-control" }}
+            </div>
+            <div class="col-6">
+              <label class="form-label">Date of Purchase</label>
+              {{ add_form.date_of_purchase|add_class:"form-control" }}
             </div>
             <div class="col-6">
               <label class="form-label">Buy Price</label>
@@ -50,10 +58,6 @@
             <div class="col-6">
               <label class="form-label">Buy Source</label>
               {{ add_form.buy_source|add_class:"form-select" }}
-            </div>
-            <div class="col-12">
-              <label class="form-label">Date of Purchase</label>
-              {{ add_form.date_of_purchase|add_class:"form-control" }}
             </div>
             <div class="col-12">
               <button type="submit" class="btn btn-primary w-100">Add Trade</button>
@@ -87,12 +91,12 @@
             {% for trade in trades %}
               <tr>
                 <td class="fw-medium">{{ trade.item_name }}</td>
-                <td>{{ trade.buy_price|floatformat:2 }}</td>
+                <td>{{ trade.buy_price|currency_brl }}</td>
 
                 <!-- SELL PRICE (apenas valor ou traço) -->
                 <td>
                   {% if trade.sell_price %}
-                    {{ trade.sell_price|floatformat:2 }}
+                    {{ trade.sell_price|currency_brl }}
                   {% else %}
                     — 
                   {% endif %}
@@ -105,10 +109,15 @@
 
                 <!-- PnL -->
                 <td>
-                  {% if trade.pnl is not None %}
-                    <span class="{% if trade.pnl > 0 %}text-success{% elif trade.pnl < 0 %}text-danger{% else %}text-muted{% endif %}">
-                      {{ trade.pnl|floatformat:2 }}
+                  {% if trade.pnl_value is not None %}
+                  <div class="d-flex flex-column">
+                    <span class="fw-semibold">
+                      {{ trade.pnl_value|currency_brl }}
+                      <small class="text-muted-2 fs-7">({{ trade.pnl_percent|pct }})</small>
                     </span>
+                  </div>
+                  {% else %}
+                    —
                   {% endif %}
                 </td>
 
@@ -118,7 +127,7 @@
                     <span class="badge status-closed">Closed</span>
                   {% else %}
                     <button type="button"
-                            class="btn btn-ghost btn-sm"
+                            class="badge status-closed badge-button"
                             data-bs-toggle="modal"
                             data-bs-target="#sellModal-{{ trade.id }}">
                       Edit
