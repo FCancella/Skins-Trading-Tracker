@@ -52,7 +52,7 @@
               {{ add_form.buy_source|add_class:"form-select" }}
             </div>
             <div class="col-12">
-              <label class="form-label">Date of Purchase (optional)</label>
+              <label class="form-label">Date of Purchase</label>
               {{ add_form.date_of_purchase|add_class:"form-control" }}
             </div>
             <div class="col-12">
@@ -88,27 +88,22 @@
               <tr>
                 <td class="fw-medium">{{ trade.item_name }}</td>
                 <td>{{ trade.buy_price|floatformat:2 }}</td>
+
+                <!-- SELL PRICE (apenas valor ou traço) -->
                 <td>
                   {% if trade.sell_price %}
                     {{ trade.sell_price|floatformat:2 }}
                   {% else %}
-                    <form method="post" action="{% url 'index' %}" class="row g-1">
-                      {% csrf_token %}
-                      <input type="hidden" name="action" value="sell" />
-                      <input type="hidden" name="trade_id" value="{{ trade.id }}" />
-                      <div class="col-12 col-md-4">{{ trade.sell_form.sell_price|add_class:"form-control form-control-sm" }}</div>
-                      <div class="col-12 col-md-4">{{ trade.sell_form.sell_source|add_class:"form-select form-select-sm" }}</div>
-                      <div class="col-12 col-md-4">{{ trade.sell_form.date_sold|add_class:"form-control form-control-sm" }}</div>
-                      <div class="col-12 mt-1">
-                        <button type="submit" class="btn btn-close-trade btn-sm">Close</button>
-                      </div>
-                    </form>
+                    — 
                   {% endif %}
                 </td>
+
                 <td>{{ trade.get_buy_source_display }}</td>
                 <td>{% if trade.sell_source %}{{ trade.get_sell_source_display }}{% endif %}</td>
                 <td>{{ trade.date_of_purchase|date:"d/m/Y" }}</td>
                 <td>{% if trade.date_sold %}{{ trade.date_sold|date:"d/m/Y" }}{% endif %}</td>
+
+                <!-- PnL -->
                 <td>
                   {% if trade.pnl is not None %}
                     <span class="{% if trade.pnl > 0 %}text-success{% elif trade.pnl < 0 %}text-danger{% else %}text-muted{% endif %}">
@@ -116,14 +111,63 @@
                     </span>
                   {% endif %}
                 </td>
+
+                <!-- STATUS / EDIT -->
                 <td>
                   {% if trade.sell_price %}
                     <span class="badge status-closed">Closed</span>
                   {% else %}
-                    <span class="badge status-open">Open</span>
+                    <button type="button"
+                            class="btn btn-ghost btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#sellModal-{{ trade.id }}">
+                      Edit
+                    </button>
                   {% endif %}
                 </td>
               </tr>
+
+              <!-- MODAL para itens abertos -->
+              {% if not trade.sell_price %}
+                <div class="modal fade" id="sellModal-{{ trade.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content modal-dark">
+                      <div class="modal-header">
+                        <h5 class="modal-title">{{ trade.item_name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+
+                      <form method="post" action="{% url 'index' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="sell">
+                        <input type="hidden" name="trade_id" value="{{ trade.id }}">
+
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <label class="form-label">Sell Price</label>
+                            {{ trade.sell_form.sell_price|add_class:"form-control"}}
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Sell Source</label>
+                            {{ trade.sell_form.sell_source|add_class:"form-select"}}
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Sold Date</label>
+                            {{ trade.sell_form.date_sold|add_class:"form-control"}}
+                          </div>
+                        </div>
+
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-primary">Save & Close</button>
+                        </div>
+                      </form>
+
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
             {% empty %}
               <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>
             {% endfor %}

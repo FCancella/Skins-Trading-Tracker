@@ -89,3 +89,26 @@ body{
 
 /* Utility */
 .text-muted-2{ color:var(--fg-2)!important; }
+
+/* Botão discreto para editar */
+.btn-ghost{
+  background: transparent;
+  border: 1px solid rgba(255,78,205,.35);
+  color: #ffd6f1;
+}
+.btn-ghost:hover{
+  background: rgba(255,78,205,.08);
+}
+
+/* Modal escuro */
+.modal-dark{
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  border:1px solid var(--border);
+}
+.modal-dark .modal-header{
+  border-bottom:1px solid var(--border);
+  background: linear-gradient(90deg, rgba(122,43,246,.18), rgba(255,78,205,.12));
+}
+.modal-dark .modal-footer{
+  border-top:1px solid var(--border);
+}
