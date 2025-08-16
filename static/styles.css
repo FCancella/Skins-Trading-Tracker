@@ -1,0 +1,91 @@
+/* Dark clean + pink/purple accents */
+:root{
+  --bg-0:#0d0d10;
+  --bg-1:#12121a;
+  --bg-2:#181a25;
+  --fg-1:#e7e7ee;
+  --fg-2:#b8b9c7;
+  --purple:#7a2bf6;
+  --pink:#ff4ecd;
+  --purple-2:#431a69;
+  --border:#2a2d3a;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  background: radial-gradient(1000px 600px at 50% 110%, rgba(255,78,205,.07), transparent 60%) , var(--bg-0);
+  color:var(--fg-1);
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Navbar */
+.bg-gradient-dark{
+  background: linear-gradient(90deg, #111018 0%, #140f20 50%, #0f0e16 100%);
+}
+.border-purple{ border-color: rgba(122,43,246,.45)!important; }
+
+/* Cards */
+.card{
+  background:linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+.card-header{
+  background: linear-gradient(90deg, rgba(122,43,246,.25), rgba(255,78,205,.18));
+  border-bottom:1px solid var(--border);
+  color:#fff;
+  font-weight:600;
+}
+
+/* Summary tiles */
+.kpi{
+  display:flex; flex-direction:column; align-items:center; gap:.2rem;
+  padding:.75rem 0;
+}
+.kpi .lbl{ color:var(--fg-2); font-size:.85rem; }
+.kpi .val{ font-size:1.6rem; font-weight:700; letter-spacing:.3px; }
+
+/* Forms */
+.form-control, .form-select{
+  background: #0f1320; border:1px solid #3b2a53; color:#fff;
+}
+.form-control:focus, .form-select:focus{
+  border-color: var(--pink); box-shadow:0 0 0 .2rem rgba(255,78,205,.18);
+}
+
+/* Buttons */
+.btn-primary{
+  background: linear-gradient(90deg, var(--purple), var(--pink)); border:0;
+}
+.btn-primary:hover{ filter:brightness(.95); }
+.btn-close-trade{
+  background: linear-gradient(90deg, var(--pink), var(--purple));
+  border:0;
+}
+
+/* Table */
+.table{
+  --bs-table-bg: transparent;
+  color:var(--fg-1);
+  border-color:var(--border);
+}
+.table thead th{
+  position:sticky; top:0;
+  background: #141725;
+  border-bottom:1px solid var(--border);
+  z-index:1;
+}
+.table tbody tr:hover { background: rgba(122,43,246,.06); }
+.table .status-open{ background:rgba(255,78,205,.18); color:#ffd6f1; }
+.table .status-closed{ background:rgba(122,43,246,.25); color:#e9dcff; }
+
+/* Badges */
+.badge{ border-radius:999px; padding:.4rem .65rem; font-weight:600; }
+
+/* Subtle separators */
+.hr-soft{ border-color: var(--border); opacity:.6; }
+
+/* Utility */
+.text-muted-2{ color:var(--fg-2)!important; }

@@ -1,67 +1,59 @@
-<!--Main page for the Counter‑Strike skin portfolio management application.
-
-This template extends the base layout and organizes the page into three
-logical sections: a summary of the portfolio at the top, a form for
-adding new trades, and a table listing all trades with inline forms for
-closing open positions. Bootstrap classes provide styling and
-responsiveness.-->
-
 {% extends "base.html" %}
+{% load form_extras %}
 {% load static %}
 
 {% block content %}
-  <!-- Summary Block -->
+  <!-- Summary -->
   <div class="row g-3">
     <div class="col-12 col-lg-8">
-      <div class="card shadow-sm">
+      <div class="card">
         <div class="card-header">Summary</div>
         <div class="card-body">
           <div class="row text-center">
-            <div class="col-6 col-md-3">
-              <div class="h6 text-muted">Total Items</div>
-              <div class="fs-4">{{ summary.total_items }}</div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">Total Items</div>
+              <div class="val">{{ summary.total_items }}</div>
             </div>
-            <div class="col-6 col-md-3">
-              <div class="h6 text-muted">Open</div>
-              <div class="fs-4">{{ summary.open_positions }}</div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">Open</div>
+              <div class="val">{{ summary.open_positions }}</div>
             </div>
-            <div class="col-6 col-md-3">
-              <div class="h6 text-muted">Closed</div>
-              <div class="fs-4">{{ summary.closed_positions }}</div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">Closed</div>
+              <div class="val">{{ summary.closed_positions }}</div>
             </div>
-            <div class="col-6 col-md-3">
-              <div class="h6 text-muted">Realized PnL</div>
-              <div class="fs-4">{{ summary.total_realized_pnl }}</div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">Realized PnL</div>
+              <div class="val">{{ summary.total_realized_pnl|floatformat:2 }}</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Add Item Block -->
+    <!-- Add Item -->
     <div class="col-12 col-lg-4">
-      <div class="card shadow-sm">
+      <div class="card">
         <div class="card-header">Add Item</div>
         <div class="card-body">
           <form method="post" action="{% url 'index' %}" class="row g-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="add" />
-            {{ add_form.non_field_errors }}
             <div class="col-12">
               <label class="form-label">Item Name</label>
-              {{ add_form.item_name }}
+              {{ add_form.item_name|add_class:"form-control" }}
             </div>
             <div class="col-6">
               <label class="form-label">Buy Price</label>
-              {{ add_form.buy_price }}
+              {{ add_form.buy_price|add_class:"form-control" }}
             </div>
             <div class="col-6">
               <label class="form-label">Buy Source</label>
-              {{ add_form.buy_source }}
+              {{ add_form.buy_source|add_class:"form-select" }}
             </div>
             <div class="col-12">
               <label class="form-label">Date of Purchase (optional)</label>
-              {{ add_form.date_of_purchase }}
+              {{ add_form.date_of_purchase|add_class:"form-control" }}
             </div>
             <div class="col-12">
               <button type="submit" class="btn btn-primary w-100">Add Trade</button>
@@ -72,8 +64,8 @@ responsiveness.-->
     </div>
   </div>
 
-  <!-- Portfolio Block -->
-  <div class="card shadow-sm mt-4">
+  <!-- Portfolio -->
+  <div class="card mt-4">
     <div class="card-header">Portfolio</div>
     <div class="card-body">
       <div class="table-responsive">
@@ -88,47 +80,52 @@ responsiveness.-->
               <th>Purchase Date</th>
               <th>Sold Date</th>
               <th>PnL</th>
-              <th>Hold (days)</th>
-              <th>Action</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {% for trade in trades %}
-              <tr class="{% if not trade.sell_price %}table-warning{% endif %}">
-                <td>{{ trade.item_name }}</td>
-                <td>{{ trade.buy_price }}</td>
+              <tr>
+                <td class="fw-medium">{{ trade.item_name }}</td>
+                <td>{{ trade.buy_price|floatformat:2 }}</td>
                 <td>
                   {% if trade.sell_price %}
-                    {{ trade.sell_price }}
+                    {{ trade.sell_price|floatformat:2 }}
                   {% else %}
                     <form method="post" action="{% url 'index' %}" class="row g-1">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="sell" />
                       <input type="hidden" name="trade_id" value="{{ trade.id }}" />
-                      <div class="col-12 col-md-4">{{ trade.sell_form.sell_price }}</div>
-                      <div class="col-12 col-md-4">{{ trade.sell_form.sell_source }}</div>
-                      <div class="col-12 col-md-4">{{ trade.sell_form.date_sold }}</div>
+                      <div class="col-12 col-md-4">{{ trade.sell_form.sell_price|add_class:"form-control form-control-sm" }}</div>
+                      <div class="col-12 col-md-4">{{ trade.sell_form.sell_source|add_class:"form-select form-select-sm" }}</div>
+                      <div class="col-12 col-md-4">{{ trade.sell_form.date_sold|add_class:"form-control form-control-sm" }}</div>
                       <div class="col-12 mt-1">
-                        <button type="submit" class="btn btn-sm btn-success">Close</button>
+                        <button type="submit" class="btn btn-close-trade btn-sm">Close</button>
                       </div>
                     </form>
                   {% endif %}
                 </td>
                 <td>{{ trade.get_buy_source_display }}</td>
                 <td>{% if trade.sell_source %}{{ trade.get_sell_source_display }}{% endif %}</td>
-                <td>{{ trade.date_of_purchase|date:"Y-m-d" }}</td>
-                <td>{% if trade.date_sold %}{{ trade.date_sold|date:"Y-m-d" }}{% endif %}</td>
-                <td>{% if trade.pnl is not None %}{{ trade.pnl }}{% endif %}</td>
+                <td>{{ trade.date_of_purchase|date:"d/m/Y" }}</td>
+                <td>{% if trade.date_sold %}{{ trade.date_sold|date:"d/m/Y" }}{% endif %}</td>
+                <td>
+                  {% if trade.pnl is not None %}
+                    <span class="{% if trade.pnl > 0 %}text-success{% elif trade.pnl < 0 %}text-danger{% else %}text-muted{% endif %}">
+                      {{ trade.pnl|floatformat:2 }}
+                    </span>
+                  {% endif %}
+                </td>
                 <td>
                   {% if trade.sell_price %}
-                    <span class="badge bg-secondary">Closed</span>
+                    <span class="badge status-closed">Closed</span>
                   {% else %}
-                    <span class="badge bg-warning text-dark">Open</span>
+                    <span class="badge status-open">Open</span>
                   {% endif %}
                 </td>
               </tr>
             {% empty %}
-              <tr><td colspan="10" class="text-center text-muted">No trades yet.</td></tr>
+              <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>
             {% endfor %}
           </tbody>
         </table>
