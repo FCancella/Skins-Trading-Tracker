@@ -8,48 +8,13 @@ components into a single responsive layout.
 """
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Dict, Tuple
-
-from django.db.models import Avg, Count, F, Q
+from django.db.models import Avg, Count, F, Q, Sum
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from .forms import SellTradeForm, TradeForm
 from .models import Trade
-
-
-def _compute_summary() -> Dict[str, object]:
-    trades = Trade.objects.all()
-
-    total_items = trades.count()
-    open_positions = trades.filter(sell_price__isnull=True).count()
-    closed_positions = trades.filter(sell_price__isnull=False).count()
-
-    # Realized PnL = sum over sold trades of (sell_price - buy_price)
-    realized_pnl = (
-        trades.filter(sell_price__isnull=False)
-        .annotate(pnl=F("sell_price") - F("buy_price"))
-        .aggregate(total=Count("id"), sum=SumIfExists("pnl"))  # type: ignore
-    )
-
-    return {
-        "total_items": total_items,
-        "open_positions": open_positions,
-        "closed_positions": closed_positions,
-        "total_realized_pnl": float(realized_pnl.get("sum") or 0),
-    }
-
-
-# Helper for aggregation – Django doesn’t have SumIfExists, so we'll handle in
-# a small wrapper below by doing a second aggregate when needed.
-from django.db.models import Sum
-
-
-def SumIfExists(field):  # noqa: N802 (Django-style helper name)
-    return Sum(field)
-
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -61,6 +26,7 @@ def index(request: HttpRequest) -> HttpResponse:
         if add_form.is_valid():
             add_form.save()
             return redirect("index")
+        
     # Handle updating an existing trade's sell details
     elif request.method == "POST" and request.POST.get("action") == "sell":
         trade_id = request.POST.get("trade_id")
@@ -73,8 +39,22 @@ def index(request: HttpRequest) -> HttpResponse:
     # GET request – render the page
     trades = Trade.objects.all().order_by("-date_of_purchase")
 
-    # Prepare the add form (blank)
-    add_form = TradeForm()
+    open_qs = trades.filter(sell_price__isnull=True)
+    closed_qs = trades.filter(sell_price__isnull=False)
+
+    # Cost basis (buy totals)
+    agg_total = trades.aggregate(buy_sum=Sum("buy_price"))
+    agg_open = open_qs.aggregate(buy_sum=Sum("buy_price"))
+    agg_closed = closed_qs.aggregate(sell_sum=Sum("sell_price"))
+
+    total_items_value = agg_total["buy_sum"] or 0.0
+    open_positions_value = agg_open["buy_sum"] or 0.0
+    closed_positions_value = agg_closed["sell_sum"] or 0.0
+
+    # Realized PnL (R$)
+    realized_pnl_value = closed_qs.aggregate(
+        pnl_sum=Sum(F("sell_price") - F("buy_price"))
+    )["pnl_sum"] or 0.0
 
     # Attach a SellTradeForm to each trade that is still open; the template can
     # access it as `trade.sell_form` (instead of indexing a dict), fixing the
@@ -84,19 +64,20 @@ def index(request: HttpRequest) -> HttpResponse:
             t.sell_form = SellTradeForm(instance=t)
         else:
             t.sell_form = None
-
-    # Compute summary stats
+    
     summary = {
-        "total_items": trades.count(),
-        "open_positions": trades.filter(sell_price__isnull=True).count(),
-        "closed_positions": trades.filter(sell_price__isnull=False).count(),
-        "total_realized_pnl": float(
-            trades.filter(sell_price__isnull=False)
-            .annotate(pnl=F("sell_price") - F("buy_price"))
-            .aggregate(total_pnl=Sum("pnl"))["total_pnl"]
-            or 0
-        )
-    }
+        "total_items_amnt": trades.count(),
+        "total_items_value": float(total_items_value),
+        "open_positions_amnt": open_qs.count(),
+        "open_positions_value": float(open_positions_value),
+        "closed_positions_amnt": closed_qs.count(),
+        "closed_positions_value": float(closed_positions_value),
+        "total_realized_pnl": float(realized_pnl_value),
+        "total_realized_pnl_pct": float(realized_pnl_value) / float(total_items_value) * 100 if total_items_value else 0,
+}
+
+    # Prepare the add form (blank)
+    add_form = TradeForm()
 
     context = {
         "trades": trades,

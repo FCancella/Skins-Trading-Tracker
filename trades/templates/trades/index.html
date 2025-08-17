@@ -13,15 +13,24 @@
           <div class="row text-center">
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Total Items</div>
-              <div class="val">{{ summary.total_items }}</div>
+              <!-- grande: R$ -->
+              <div class="val">{{ summary.total_items_value|currency_brl }}</div>
+              <!-- pequeno: Amnt -->
+              <small class="text-muted-2">{{ summary.total_items_amnt }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Open</div>
-              <div class="val">{{ summary.open_positions }}</div>
+              <!-- grande: R$ -->
+              <div class="val">{{ summary.open_positions_value|currency_brl }}</div>
+              <!-- pequeno: Amnt -->
+              <small class="text-muted-2">{{ summary.open_positions_amnt }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Closed</div>
-              <div class="val">{{ summary.closed_positions }}</div>
+              <!-- grande: R$ -->
+              <div class="val">{{ summary.closed_positions_value|currency_brl }}</div>
+              <!-- pequeno: Amnt -->
+              <small class="text-muted-2">{{ summary.closed_positions_amnt }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Realized PnL</div>

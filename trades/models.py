@@ -44,17 +44,6 @@ class Trade(models.Model):
         return f"{self.item_name} ({self.buy_price})"
 
     @property
-    def pnl(self) -> Optional[Decimal]:
-        """Return the profit or loss for this trade if it is sold.
-
-        If the trade has not been sold yet (sell_price is None), return None.
-        PnL is calculated as sell_price minus buy_price.
-        """
-        if self.sell_price is None:
-            return None
-        return self.sell_price - self.buy_price
-
-    @property
     def pnl_value(self):
         if self.sell_price is None:
             return None
