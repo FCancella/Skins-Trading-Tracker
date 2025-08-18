@@ -68,7 +68,7 @@ def index(request: HttpRequest) -> HttpResponse:
     for t in trades:
         if t.sell_price is None:
             t.sell_form = SellTradeForm(instance=t)
-            t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days > 8)
+            t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days >= 7)
         else:
             t.sell_form = None
             t.is_stale_purchase = False
