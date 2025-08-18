@@ -8,7 +8,11 @@ components into a single responsive layout.
 """
 from __future__ import annotations
 
-from django.db.models import Avg, Count, F, Q, Sum
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
+
+from django.db.models import F, Sum
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -16,7 +20,7 @@ from django.utils import timezone
 from .forms import SellTradeForm, TradeForm
 from .models import Trade
 
-
+@login_required
 def index(request: HttpRequest) -> HttpResponse:
     """Serve the single-page app: summary, add form, and portfolio table."""
 
@@ -24,7 +28,7 @@ def index(request: HttpRequest) -> HttpResponse:
     if request.method == "POST" and request.POST.get("action") == "add":
         add_form = TradeForm(request.POST)
         if add_form.is_valid():
-            add_form.save()
+            add_form.save(owner=request.user)
             return redirect("index")
         
     # Handle updating an existing trade's sell details
@@ -37,7 +41,7 @@ def index(request: HttpRequest) -> HttpResponse:
             return redirect("index")
 
     # GET request – render the page
-    trades = Trade.objects.all().order_by("-date_of_purchase")
+    trades = Trade.objects.filter(owner=request.user).order_by("-date_of_purchase")
 
     open_qs = trades.filter(sell_price__isnull=True)
     closed_qs = trades.filter(sell_price__isnull=False)
@@ -85,3 +89,19 @@ def index(request: HttpRequest) -> HttpResponse:
         "summary": summary,
     }
     return render(request, "trades/index.html", context)
+
+def signup(request: HttpRequest) -> HttpResponse:
+    """Minimal signup: creates a user and logs them in, then redirects to index."""
+    if request.user.is_authenticated:
+        return redirect("index")
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("index")
+    else:
+        form = UserCreationForm()
+
+    return render(request, "registration/signup.html", {"form": form})

@@ -35,6 +35,16 @@ class TradeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
+    
+    def save(self, commit=True, owner=None):
+        obj = super().save(commit=False)
+        if owner is None:
+            # fail fast to avoid orphan trades
+            raise ValueError("TradeForm.save(owner=...) is required to set Trade.owner")
+        obj.owner = owner
+        if commit:
+            obj.save()
+        return obj
 
 
 class SellTradeForm(forms.ModelForm):

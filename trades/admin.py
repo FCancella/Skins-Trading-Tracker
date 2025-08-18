@@ -27,6 +27,7 @@ class TradeAdmin(admin.ModelAdmin):
         'date_sold',
         'pnl_value',
         'pnl_percent',
+        'owner',
     )
     list_filter = ('buy_source', 'sell_source', 'date_of_purchase', 'date_sold')
     search_fields = ('item_name',)

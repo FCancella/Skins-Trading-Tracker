@@ -10,13 +10,11 @@ or loss and holding duration.
 """
 from __future__ import annotations
 
-import datetime
 from decimal import Decimal
-from typing import Optional
 
 from django.db import models
+from django.conf import settings
 from django.utils import timezone
-
 
 class Trade(models.Model):
     """Model representing a Counter‑Strike skin trade item."""
@@ -27,8 +25,15 @@ class Trade(models.Model):
         ('floatdb', 'Floatdb'),
         ('dash_bot', 'Dash BOT'),
         ('dash_p2p', 'Dash P2P'),
+        ('buff163', 'Buff163'),
     ]
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="trades",
+        db_index=True,
+    )
     item_name = models.CharField(max_length=100)
     buy_price = models.DecimalField(max_digits=10, decimal_places=2)
     sell_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -38,6 +43,7 @@ class Trade(models.Model):
     date_sold = models.DateField(null=True, blank=True)
 
     class Meta:
+        indexes = [models.Index(fields=["owner"])]
         ordering = ['-date_of_purchase', 'item_name']
 
     def __str__(self) -> str:

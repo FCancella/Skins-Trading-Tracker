@@ -26,6 +26,10 @@ DEBUG: bool = True
 
 ALLOWED_HOSTS: list[str] = []
 
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "index"
+LOGOUT_REDIRECT_URL = "login"
+
 # Application definition
 
 INSTALLED_APPS: list[str] = [
