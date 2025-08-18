@@ -43,6 +43,8 @@ def index(request: HttpRequest) -> HttpResponse:
     # GET request – render the page
     trades = Trade.objects.filter(owner=request.user).order_by("-date_of_purchase")
 
+    today = timezone.localdate()
+
     open_qs = trades.filter(sell_price__isnull=True)
     closed_qs = trades.filter(sell_price__isnull=False)
 
@@ -66,8 +68,10 @@ def index(request: HttpRequest) -> HttpResponse:
     for t in trades:
         if t.sell_price is None:
             t.sell_form = SellTradeForm(instance=t)
+            t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days > 8)
         else:
             t.sell_form = None
+            t.is_stale_purchase = False
     
     summary = {
         "total_items_amnt": trades.count(),

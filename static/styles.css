@@ -157,3 +157,12 @@ button.badge.status-closed:disabled{
   opacity: 1;
   cursor: default;
 }
+
+/* Destaca Purchase Date antiga (>8 dias) */
+.cell-stale{
+  background: rgba(255,78,205,.14);              /* pink translúcido */
+  border: 1px solid rgba(255,78,205,.35);
+  color: #ffd6f1;                                 /* texto rosado */
+  border-radius: 8px;
+  padding: .2rem .4rem;                           /* espaço interno */
+}

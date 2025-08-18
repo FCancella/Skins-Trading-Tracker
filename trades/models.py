@@ -25,7 +25,7 @@ class Trade(models.Model):
         ('floatdb', 'Floatdb'),
         ('dash_bot', 'Dash BOT'),
         ('dash_p2p', 'Dash P2P'),
-        ('buff163', 'Buff163'),
+        ('buff', 'BUFF'),
     ]
 
     owner = models.ForeignKey(
