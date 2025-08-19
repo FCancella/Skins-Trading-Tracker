@@ -138,6 +138,18 @@ body{
   border: 1px solid rgba(122,43,246,.55);
 }
 
+.badge.status-open{
+  /* same pill look everywhere */
+  border-radius: 999px;
+  padding: .4rem .65rem;
+  font-weight: 600;
+
+  /* explicit colors so it's deterministic */
+  background: rgba(255,78,205,.25);   /* purple glass */
+  color: #e9dcff;
+  border: 1px solid rgba(255,78,205,.55);
+}
+
 /* Optional: identical hover for both Closed and Edit */
 .badge.status-closed:hover{
   filter: brightness(.96);

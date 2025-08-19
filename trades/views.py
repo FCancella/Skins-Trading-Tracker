@@ -7,12 +7,14 @@ statistics for the portfolio. The main page (`index`) brings together all
 components into a single responsive layout.
 """
 from __future__ import annotations
+from decimal import Decimal
 
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Value
+from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -24,110 +26,111 @@ from .models import Trade, Investment
 def index(request: HttpRequest) -> HttpResponse:
     """Serve the single-page app: summary, add form, and portfolio table."""
 
-    # Handle adding a new trade
-    if request.method == "POST" and request.POST.get("action") == "add":
-        add_form = TradeForm(request.POST)
-        if add_form.is_valid():
-            add_form.save(owner=request.user)
-            return redirect("index")
-        
-    # Handle updating an existing trade's sell details
-    elif request.method == "POST" and request.POST.get("action") == "sell":
-        trade_id = request.POST.get("trade_id")
-        trade = Trade.objects.get(pk=trade_id, owner=request.user)
-        form = SellTradeForm(request.POST, instance=trade)
-        if form.is_valid():
-            form.save()
-            return redirect("index")
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "add":
+            add_form = TradeForm(request.POST)
+            if add_form.is_valid():
+                add_form.save(owner=request.user)
+                return redirect("index")
+        elif action == "sell":
+            trade_id = request.POST.get("trade_id")
+            trade = Trade.objects.get(pk=trade_id, owner=request.user)
+            form = SellTradeForm(request.POST, instance=trade)
+            if form.is_valid():
+                form.save()
+                return redirect("index")
+        elif action == "edit":
+            trade_id = request.POST.get("trade_id")
+            trade = Trade.objects.get(pk=trade_id, owner=request.user)
+            form = TradeForm(request.POST, instance=trade)
+            if form.is_valid():
+                form.save(owner=request.user)
+                return redirect("index")
+        elif action == "invest":
+            investment_form = InvestmentForm(request.POST)
+            if investment_form.is_valid():
+                investment_form.save(owner=request.user)
+                return redirect("index")
 
-    # Handle editing an existing trade
-    elif request.method == "POST" and request.POST.get("action") == "edit":
-        trade_id = request.POST.get("trade_id")
-        trade = Trade.objects.get(pk=trade_id, owner=request.user)
-        form = TradeForm(request.POST, instance=trade)
-        if form.is_valid():
-            # The owner is already set on the instance, so we don't need to pass it to save()
-            form.save(owner=request.user)
-            return redirect("index")
-
-    # Handle adding a new investment
-    elif request.method == "POST" and request.POST.get("action") == "invest":
-        investment_form = InvestmentForm(request.POST)
-        if investment_form.is_valid():
-            investment_form.save(owner=request.user)
-            return redirect("index")
-
-    # GET request – render the page
+    # --- GET Request and Summary Calculations ---
     trades = Trade.objects.filter(owner=request.user).order_by("-date_of_purchase")
     investments = Investment.objects.filter(owner=request.user)
-
     today = timezone.localdate()
 
     open_qs = trades.filter(sell_price__isnull=True)
     closed_qs = trades.filter(sell_price__isnull=False)
 
-    # Cost basis (buy totals)
-    agg_total = trades.aggregate(buy_sum=Sum("buy_price"))
-    agg_open = open_qs.aggregate(buy_sum=Sum("buy_price"))
-    agg_closed = closed_qs.aggregate(sell_sum=Sum("sell_price"))
-    total_investment = investments.aggregate(total=Sum("amount"))["total"] or 0.0
+    # 1. Custo (Cost Basis)
+    cost_basis = trades.aggregate(total=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))))['total']
 
-    total_items_value = agg_total["buy_sum"] or 0.0
-    open_positions_value = agg_open["buy_sum"] or 0.0
-    closed_positions_value = agg_closed["sell_sum"] or 0.0
-
-    # Realized PnL (R$)
+    # 2. PnL Realizado (Realized PnL)
     realized_pnl_value = closed_qs.aggregate(
-        pnl_sum=Sum(F("sell_price") - F("buy_price"))
-    )["pnl_sum"] or 0.0
+        pnl=Coalesce(Sum(F("sell_price") - F("buy_price")), Value(Decimal('0.0')))
+    )['pnl']
 
-    # Calculate daily PnL for the graph, then a running total
+    # 3. PnL Médio (para itens vendidos)
+    closed_aggregates = closed_qs.aggregate(
+        buy_sum=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))),
+        sell_sum=Coalesce(Sum("sell_price"), Value(Decimal('0.0')))
+    )
+    closed_buy_sum = closed_aggregates['buy_sum']
+    closed_sell_sum = closed_aggregates['sell_sum']
+
+    average_pnl_factor = (closed_sell_sum / closed_buy_sum) if closed_buy_sum > 0 else Decimal('1.0')
+    average_pnl_percent = (average_pnl_factor - 1) * 100
+
+    # 4. MTM (Mark to Market)
+    mtm_value = Decimal('0.0')
+    for trade in trades:
+        if trade.sell_price is not None:
+            mtm_value += trade.sell_price
+        else:
+            # Estima o valor do item aberto usando o PnL médio dos itens fechados
+            mtm_value += trade.buy_price * (average_pnl_factor * Decimal(0.8))
+
+    # Outras métricas
+    total_investment = investments.aggregate(total=Coalesce(Sum("amount"), Value(Decimal('0.0'))))["total"]
+    
+    # PnL Total % (ROI sobre o investimento)
+    roi_percent = (realized_pnl_value / total_investment * 100) if total_investment > 0 else Decimal('0.0')
+
+
+    summary = {
+        "cost_basis": float(cost_basis),
+        "invested": float(total_investment),
+        "realized_pnl_value": float(realized_pnl_value),
+        "average_pnl_percent": float(average_pnl_percent),
+        "mtm_value": float(mtm_value),
+        "roi_percent": float(roi_percent)
+    }
+
+    # --- Chart Data (sem alterações) ---
     daily_pnl = list(
         closed_qs
         .values(date=F('date_sold'))
         .annotate(daily_pnl=Sum(F('sell_price') - F('buy_price')))
         .order_by('date')
     )
-    
-    # Calculate accumulated PnL
     accumulated_pnl = 0.0
     pnl_data = []
     for pnl in daily_pnl:
         if pnl['date'] is None: continue
         pnl['daily_pnl'] = float(pnl['daily_pnl'])
-        pnl['date'] = pnl['date'].strftime("%Y-%m-%d")  # convert date to string
-
         accumulated_pnl += pnl['daily_pnl']
         pnl_data.append({
-            'date': pnl['date'],
+            'date': pnl['date'].strftime("%Y-%m-%d"),
             'pnl': accumulated_pnl,
         })
 
-    # Attach the correct form for each trade, and set the stale purchase flag.
+    # --- Form preparation (sem alterações) ---
     for t in trades:
-        t.is_stale_purchase = bool(t.date_of_purchase and
-                                   (today - t.date_of_purchase).days >= 7 and
-                                   t.sell_price is None)
+        t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days >= 7)
         if t.sell_price is None:
-            # For open trades, attach the sell form
             t.edit_form = SellTradeForm(instance=t)
         else:
-            # For closed trades, attach the full trade form
             t.edit_form = TradeForm(instance=t)
-    
-    summary = {
-        "total_items_amnt": trades.count(),
-        "total_items_value": float(total_items_value),
-        "open_positions_amnt": open_qs.count(),
-        "open_positions_value": float(open_positions_value),
-        "closed_positions_amnt": closed_qs.count(),
-        "closed_positions_value": float(closed_positions_value),
-        "total_realized_pnl": float(realized_pnl_value),
-        "total_realized_pnl_pct": float(realized_pnl_value) / float(total_items_value) * 100 if total_items_value else 0,
-        "total_investment": float(total_investment)
-    }
 
-    # Prepare the add form (blank)
     add_form = TradeForm()
     investment_form = InvestmentForm()
 
@@ -142,10 +145,8 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "trades/index.html", context)
 
 def signup(request: HttpRequest) -> HttpResponse:
-    """Minimal signup: creates a user and logs them in, then redirects to index."""
     if request.user.is_authenticated:
         return redirect("index")
-
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -154,5 +155,4 @@ def signup(request: HttpRequest) -> HttpResponse:
             return redirect("index")
     else:
         form = UserCreationForm()
-
     return render(request, "registration/signup.html", {"form": form})

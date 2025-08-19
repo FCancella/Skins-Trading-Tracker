@@ -12,24 +12,22 @@
         <div class="card-body">
           <div class="row text-center">
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Total Items</div>
-              <div class="val">{{ summary.total_items_value|currency_brl }}</div>
-              <small class="text-muted-2">{{ summary.total_items_amnt }}</small>
+              <div class="lbl">Custo Total</div>
+              <div class="val">{{ summary.cost_basis|currency_brl }}</div>
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Open</div>
-              <div class="val">{{ summary.open_positions_value|currency_brl }}</div>
-              <small class="text-muted-2">{{ summary.open_positions_amnt }}</small>
+              <div class="lbl">MTM</div>
+              <div class="val">{{ summary.mtm_value|currency_brl }}</div>
+              <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Closed</div>
-              <div class="val">{{ summary.closed_positions_value|currency_brl }}</div>
-              <small class="text-muted-2">{{ summary.closed_positions_amnt }}</small>
+              <div class="lbl">PnL Realizado</div>
+              <div class="val">{{ summary.realized_pnl_value|currency_brl }}</div>
+              <small class="text-muted-2">ROI: {{ summary.roi_percent|pct }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Realized PnL</div>
-              <div class="val">{{ summary.total_realized_pnl|currency_brl }}</div>
-              <small class="text-muted-2">{{ summary.total_realized_pnl_pct|pct }}</small>
+              <div class="lbl">PnL Médio (Vendas)</div>
+              <div class="val">{{ summary.average_pnl_percent|pct }}</div>
             </div>
           </div>
         </div>
