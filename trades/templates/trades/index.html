@@ -4,7 +4,6 @@
 {% load static %}
 
 {% block content %}
-  <!-- Summary -->
   <div class="row g-3">
     <div class="col-12">
       <div class="card">
@@ -13,30 +12,23 @@
           <div class="row text-center">
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Total Items</div>
-              <!-- grande: R$ -->
               <div class="val">{{ summary.total_items_value|currency_brl }}</div>
-              <!-- pequeno: Amnt -->
               <small class="text-muted-2">{{ summary.total_items_amnt }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Open</div>
               <!-- grande: R$ -->
               <div class="val">{{ summary.open_positions_value|currency_brl }}</div>
-              <!-- pequeno: Amnt -->
               <small class="text-muted-2">{{ summary.open_positions_amnt }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Closed</div>
-              <!-- grande: R$ -->
               <div class="val">{{ summary.closed_positions_value|currency_brl }}</div>
-              <!-- pequeno: Amnt -->
               <small class="text-muted-2">{{ summary.closed_positions_amnt }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Realized PnL</div>
-              <!-- grande: R$ -->
               <div class="val">{{ summary.total_realized_pnl|currency_brl }}</div>
-              <!-- pequeno: % -->
               <small class="text-muted-2">{{ summary.total_realized_pnl_pct|pct }}</small>
             </div>
           </div>
@@ -44,7 +36,15 @@
       </div>
     </div>
 
-    <!-- Add Item -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">Realized PnL over time</div>
+        <div class="card-body">
+          <canvas id="pnlChart" style="height:200px; max-height:300px;"></canvas>
+        </div>
+      </div>
+    </div>
+
     <div class="col-12">
       <div class="card">
         <div class="card-header">Add Item</div>
@@ -200,4 +200,44 @@
       </div>
     </div>
   </div>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+      // Get data from Django context
+    const pnlData = {{ pnl_data|safe }};
+
+    // Extract labels (dates) and values (daily_pnl)
+    const labels = pnlData.map(item => item.date);
+    const values = pnlData.map(item => item.pnl);
+
+    const ctx = document.getElementById('pnlChart').getContext('2d');
+    const pnlChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Daily PnL (R$)',
+          data: values,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.3,   // smooth curve
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+          }
+        },
+      }
+    });
+</script>
+
 {% endblock %}

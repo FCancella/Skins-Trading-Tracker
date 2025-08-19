@@ -62,6 +62,27 @@ def index(request: HttpRequest) -> HttpResponse:
         pnl_sum=Sum(F("sell_price") - F("buy_price"))
     )["pnl_sum"] or 0.0
 
+    # Calculate daily PnL for the graph, then a running total
+    daily_pnl = list(
+        closed_qs
+        .values(date=F('date_sold'))
+        .annotate(daily_pnl=Sum(F('sell_price') - F('buy_price')))
+        .order_by('date')
+    )
+    
+    # Calculate accumulated PnL
+    accumulated_pnl = 0.0
+    pnl_data = []
+    for pnl in daily_pnl:
+        pnl['daily_pnl'] = float(pnl['daily_pnl'])
+        pnl['date'] = pnl['date'].strftime("%Y-%m-%d")  # convert date to string
+
+        accumulated_pnl += pnl['daily_pnl']
+        pnl_data.append({
+            'date': pnl['date'],
+            'pnl': accumulated_pnl,
+        })
+
     # Attach a SellTradeForm to each trade that is still open; the template can
     # access it as `trade.sell_form` (instead of indexing a dict), fixing the
     # previous TemplateSyntaxError.
@@ -91,7 +112,9 @@ def index(request: HttpRequest) -> HttpResponse:
         "trades": trades,
         "add_form": add_form,
         "summary": summary,
+        "pnl_data": pnl_data,
     }
+    print(pnl_data)
     return render(request, "trades/index.html", context)
 
 def signup(request: HttpRequest) -> HttpResponse:
