@@ -105,7 +105,7 @@ def index(request: HttpRequest) -> HttpResponse:
         "roi_percent": float(roi_percent)
     }
 
-    # --- Chart Data (sem alterações) ---
+    # --- Chart Data ---
     daily_pnl = list(
         closed_qs
         .values(date=F('date_sold'))
@@ -123,9 +123,10 @@ def index(request: HttpRequest) -> HttpResponse:
             'pnl': accumulated_pnl,
         })
 
-    # --- Form preparation (sem alterações) ---
+    # --- Form preparation ---
     for t in trades:
         t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days >= 7)
+        t.days_until_stale = 7 - (today - t.date_of_purchase).days
         if t.sell_price is None:
             t.edit_form = SellTradeForm(instance=t)
         else:

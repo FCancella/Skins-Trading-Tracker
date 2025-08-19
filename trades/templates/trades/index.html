@@ -109,9 +109,12 @@
               <td>{% if trade.sell_source %}{{ trade.get_sell_source_display }}{% endif %}</td>
               <td>
                 {% if trade.is_stale_purchase %}
-                <span class="cell-stale">{{ trade.date_of_purchase|date:"d/m/Y" }}</span>
+                  <span class="cell-stale">{{ trade.date_of_purchase|date:"d/m/Y" }}</span>
                 {% else %}
-                {{ trade.date_of_purchase|date:"d/m/Y" }}
+                  {{ trade.date_of_purchase|date:"d/m/Y" }}
+                  {% if trade.days_until_stale is not None %}
+                    <small class="text-muted-2 fs-7">{{ trade.days_until_stale }}d</small>
+                  {% endif %}
                 {% endif %}
               </td>
               <td>{% if trade.date_sold %}{{ trade.date_sold|date:"d/m/Y" }}{% endif %}</td>
