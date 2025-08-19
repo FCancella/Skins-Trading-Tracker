@@ -31,12 +31,18 @@ body{
   border:1px solid var(--border);
   border-radius:16px;
   box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  overflow: hidden; /* <-- ADICIONE ESTA LINHA */
 }
 .card-header{
   background: linear-gradient(90deg, rgba(122,43,246,.25), rgba(255,78,205,.18));
   border-bottom:1px solid var(--border);
   color:#fff;
   font-weight:600;
+  transition: border-radius 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.card-header.collapsible {
+    cursor: pointer;
 }
 
 /* Summary tiles */
@@ -165,4 +171,33 @@ button.badge.status-closed:disabled{
   color: #ffd6f1;                                 /* texto rosado */
   border-radius: 8px;
   padding: .2rem .4rem;                           /* espaço interno */
+}
+
+
+/* --- ÍCONE DE COLAPSO --- */
+.card-header.collapsible::after {
+    float: right;
+    font-family: 'Arial', sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Estado quando minimizado: mostra seta para a direita */
+.card-header.collapsible[aria-expanded="false"]::after {
+  opacity: 0.6;
+  content: '▾';
+  transform: rotate(-90deg); /* Estado inicial */
+}
+
+/* Estado quando expandido: mostra seta para baixo */
+.card-header.collapsible[aria-expanded="true"]::after {
+  opacity: 0.1;
+  content: '▾';
+  transform: rotate(0deg); /* Estado inicial */
+}
+
+/* Ajusta o card-header quando o card está minimizado */
+.card-header.collapsible[aria-expanded="false"] {
+    border-bottom-color: transparent;
 }
