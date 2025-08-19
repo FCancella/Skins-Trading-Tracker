@@ -83,10 +83,7 @@ def index(request: HttpRequest) -> HttpResponse:
     # 4. MTM (Mark to Market)
     mtm_value = Decimal('0.0')
     for trade in trades:
-        if trade.sell_price is not None:
-            mtm_value += trade.sell_price
-        else:
-            # Estima o valor do item aberto usando o PnL médio dos itens fechados
+        if trade.sell_price is None:
             mtm_value += (trade.buy_price * ((average_pnl_factor-1) * Decimal(0.7)+1))
 
     # Outras métricas
