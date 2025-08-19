@@ -87,7 +87,7 @@ def index(request: HttpRequest) -> HttpResponse:
             mtm_value += trade.sell_price
         else:
             # Estima o valor do item aberto usando o PnL médio dos itens fechados
-            mtm_value += trade.buy_price * (average_pnl_factor * Decimal(0.8))
+            mtm_value += (trade.buy_price * ((average_pnl_factor-1) * Decimal(0.7)+1))
 
     # Outras métricas
     total_investment = investments.aggregate(total=Coalesce(Sum("amount"), Value(Decimal('0.0'))))["total"]
