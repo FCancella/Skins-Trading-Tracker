@@ -99,26 +99,17 @@
               <tr>
                 <td class="fw-medium">{{ trade.item_name }}</td>
                 <td>{{ trade.buy_price|currency_brl }}</td>
-
-                <td>
-                  {% if trade.sell_price %}
-                    {{ trade.sell_price|currency_brl }}
-                  {% else %}
-                    — 
-                  {% endif %}
-                </td>
-
+                <td>{% if trade.sell_price %}{{ trade.sell_price|currency_brl }}{% else %}—{% endif %}</td>
                 <td>{{ trade.get_buy_source_display }}</td>
                 <td>{% if trade.sell_source %}{{ trade.get_sell_source_display }}{% endif %}</td>
                 <td>
-                  {% if trade.is_stale_purchase and not trade.sell_price %}
+                  {% if trade.is_stale_purchase %}
                     <span class="cell-stale">{{ trade.date_of_purchase|date:"d/m/Y" }}</span>
                   {% else %}
                     {{ trade.date_of_purchase|date:"d/m/Y" }}
                   {% endif %}
                 </td>
                 <td>{% if trade.date_sold %}{{ trade.date_sold|date:"d/m/Y" }}{% endif %}</td>
-
                 <td>
                   {% if trade.pnl_value is not None %}
                   <div class="d-flex flex-column">
@@ -131,60 +122,94 @@
                     —
                   {% endif %}
                 </td>
-
                 <td>
-                  {% if trade.sell_price %}
-                    <span class="badge status-closed">Closed</span>
-                  {% else %}
-                    <button type="button"
-                            class="badge status-closed badge-button"
-                            data-bs-toggle="modal"
-                            data-bs-target="#sellModal-{{ trade.id }}">
-                      Edit
-                    </button>
-                  {% endif %}
+                  <button type="button"
+                          class="badge status-{{ trade.sell_price|yesno:'closed,open' }} badge-button"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editModal-{{ trade.id }}">
+                    {{ trade.sell_price|yesno:'Closed,Open' }}
+                  </button>
                 </td>
               </tr>
 
-              {% if not trade.sell_price %}
-                <div class="modal fade" id="sellModal-{{ trade.id }}" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content modal-dark">
-                      <div class="modal-header">
-                        <h5 class="modal-title">{{ trade.item_name }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-
+              <div class="modal fade" id="editModal-{{ trade.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content modal-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Edit: {{ trade.item_name }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    {% if trade.sell_price is None %}
                       <form method="post" action="{% url 'index' %}">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="sell">
                         <input type="hidden" name="trade_id" value="{{ trade.id }}">
-
                         <div class="modal-body">
                           <div class="mb-3">
                             <label class="form-label">Sell Price</label>
-                            {{ trade.sell_form.sell_price|add_class:"form-control"}}
+                            {{ trade.edit_form.sell_price|add_class:"form-control"}}
                           </div>
                           <div class="mb-3">
                             <label class="form-label">Sell Source</label>
-                            {{ trade.sell_form.sell_source|add_class:"form-select"}}
+                            {{ trade.edit_form.sell_source|add_class:"form-select"}}
                           </div>
                           <div class="mb-3">
                             <label class="form-label">Sold Date</label>
-                            {{ trade.sell_form.date_sold|add_class:"form-control"}}
+                            {{ trade.edit_form.date_sold|add_class:"form-control"}}
                           </div>
                         </div>
-
                         <div class="modal-footer">
                           <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
                           <button type="submit" class="btn btn-primary">Save & Close</button>
                         </div>
                       </form>
-
-                    </div>
+                    {% else %}
+                      <form method="post" action="{% url 'index' %}" class="row g-3 m-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="trade_id" value="{{ trade.id }}">
+                        <div class="modal-body">
+                          <div class="row g-3">
+                            <div class="col-12">
+                              <label class="form-label">Item Name</label>
+                              {{ trade.edit_form.item_name }}
+                            </div>
+                            <div class="col-6">
+                              <label class="form-label">Buy Price</label>
+                              {{ trade.edit_form.buy_price }}
+                            </div>
+                            <div class="col-6">
+                              <label class="form-label">Buy Source</label>
+                              {{ trade.edit_form.buy_source }}
+                            </div>
+                            <div class="col-12">
+                               <label class="form-label">Date of Purchase</label>
+                               {{ trade.edit_form.date_of_purchase }}
+                            </div>
+                            <hr class="hr-soft"/>
+                            <div class="col-6">
+                              <label class="form-label">Sell Price</label>
+                              {{ trade.edit_form.sell_price }}
+                            </div>
+                            <div class="col-6">
+                              <label class="form-label">Sell Source</label>
+                              {{ trade.edit_form.sell_source }}
+                            </div>
+                             <div class="col-12">
+                               <label class="form-label">Date Sold</label>
+                               {{ trade.edit_form.date_sold }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                      </form>
+                    {% endif %}
                   </div>
                 </div>
-              {% endif %}
+              </div>
 
             {% empty %}
               <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>

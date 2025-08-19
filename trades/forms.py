@@ -21,26 +21,32 @@ from django.utils import timezone
 from .models import Trade, Investment
 
 class TradeForm(forms.ModelForm):
-    """Form for creating a new trade."""
+    """Form for creating or updating a trade."""
 
     class Meta:
         model = Trade
-        fields = ['item_name', 'buy_price', 'buy_source', 'date_of_purchase']
+        fields = [
+            'item_name', 'buy_price', 'buy_source', 'date_of_purchase',
+            'sell_price', 'sell_source', 'date_sold'
+        ]
         widgets = {
-            'date_of_purchase': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'date_of_purchase': forms.DateInput(attrs={'type': 'date'}),
+            'date_sold': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
-    
+
     def save(self, commit=True, owner=None):
         obj = super().save(commit=False)
-        if owner is None:
-            # fail fast to avoid orphan trades
-            raise ValueError("TradeForm.save(owner=...) is required to set Trade.owner")
-        obj.owner = owner
+        # Owner is required only when creating a new object
+        if owner and not obj.pk:
+            obj.owner = owner
+        elif not obj.owner:
+             raise ValueError("TradeForm needs an owner to be saved.")
+        
         if commit:
             obj.save()
         return obj

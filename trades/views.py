@@ -34,12 +34,22 @@ def index(request: HttpRequest) -> HttpResponse:
     # Handle updating an existing trade's sell details
     elif request.method == "POST" and request.POST.get("action") == "sell":
         trade_id = request.POST.get("trade_id")
-        trade = Trade.objects.get(pk=trade_id)
+        trade = Trade.objects.get(pk=trade_id, owner=request.user)
         form = SellTradeForm(request.POST, instance=trade)
         if form.is_valid():
             form.save()
             return redirect("index")
-    
+
+    # Handle editing an existing trade
+    elif request.method == "POST" and request.POST.get("action") == "edit":
+        trade_id = request.POST.get("trade_id")
+        trade = Trade.objects.get(pk=trade_id, owner=request.user)
+        form = TradeForm(request.POST, instance=trade)
+        if form.is_valid():
+            # The owner is already set on the instance, so we don't need to pass it to save()
+            form.save(owner=request.user)
+            return redirect("index")
+
     # Handle adding a new investment
     elif request.method == "POST" and request.POST.get("action") == "invest":
         investment_form = InvestmentForm(request.POST)
@@ -83,6 +93,7 @@ def index(request: HttpRequest) -> HttpResponse:
     accumulated_pnl = 0.0
     pnl_data = []
     for pnl in daily_pnl:
+        if pnl['date'] is None: continue
         pnl['daily_pnl'] = float(pnl['daily_pnl'])
         pnl['date'] = pnl['date'].strftime("%Y-%m-%d")  # convert date to string
 
@@ -92,16 +103,17 @@ def index(request: HttpRequest) -> HttpResponse:
             'pnl': accumulated_pnl,
         })
 
-    # Attach a SellTradeForm to each trade that is still open; the template can
-    # access it as `trade.sell_form` (instead of indexing a dict), fixing the
-    # previous TemplateSyntaxError.
+    # Attach the correct form for each trade, and set the stale purchase flag.
     for t in trades:
+        t.is_stale_purchase = bool(t.date_of_purchase and
+                                   (today - t.date_of_purchase).days >= 7 and
+                                   t.sell_price is None)
         if t.sell_price is None:
-            t.sell_form = SellTradeForm(instance=t)
-            t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days >= 7)
+            # For open trades, attach the sell form
+            t.edit_form = SellTradeForm(instance=t)
         else:
-            t.sell_form = None
-            t.is_stale_purchase = False
+            # For closed trades, attach the full trade form
+            t.edit_form = TradeForm(instance=t)
     
     summary = {
         "total_items_amnt": trades.count(),
@@ -113,7 +125,7 @@ def index(request: HttpRequest) -> HttpResponse:
         "total_realized_pnl": float(realized_pnl_value),
         "total_realized_pnl_pct": float(realized_pnl_value) / float(total_items_value) * 100 if total_items_value else 0,
         "total_investment": float(total_investment)
-}
+    }
 
     # Prepare the add form (blank)
     add_form = TradeForm()
