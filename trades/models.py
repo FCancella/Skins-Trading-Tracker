@@ -8,7 +8,6 @@ timestamp fields to record when the trade was entered and when it was
 completed. Convenience properties are provided to calculate the profit
 or loss and holding duration.
 """
-from __future__ import annotations
 
 from decimal import Decimal
 
@@ -60,3 +59,20 @@ class Trade(models.Model):
         if self.sell_price is None or not self.buy_price:
             return None
         return (self.pnl_value / self.buy_price) * Decimal("100")
+
+class Investment(models.Model):
+    """Represents a single investment/contribution made by a user."""
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="investments"
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=255)
+    date = models.DateField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.amount} on {self.date}"

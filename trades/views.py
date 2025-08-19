@@ -17,8 +17,8 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import SellTradeForm, TradeForm
-from .models import Trade
+from .forms import SellTradeForm, TradeForm, InvestmentForm
+from .models import Trade, Investment
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
@@ -39,9 +39,17 @@ def index(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             form.save()
             return redirect("index")
+    
+    # Handle adding a new investment
+    elif request.method == "POST" and request.POST.get("action") == "invest":
+        investment_form = InvestmentForm(request.POST)
+        if investment_form.is_valid():
+            investment_form.save(owner=request.user)
+            return redirect("index")
 
     # GET request – render the page
     trades = Trade.objects.filter(owner=request.user).order_by("-date_of_purchase")
+    investments = Investment.objects.filter(owner=request.user)
 
     today = timezone.localdate()
 
@@ -52,6 +60,7 @@ def index(request: HttpRequest) -> HttpResponse:
     agg_total = trades.aggregate(buy_sum=Sum("buy_price"))
     agg_open = open_qs.aggregate(buy_sum=Sum("buy_price"))
     agg_closed = closed_qs.aggregate(sell_sum=Sum("sell_price"))
+    total_investment = investments.aggregate(total=Sum("amount"))["total"] or 0.0
 
     total_items_value = agg_total["buy_sum"] or 0.0
     open_positions_value = agg_open["buy_sum"] or 0.0
@@ -103,18 +112,21 @@ def index(request: HttpRequest) -> HttpResponse:
         "closed_positions_value": float(closed_positions_value),
         "total_realized_pnl": float(realized_pnl_value),
         "total_realized_pnl_pct": float(realized_pnl_value) / float(total_items_value) * 100 if total_items_value else 0,
+        "total_investment": float(total_investment)
 }
 
     # Prepare the add form (blank)
     add_form = TradeForm()
+    investment_form = InvestmentForm()
 
     context = {
         "trades": trades,
+        "investments": investments,
         "add_form": add_form,
+        "investment_form": investment_form,
         "summary": summary,
         "pnl_data": pnl_data,
     }
-    print(pnl_data)
     return render(request, "trades/index.html", context)
 
 def signup(request: HttpRequest) -> HttpResponse:

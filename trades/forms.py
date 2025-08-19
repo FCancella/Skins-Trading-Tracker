@@ -18,8 +18,7 @@ from __future__ import annotations
 from django import forms
 from django.utils import timezone
 
-from .models import Trade
-
+from .models import Trade, Investment
 
 class TradeForm(forms.ModelForm):
     """Form for creating a new trade."""
@@ -64,3 +63,27 @@ class SellTradeForm(forms.ModelForm):
             self.initial.setdefault('date_sold', timezone.now().date())
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
+
+class InvestmentForm(forms.ModelForm):
+    """Form for creating a new investment."""
+
+    class Meta:
+        model = Investment
+        fields = ['amount', 'description', 'date']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.setdefault('class', 'form-control')
+
+    def save(self, commit=True, owner=None):
+        obj = super().save(commit=False)
+        if owner is None:
+            raise ValueError("InvestmentForm.save(owner=...) is required to set Investment.owner")
+        obj.owner = owner
+        if commit:
+            obj.save()
+        return obj
