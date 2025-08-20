@@ -125,11 +125,13 @@ def index(request: HttpRequest) -> HttpResponse:
         t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days >= 7)
         
         t.days_until_stale = 7 - (today - t.date_of_purchase).days
-        t.days_until_stale = None if t.days_until_stale < 0 else t.days_until_stale
+        if t.days_until_stale < 0:
+            t.days_until_stale = None
 
         t.days_until_payment = 7 - (today - t.date_sold).days if t.date_sold else None
-        t.days_until_payment = None if t.days_until_payment < 0 else t.days_until_payment
-        
+        if t.days_until_payment and t.days_until_payment < 0:
+            t.days_until_payment = None
+
         if t.sell_price is None:
             t.edit_form = SellTradeForm(instance=t)
         else:
