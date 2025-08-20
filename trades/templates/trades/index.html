@@ -115,9 +115,13 @@
                   {% if trade.days_until_stale is not None %}
                     <small class="text-muted-2 fs-7">{{ trade.days_until_stale }}d</small>
                   {% endif %}
-                {% endif %}
-              </td>
-              <td>{% if trade.date_sold %}{{ trade.date_sold|date:"d/m/Y" }}{% endif %}</td>
+                  {% endif %}
+                </td>
+                <td>{% if trade.date_sold %}{{ trade.date_sold|date:"d/m/Y" }}{% endif %}
+                  {% if trade.days_until_payment is not None %}
+                    <small class="text-muted-2 fs-7">{{ trade.days_until_payment }}d</small>
+                  {% endif %}
+                </td>
               <td>
                 {% if trade.pnl_value is not None %}
                 <div class="d-flex flex-column">
