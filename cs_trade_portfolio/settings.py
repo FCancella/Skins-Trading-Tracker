@@ -20,16 +20,22 @@ from pathlib import Path
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY: str = 'replace-this-with-a-secure-key-for-production'
-
+SECRET_KEY: str = os.environ.get('SECRET_KEY', 'replace-this-with-a-secure-key-for-production')
+print("\n"*10)
+print(f"SECRET_KEY: {SECRET_KEY}")
+print("\n"*10)
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG: bool = True
+DEBUG: bool = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS: list[str] = ['*']
+# ALLOWED_HOSTS deve ser configurado via variável de ambiente
+ALLOWED_HOSTS_str: str = os.environ.get('DJANGO_ALLOWED_HOSTS', '*')
+ALLOWED_HOSTS: list[str] = ALLOWED_HOSTS_str.split(',') if ALLOWED_HOSTS_str else []
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.trycloudflare.com",
-]
+print("\n"*10)
+print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
+print("\n"*10)
+
+# CSRF_TRUSTED_ORIGINS = []
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "index"
@@ -80,18 +86,19 @@ WSGI_APPLICATION: str = 'cs_trade_portfolio.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES: dict[str, dict[str, str]] = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        # Fallback para o SQLite se DATABASE_URL não estiver definida
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='postgresql://postgres:postgres@localhost:5432/cs_trade_portfolio',
-#         conn_max_age=600
-#     )
+# DATABASES: dict[str, dict[str, str]] = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
 
 # Password validation
