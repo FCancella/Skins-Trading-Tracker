@@ -16,10 +16,17 @@ Including another URLconf
 """
 from __future__ import annotations
 
-from django.contrib import admin
+from trades import views as trade_views
 from django.urls import include, path
 
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#     path('', include('trades.urls')),
+# ]
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('trades.urls')),
+    # A linha do admin foi removida daqui
+    path("", trade_views.index, name="index"),
+    path("accounts/", include("django.contrib.auth.urls")),  # login, logout, password views
+    path("signup/", trade_views.signup, name="signup"),
 ]

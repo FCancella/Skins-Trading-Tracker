@@ -1,41 +1,53 @@
-# Estágio 1: Base com dependências de build
-FROM python:3.11-slim as base
+# Estágio 1: Builder - Instala dependências
+FROM python:3.11-slim as builder
 
-# Define o diretório de trabalho
 WORKDIR /app
 
-# Copia o arquivo de dependências primeiro para aproveitar o cache do Docker
+# Variáveis de ambiente para otimizar a instalação do pip
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Instala dependências do sistema para compilar psycopg2
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copia e instala dependências Python
 COPY requirements.txt .
-
-# Instala as dependências do sistema necessárias para compilar psycopg2
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Instala as dependências Python
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 
-# Estágio 2: Imagem final de produção
+# Estágio 2: Final - Imagem de produção
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copia as dependências instaladas do estágio anterior
-COPY --from=base /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=base /usr/local/bin /usr/local/bin
+# Instala apenas as dependências de runtime
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Cria um usuário não-root para segurança
-RUN useradd --create-home --shell /bin/bash appuser
-USER appuser
+RUN addgroup --system app && adduser --system --group app
 
-# Copia o código da aplicação
+# Copia as dependências pré-compiladas do estágio builder
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+RUN pip install --no-cache /wheels/*
+
+# Copia os arquivos da aplicação e o entrypoint
 COPY . .
+COPY ./entrypoint.sh /entrypoint.sh
 
-# Expõe a porta que o Gunicorn vai usar
-EXPOSE 8000
+# Torna o entrypoint executável (ainda como root)
+RUN chmod +x /entrypoint.sh
 
-# O comando do docker-compose.yml vai rodar as migrações e iniciar o servidor.
-# Este CMD serve como um padrão caso o container seja executado sem um comando específico.
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "cs_trade_portfolio.wsgi:application"]
+# Altera a propriedade de todos os arquivos para o usuário 'app'
+RUN chown -R app:app /app
+RUN chown app:app /entrypoint.sh
+
+# Muda para o usuário não-root
+USER app
+
+# Define o script de inicialização como entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

@@ -14,28 +14,25 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from __future__ import annotations
 
 import os
-import dj_database_url 
+import dj_database_url
 from pathlib import Path
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY: str = os.environ.get('SECRET_KEY', 'replace-this-with-a-secure-key-for-production')
-print("\n"*10)
-print(f"SECRET_KEY: {SECRET_KEY}")
-print("\n"*10)
-# SECURITY WARNING: don't run with debug turned on in production!
+# Carregue a chave secreta de uma variável de ambiente.
+SECRET_KEY: str = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-dev')
+
+# ATENÇÃO: DEBUG deve ser False em produção!
 DEBUG: bool = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# ALLOWED_HOSTS deve ser configurado via variável de ambiente
-ALLOWED_HOSTS_str: str = os.environ.get('DJANGO_ALLOWED_HOSTS', '*')
+# Carregue os hosts permitidos de uma variável de ambiente.
+ALLOWED_HOSTS_str: str = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
 ALLOWED_HOSTS: list[str] = ALLOWED_HOSTS_str.split(',') if ALLOWED_HOSTS_str else []
 
-print("\n"*10)
-print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
-print("\n"*10)
+# Carregue as origens confiáveis para CSRF (essencial para proxy reverso com Nginx)
+CSRF_TRUSTED_ORIGINS_str = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS: list[str] = CSRF_TRUSTED_ORIGINS_str.split(',') if CSRF_TRUSTED_ORIGINS_str else []
 
-# CSRF_TRUSTED_ORIGINS = []
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "index"
@@ -55,7 +52,7 @@ INSTALLED_APPS: list[str] = [
 
 MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,18 +85,11 @@ WSGI_APPLICATION: str = 'cs_trade_portfolio.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
     'default': dj_database_url.config(
-        # Fallback para o SQLite se DATABASE_URL não estiver definida
+        # A variável DATABASE_URL será lida do arquivo .env
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
         conn_max_age=600,
-        conn_health_checks=True,
     )
 }
-# DATABASES: dict[str, dict[str, str]] = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -134,13 +124,10 @@ USE_TZ: bool = True
 
 STATIC_URL: str = '/static/'
 STATICFILES_DIRS: list[Path] = [BASE_DIR / 'static']
-
-#if not DEBUG:
-# Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
-# and renames the files with unique names for each version to support long-term caching
+# O Nginx servirá os arquivos estáticos, mas o WhiteNoise ainda é útil para compressão
+# e pode servir como fallback.
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
