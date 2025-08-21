@@ -1,0 +1,136 @@
+{% load currency %}
+{% load form_extras %}
+
+<div class="row g-3 mt-1">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="true" aria-controls="collapseSummary">Summary</div>
+      <div class="collapse show" id="collapseSummary">
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">Custo Total</div>
+              <div class="val">{{ summary.cost_basis|currency_brl }}</div>
+            </div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">MTM</div>
+              <div class="val">{{ summary.mtm_value|currency_brl }}</div>
+              <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small>
+            </div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">PnL Realizado</div>
+              <div class="val">{{ summary.realized_pnl_value|currency_brl }}</div>
+              <small class="text-muted-2">ROI: {{ summary.roi_percent|pct }}</small>
+            </div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">PnL Médio (Vendas)</div>
+              <div class="val">{{ summary.average_pnl_percent|pct }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">Realized PnL over time</div>
+      <div class="collapse" id="collapseChart">
+        <div class="card-body">
+          <canvas id="pnlChart" style="height:200px; max-height:300px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if not is_spectator %}
+    {% include 'trades/add_forms.html' %}
+  {% endif %}
+</div>
+
+<div class="card mt-4">
+  <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapsePortfolio" aria-expanded="true" aria-controls="collapsePortfolio">Portfolio</div>
+  <div class="collapse show" id="collapsePortfolio">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Item</th> <th>Buy Price</th> <th>Sell Price</th> <th>Buy Source</th>
+              <th>Sell Source</th> <th>Purchase Date</th> <th>Sold Date</th> <th>PnL</th> <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trade in trades %}
+            <tr>
+              <td class="fw-medium">{{ trade.item_name }}</td>
+              <td>{{ trade.buy_price|currency_brl }}</td>
+              <td>{{ trade.sell_price|currency_brl|default:"—" }}</td>
+              <td>{{ trade.get_buy_source_display }}</td>
+              <td>{{ trade.get_sell_source_display|default:"" }}</td>
+              <td>
+                {% if trade.is_stale_purchase %}
+                  <span class="cell-stale">{{ trade.date_of_purchase|date:"d/m/Y" }}</span>
+                {% else %}
+                  {{ trade.date_of_purchase|date:"d/m/Y" }}
+                  {% if trade.days_until_stale is not None %}<small class="text-muted-2 fs-7">{{ trade.days_until_stale }}d</small>{% endif %}
+                {% endif %}
+              </td>
+              <td>
+                {% if trade.date_sold %}
+                  {{ trade.date_sold|date:"d/m/Y" }}
+                  {% if trade.days_until_payment is not None %}<small class="text-muted-2 fs-7">{{ trade.days_until_payment }}d</small>{% endif %}
+                {% endif %}
+              </td>
+              <td>
+                {% if trade.pnl_value is not None %}
+                <span class="fw-semibold">{{ trade.pnl_value|currency_brl }} <small class="text-muted-2 fs-7">({{ trade.pnl_percent|pct }})</small></span>
+                {% else %} — {% endif %}
+              </td>
+              <td>
+                <button type="button" class="badge status-{{ trade.sell_price|yesno:'closed,open' }} badge-button" 
+                  {% if not is_spectator %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
+                  {{ trade.sell_price|yesno:'Closed,Open' }}
+                </button>
+              </td>
+            </tr>
+            {% if not is_spectator %}
+              {% include 'trades/edit_modal.html' with trade=trade %}
+            {% endif %}
+            {% empty %}
+            <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if not is_spectator %}
+<div class="card mt-4">
+    {% include 'trades/investment_section.html' %}
+</div>
+{% endif %}
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const pnlData = {{ pnl_data|safe }};
+    if (pnlData && pnlData.length > 0) {
+      const labels = pnlData.map(item => item.date);
+      const values = pnlData.map(item => item.pnl);
+      const ctx = document.getElementById('pnlChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: { labels: labels, datasets: [{
+          label: 'Accumulated PnL (R$)', data: values,
+          borderColor: 'rgba(122, 43, 246, 0.8)', backgroundColor: 'rgba(122, 43, 246, 0.2)',
+          tension: 0.3, fill: true,
+        }]},
+        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false }}}
+      });
+    }
+  });
+</script>

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from .models import Trade, Investment
+from .models import Trade, Investment, Profile
 
 
 @admin.register(Trade)
@@ -38,3 +38,10 @@ class InvestmentAdmin(admin.ModelAdmin):
     list_display = ('owner', 'amount', 'description', 'date')
     list_filter = ('owner', 'date')
     search_fields = ('description',)
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    """Admin view for Profiles."""
+    list_display = ('user', 'is_public')
+    list_filter = ('is_public',)
+    search_fields = ('user__username',)

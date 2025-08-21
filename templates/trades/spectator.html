@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load currency %}
+{% load static %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        Modo Espectador
+      </div>
+      <div class="card-body">
+        <form method="get" action="{% url 'spectator' %}">
+          <div class="input-group">
+            <select class="form-select" name="user_id" onchange="this.form.submit()">
+              <option value="">Selecione um usuário para espectar...</option>
+              {% for user in public_users %}
+                <option value="{{ user.id }}" {% if selected_user and selected_user.id == user.id %}selected{% endif %}>{{ user.username }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit">Ver Portfólio</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if selected_user %}
+    <div class="col-12">
+      <h3 class="mt-4">Portfólio de: <span class="text-primary">{{ selected_user.username }}</span></h3>
+      
+      {% include 'trades/portfolio_content.html' with is_spectator=True %}
+    </div>
+  
+  {% elif request.GET.user_id %}
+    <div class="col-12 mt-3">
+        <div class="alert alert-warning">Usuário não encontrado ou o perfil não é público.</div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

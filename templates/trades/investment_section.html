@@ -1,0 +1,34 @@
+{% load currency %}
+
+<div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseInvestments" aria-expanded="false" aria-controls="collapseInvestments">Investments</div>
+<div class="collapse" id="collapseInvestments">
+  <div class="card-body">
+    <h5 class="mb-3">Add Investment</h5>
+    <form method="post" action="{% url 'index' %}" class="row g-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="invest">
+      <div class="col-md-3"><label class="form-label">Amount</label>{{ investment_form.amount }}</div>
+      <div class="col-md-6"><label class="form-label">Description</label>{{ investment_form.description }}</div>
+      <div class="col-md-3"><label class="form-label">Date</label>{{ investment_form.date }}</div>
+      <div class="col-12"><button type="submit" class="btn btn-primary w-100">Add Investment</button></div>
+    </form>
+    <hr class="hr-soft my-4">
+    <h5 class="mb-3">History</h5>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Date</th><th>Amount</th><th>Description</th></tr></thead>
+        <tbody>
+          {% for investment in investments %}
+          <tr>
+            <td>{{ investment.date|date:"d/m/Y" }}</td>
+            <td>{{ investment.amount|currency_brl }}</td>
+            <td>{{ investment.description }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted-2">No investments yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
