@@ -1,5 +1,4 @@
 services:
-  # Serviço do Banco de Dados PostgreSQL
   db:
     image: postgres:15-alpine
     container_name: cstracker_db
@@ -9,12 +8,9 @@ services:
       - ./.env
     restart: unless-stopped
 
-  # Serviço da Aplicação Django com Gunicorn
   web:
     build: .
     container_name: cstracker_web
-    # O comando agora é executado pelo entrypoint.sh
-    command: gunicorn cs_trade_portfolio.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - static_volume:/app/staticfiles
     expose:
@@ -25,18 +21,30 @@ services:
       - db
     restart: unless-stopped
 
-  # Serviço do Servidor Web Nginx (Proxy Reverso)
   nginx:
     image: nginx:1.25-alpine
     container_name: cstracker_nginx
     ports:
-      - "80:80" # Expõe a porta 80 para o tráfego web
+      - "80:80"
+      - "443:443" # <-- ADICIONE A PORTA HTTPS
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/app/staticfiles
+      # Volumes compartilhados com o Certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     depends_on:
       - web
     restart: unless-stopped
+
+  # Serviço do Certbot para gerar certificados SSL
+  certbot:
+    image: certbot/certbot
+    container_name: cstracker_certbot
+    volumes:
+      # Volumes compartilhados com o Nginx
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
 
 volumes:
   postgres_data:
