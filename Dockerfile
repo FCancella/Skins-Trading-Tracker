@@ -38,16 +38,11 @@ RUN pip install --no-cache /wheels/*
 # Copia os arquivos da aplicação e o entrypoint
 COPY . .
 COPY ./entrypoint.sh /entrypoint.sh
+COPY ./wait_for_db.py /wait_for_db.py
 
-# Torna o entrypoint executável (ainda como root)
+# Torna o entrypoint executável
 RUN chmod +x /entrypoint.sh
+RUN chmod +x /wait_for_db.py
 
-# Altera a propriedade de todos os arquivos para o usuário 'app'
-RUN chown -R app:app /app
-RUN chown app:app /entrypoint.sh
-
-# Muda para o usuário não-root
-USER app
-
-# Define o script de inicialização como entrypoint
+# O entrypoint será executado como root por padrão
 ENTRYPOINT ["/entrypoint.sh"]
