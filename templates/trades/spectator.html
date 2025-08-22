@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="row g-3">
-  <div class="col-12">
+  <div class="d-flex justify-content-center">
     <div class="card">
       <div class="card-header">
         Modo Espectador
@@ -13,12 +13,11 @@
         <form method="get" action="{% url 'spectator' %}">
           <div class="input-group">
             <select class="form-select" name="user_id" onchange="this.form.submit()">
-              <option value="">Selecione um usuário para espectar...</option>
+              <option value="">Selecione um usuário</option>
               {% for user in public_users %}
-                <option value="{{ user.id }}" {% if selected_user and selected_user.id == user.id %}selected{% endif %}>{{ user.username }}</option>
+                <option value="{{ user.id }}" {% if selected_user and selected_user.id == user.id %}selected{% endif %}>{{ user.username|title }}</option>
               {% endfor %}
             </select>
-            <button class="btn btn-primary" type="submit">Ver Portfólio</button>
           </div>
         </form>
       </div>
@@ -27,8 +26,6 @@
 
   {% if selected_user %}
     <div class="col-12">
-      <h3 class="mt-4">Portfólio de: <span class="text-primary">{{ selected_user.username }}</span></h3>
-      
       {% include 'trades/portfolio_content.html' with is_spectator=True %}
     </div>
   

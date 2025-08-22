@@ -22,9 +22,11 @@ from django.contrib import admin
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("django.contrib.auth.urls")),  # login, logout, password views
+ 
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
     path("spectator/", trade_views.spectator, name="spectator"),
-    path("accounts/", include("django.contrib.auth.urls")),  # login, logout, password views
     path("signup/", trade_views.signup, name="signup"),
+    path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
 ]

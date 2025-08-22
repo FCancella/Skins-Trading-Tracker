@@ -212,6 +212,14 @@ def index(request: HttpRequest) -> HttpResponse:
     }
     return render(request, "trades/index.html", context)
 
+@login_required
+def toggle_profile_public(request: HttpRequest) -> HttpResponse:
+    if request.method == 'POST':
+        profile = request.user.profile
+        profile.is_public = request.POST.get('is_public') == 'on'
+        profile.save()
+    return redirect(request.META.get('HTTP_REFERER', 'index'))
+
 def signup(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return redirect("index")
