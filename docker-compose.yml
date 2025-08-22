@@ -4,6 +4,8 @@ services:
     container_name: cstracker_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
     env_file:
       - ./.env
     restart: unless-stopped
