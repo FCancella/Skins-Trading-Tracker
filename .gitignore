@@ -3,4 +3,3 @@ db.sqlite3
 .env
 certbot/
 staticfiles/
-deploy.sh
