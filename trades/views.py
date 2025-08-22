@@ -124,7 +124,7 @@ def index(request: HttpRequest) -> HttpResponse:
     closed_qs = trades.filter(sell_price__isnull=False)
 
     # 1. Custo (Cost Basis)
-    cost_basis = trades.aggregate(total=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))))['total']
+    cost_basis = open_qs.aggregate(total=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))))['total']
 
     # 2. PnL Realizado (Realized PnL)
     realized_pnl_value = closed_qs.aggregate(
@@ -148,8 +148,14 @@ def index(request: HttpRequest) -> HttpResponse:
         if trade.sell_price is None:
             mtm_value += (trade.buy_price * ((average_pnl_factor-1) * Decimal(0.7)+1))
 
-    # Outras métricas
+    # 5. Total Investment
     total_investment = investments.aggregate(total=Coalesce(Sum("amount"), Value(Decimal('0.0'))))["total"]
+    
+    # 6. Cash
+    cash = total_investment + realized_pnl_value - cost_basis
+
+    # 7. NAV (Net Asset Value)
+    nav = cash + mtm_value
     
     # PnL Total % (ROI sobre o investimento)
     roi_percent = (realized_pnl_value / total_investment * 100) if total_investment > 0 else Decimal('0.0')
@@ -161,7 +167,9 @@ def index(request: HttpRequest) -> HttpResponse:
         "realized_pnl_value": float(realized_pnl_value),
         "average_pnl_percent": float(average_pnl_percent),
         "mtm_value": float(mtm_value),
-        "roi_percent": float(roi_percent)
+        "roi_percent": float(roi_percent),
+        "cash": float(cash),
+        "nav": float(nav),
     }
 
     # --- Chart Data ---

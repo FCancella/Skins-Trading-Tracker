@@ -9,13 +9,14 @@
         <div class="card-body">
           <div class="row text-center">
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Custo Total</div>
-              <div class="val">{{ summary.cost_basis|currency_brl }}</div>
+              <div class="lbl">NAV</div>
+              <div class="val">{{ summary.nav|currency_brl }}</div>
+              <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">MTM</div>
               <div class="val">{{ summary.mtm_value|currency_brl }}</div>
-              <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small>
+              <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">PnL Realizado</div>
