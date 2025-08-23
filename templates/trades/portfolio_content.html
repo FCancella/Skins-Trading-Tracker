@@ -1,6 +1,47 @@
 {% load currency %}
 {% load form_extras %}
 
+<style>
+  /* Adiciona um cursor de ponteiro para indicar que os cabeçalhos são clicáveis */
+  .table th.sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Estilos para as setas de ordenação */
+  .table th.sortable::after,
+  .table th.sortable::before {
+    content: "";
+    position: absolute;
+    right: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .table th.sortable::before {
+    bottom: 50%;
+    margin-bottom: 1px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid;
+  }
+
+  .table th.sortable::after {
+    top: 50%;
+    margin-top: 1px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid;
+  }
+
+  /* Mostra a seta correta dependendo da direção da ordenação */
+  .table th.sort-asc::before,
+  .table th.sort-desc::after {
+    opacity: 1;
+  }
+</style>
+
 <div class="row g-3 mt-1">
   <div class="col-12">
     <div class="card">
@@ -54,11 +95,18 @@
   <div class="collapse show" id="collapsePortfolio">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-sm align-middle">
+        <table class="table table-sm align-middle" id="portfolioTable">
           <thead>
             <tr>
-              <th>Item</th> <th>Buy Price</th> <th>Sell Price</th> <th>Buy Source</th>
-              <th>Sell Source</th> <th>Buy Date</th> <th>Sell Date</th> <th>PnL</th> <th>Status</th>
+              <th class="sortable" data-sort-type="text">Item</th>
+              <th class="sortable" data-sort-type="currency">Buy Price</th>
+              <th class="sortable" data-sort-type="currency">Sell Price</th>
+              <th class="sortable" data-sort-type="text">Buy Source</th>
+              <th class="sortable" data-sort-type="text">Sell Source</th>
+              <th class="sortable" data-sort-type="date">Buy Date</th>
+              <th class="sortable" data-sort-type="date">Sell Date</th>
+              <th class="sortable" data-sort-type="currency">PnL</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -132,6 +180,69 @@
         }]},
         options: { responsive: true, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false }}}
       });
+    }
+
+    const portfolioTable = document.getElementById('portfolioTable');
+    const headers = portfolioTable.querySelectorAll('th.sortable');
+    let currentSort = { column: null, direction: 'asc' };
+
+    headers.forEach((header, index) => {
+      header.addEventListener('click', () => {
+        const sortType = header.dataset.sortType;
+        if (currentSort.column === index) {
+          currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSort.column = index;
+          currentSort.direction = 'asc';
+        }
+        sortTable(index, sortType, currentSort.direction);
+        updateHeaderStyles();
+      });
+    });
+
+    function updateHeaderStyles() {
+      headers.forEach((header, index) => {
+        header.classList.remove('sort-asc', 'sort-desc');
+        if (index === currentSort.column) {
+          header.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+      });
+    }
+
+    function parseValue(value, type) {
+        if (type === 'currency') {
+            if (value === '—') return -Infinity; // Trata valores vazios
+            return parseFloat(value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+        }
+        if (type === 'date') {
+            if (!value) return null;
+            const parts = value.trim().split(' ')[0].split('/');
+            if (parts.length === 3) {
+              return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            return null;
+        }
+        return value.toLowerCase();
+    }
+
+    function sortTable(columnIndex, sortType, direction) {
+      const tbody = portfolioTable.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      
+      const sortedRows = rows.sort((a, b) => {
+        const aVal = parseValue(a.cells[columnIndex].textContent, sortType);
+        const bVal = parseValue(b.cells[columnIndex].textContent, sortType);
+
+        if (aVal === null) return 1;
+        if (bVal === null) return -1;
+        
+        if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      tbody.innerHTML = '';
+      sortedRows.forEach(row => tbody.appendChild(row));
     }
   });
 </script>

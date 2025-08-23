@@ -136,6 +136,8 @@ def home(request: HttpRequest) -> HttpResponse:
 def observer(request: HttpRequest) -> HttpResponse:
     """Displays a list of public users and their portfolios."""
     public_users = User.objects.filter(profile__is_public=True)
+    if request.user.is_authenticated:
+        public_users = public_users.exclude(id=request.user.id)
     selected_user_id = request.GET.get("user_id")
     context = {"public_users": public_users, "selected_user": None}
 
