@@ -10,6 +10,7 @@ or loss and holding duration.
 """
 
 from decimal import Decimal
+from datetime import timedelta
 
 from django.db import models
 from django.conf import settings
@@ -82,6 +83,20 @@ class Trade(models.Model):
         if self.sell_price is None or not self.buy_price:
             return None
         return (self.pnl_value / self.buy_price) * Decimal("100")
+
+    @property
+    def days_until_tradable(self) -> bool:
+        if self.sell_date:
+            return False
+        total_days = 7 - (timezone.localdate() - self.buy_date).days
+        return total_days if total_days > 0 else None
+
+    @property
+    def days_until_payment(self) -> int | None:
+        if not self.sell_date:
+            return None
+        days_remaining = 8 - (timezone.localdate() - self.sell_date).days
+        return days_remaining if days_remaining > 0 else None
 
 class Investment(models.Model):
     """Represents a single investment/contribution made by a user."""

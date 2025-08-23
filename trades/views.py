@@ -24,6 +24,20 @@ from django.utils import timezone
 from .forms import SellTradeForm, TradeForm, InvestmentForm
 from .models import Trade, Investment
 
+def _convert_currency_to_brl(amount_str: str, currency: str) -> Decimal | None:
+    """Converte um valor de uma moeda estrangeira para BRL."""
+    if currency not in ["CNY", "USD"]:
+        return Decimal(amount_str)
+    
+    try:
+        response = requests.get(f"https://open.er-api.com/v6/latest/{currency}")
+        response.raise_for_status() # Lança um erro para status HTTP ruins
+        data = response.json()
+        rate = Decimal(data["rates"]["BRL"])
+        return round(Decimal(amount_str) * rate, 2)
+    except (requests.RequestException, KeyError, TypeError):
+        return None
+
 def _calculate_portfolio_metrics(user: User) -> dict:
     """
     Calcula as métricas de portfólio para um determinado usuário.
@@ -33,7 +47,6 @@ def _calculate_portfolio_metrics(user: User) -> dict:
     """
     trades = Trade.objects.filter(owner=user)
     investments = Investment.objects.filter(owner=user)
-    today = timezone.localdate()
 
     open_qs = trades.filter(sell_price__isnull=True)
     closed_qs = trades.filter(sell_price__isnull=False)
@@ -106,16 +119,6 @@ def _calculate_portfolio_metrics(user: User) -> dict:
 
     # --- Form preparation ---
     for t in trades:
-        t.is_stale_purchase = bool(t.buy_date and (today - t.buy_date).days >= 7) and t.sell_price is None
-        
-        t.days_until_stale = 7 - (today - t.buy_date).days
-        if t.days_until_stale <= 0:
-            t.days_until_stale = None
-
-        t.days_until_payment = 8 - (today - t.sell_date).days if t.sell_date else None
-        if t.days_until_payment and t.days_until_payment <= 0:
-            t.days_until_payment = None
-
         if t.sell_price is None:
             t.edit_form = SellTradeForm(instance=t)
         else:
@@ -156,23 +159,21 @@ def observer(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
-    """Serve the single-page app: summary, add form, and portfolio table."""
-
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "add":
-            add_form = TradeForm(request.POST)  
-            cur = request.POST.get("buy_price_currency")
-            if cur in ["CNY", "USD"]:
-                try:
-                    response = requests.get(f"https://open.er-api.com/v6/latest/{cur}")
-                    data = response.json()
-                    cur_brl_rate = Decimal(data.get("rates", {}).get("BRL"))
-                    buy_price = Decimal(request.POST.get("buy_price"))
-                    add_form.data = add_form.data.copy()
-                    add_form.data['buy_price'] = round(buy_price * cur_brl_rate, 2)
-                except (requests.RequestException, TypeError, KeyError):
-                    add_form.add_error(None, f"Could not get conversion rate from {cur} to BRL.")
+            add_form = TradeForm(request.POST)
+            price = request.POST.get("buy_price")
+            currency = request.POST.get("buy_price_currency")
+            
+            converted_price = _convert_currency_to_brl(price, currency)
+            if converted_price is None:
+                add_form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
+            else:
+                post_data = request.POST.copy()
+                post_data['buy_price'] = converted_price
+                add_form = TradeForm(post_data)
+
             if add_form.is_valid():
                 add_form.save(owner=request.user)
                 return redirect("index")
@@ -180,17 +181,18 @@ def index(request: HttpRequest) -> HttpResponse:
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
             form = SellTradeForm(request.POST, instance=trade)
-            cur = request.POST.get("sell_price_currency")
-            if cur in ["CNY", "USD"]:
-                try:
-                    response = requests.get(f"https://open.er-api.com/v6/latest/{cur}")
-                    data = response.json()
-                    cur_brl_rate = Decimal(data.get("rates", {}).get("BRL"))
-                    sell_price = Decimal(request.POST.get("sell_price"))
-                    form.data = form.data.copy()
-                    form.data['sell_price'] = round(sell_price * cur_brl_rate, 2)
-                except (requests.RequestException, TypeError, KeyError):
-                    form.add_error(None, f"Could not get conversion rate from {cur} to BRL.")
+            
+            price = request.POST.get("sell_price")
+            currency = request.POST.get("sell_price_currency")
+
+            converted_price = _convert_currency_to_brl(price, currency)
+            if converted_price is None:
+                form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
+            else:
+                post_data = request.POST.copy()
+                post_data['sell_price'] = converted_price
+                form = SellTradeForm(post_data, instance=trade)
+
             if form.is_valid():
                 form.save()
                 return redirect("index")

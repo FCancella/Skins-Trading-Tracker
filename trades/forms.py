@@ -20,12 +20,13 @@ from django.utils import timezone
 
 from .models import Trade, Investment
 
+CURRENCY_CHOICES = [
+    ('BRL', 'BRL'),
+    ('CNY', 'CNY'),
+    ('USD', 'USD'),
+]
+
 class TradeForm(forms.ModelForm):
-    CURRENCY_CHOICES = [
-        ('BRL', 'BRL'),
-        ('CNY', 'CNY'),
-        ('USD', 'USD'),
-    ]
     buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect)
 
     """Form for creating or updating a trade."""
@@ -60,11 +61,6 @@ class TradeForm(forms.ModelForm):
 
 
 class SellTradeForm(forms.ModelForm):
-    CURRENCY_CHOICES = [
-        ('BRL', 'BRL'),
-        ('CNY', 'CNY'),
-        ('USD', 'USD'),
-    ]
     sell_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect)
 
     """Form for updating a trade with sell details."""

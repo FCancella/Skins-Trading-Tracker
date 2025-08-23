@@ -118,11 +118,14 @@
               <td>{{ trade.get_buy_source_display }}</td>
               <td>{{ trade.get_sell_source_display|default:"" }}</td>
               <td>
-                {% if trade.is_stale_purchase %}
-                  <span class="cell-stale">{{ trade.buy_date|date:"d/m/Y" }}</span>
+                {% if trade.sell_date or trade.days_until_tradable %}
+                {{ trade.buy_date|date:"d/m/Y" }}
                 {% else %}
-                  {{ trade.buy_date|date:"d/m/Y" }}
-                  {% if trade.days_until_stale is not None %}<small class="text-muted-2 fs-7">{{ trade.days_until_stale }}d</small>{% endif %}
+                <span class="cell-stale">{{ trade.buy_date|date:"d/m/Y" }}</span>
+                {% endif %}
+
+                {% if trade.days_until_tradable %}
+                <small class="text-muted-2 fs-7">{{ trade.days_until_tradable }}d</small>
                 {% endif %}
               </td>
               <td>
