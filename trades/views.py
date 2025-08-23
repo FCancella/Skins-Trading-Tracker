@@ -198,8 +198,8 @@ def index(request: HttpRequest) -> HttpResponse:
         if t.days_until_stale < 0:
             t.days_until_stale = None
 
-        t.days_until_payment = abs((t.date_sold - today).days) if t.date_sold else None
-        if t.days_until_payment and t.days_until_payment > 7:
+        t.days_until_payment = 8 - (today - t.date_sold).days if t.date_sold else None
+        if t.days_until_payment and t.days_until_payment < 0:
             t.days_until_payment = None
 
         if t.sell_price is None:
