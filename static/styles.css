@@ -267,3 +267,23 @@ button.badge.status-closed:disabled{
     transform: translateY(-100px) rotate(180deg) scale(1.2);
   }
 }
+
+/* --- Currency Toggle Button --- */
+.btn-check:checked+.btn-outline-primary {
+  background-color: var(--pink);
+  border-color: var(--pink);
+  color: #fff;
+}
+  
+.btn-outline-primary {
+  color: var(--fg-2);
+  border-color: var(--border);
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+}
+
+.btn-outline-primary:hover {
+  background-color: rgba(255, 78, 205, 0.1);
+  border-color: var(--pink);
+  color: #fff;
+}

@@ -12,7 +12,16 @@
         <input type="hidden" name="action" value="sell">
         <input type="hidden" name="trade_id" value="{{ trade.id }}">
         <div class="modal-body">
-          <div class="mb-3"><label class="form-label">Sell Price</label>{{ trade.edit_form.sell_price|add_class:"form-control"}}</div>
+          <div class="mb-3"><label class="form-label">Sell Price</label>
+            <div class="d-flex align-items-center">
+              {{ trade.edit_form.sell_price|add_class:"form-control"}}
+              <div class="btn-group ms-2" role="group">
+                  <input type="radio" class="btn-check" name="sell_price_currency" id="sell_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-outline-primary" for="sell_brl_{{ trade.id }}">BRL</label>
+                  <input type="radio" class="btn-check" name="sell_price_currency" id="sell_cny_{{ trade.id }}" value="CNY"><label class="btn btn-outline-primary" for="sell_cny_{{ trade.id }}">CNY</label>
+                  <input type="radio" class="btn-check" name="sell_price_currency" id="sell_usd_{{ trade.id }}" value="USD"><label class="btn btn-outline-primary" for="sell_usd_{{ trade.id }}">USD</label>
+              </div>
+            </div>
+          </div>
           <div class="mb-3"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source|add_class:"form-select"}}</div>
           <div class="mb-3"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date|add_class:"form-control"}}</div>
         </div>

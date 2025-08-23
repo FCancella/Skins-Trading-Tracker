@@ -8,6 +8,7 @@ components into a single responsive layout.
 """
 from __future__ import annotations
 from decimal import Decimal
+import requests
 
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -160,7 +161,18 @@ def index(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "add":
-            add_form = TradeForm(request.POST)
+            add_form = TradeForm(request.POST)  
+            cur = request.POST.get("buy_price_currency")
+            if cur in ["CNY", "USD"]:
+                try:
+                    response = requests.get(f"https://open.er-api.com/v6/latest/{cur}")
+                    data = response.json()
+                    cur_brl_rate = Decimal(data.get("rates", {}).get("BRL"))
+                    buy_price = Decimal(request.POST.get("buy_price"))
+                    add_form.data = add_form.data.copy()
+                    add_form.data['buy_price'] = round(buy_price * cur_brl_rate, 2)
+                except (requests.RequestException, TypeError, KeyError):
+                    add_form.add_error(None, f"Could not get conversion rate from {cur} to BRL.")
             if add_form.is_valid():
                 add_form.save(owner=request.user)
                 return redirect("index")
@@ -168,6 +180,17 @@ def index(request: HttpRequest) -> HttpResponse:
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
             form = SellTradeForm(request.POST, instance=trade)
+            cur = request.POST.get("sell_price_currency")
+            if cur in ["CNY", "USD"]:
+                try:
+                    response = requests.get(f"https://open.er-api.com/v6/latest/{cur}")
+                    data = response.json()
+                    cur_brl_rate = Decimal(data.get("rates", {}).get("BRL"))
+                    sell_price = Decimal(request.POST.get("sell_price"))
+                    form.data = form.data.copy()
+                    form.data['sell_price'] = round(sell_price * cur_brl_rate, 2)
+                except (requests.RequestException, TypeError, KeyError):
+                    form.add_error(None, f"Could not get conversion rate from {cur} to BRL.")
             if form.is_valid():
                 form.save()
                 return redirect("index")
