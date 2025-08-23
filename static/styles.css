@@ -176,7 +176,7 @@ button.badge.status-closed:disabled{
   cursor: default;
 }
 
-/* Destaca Purchase Date antiga (>8 dias) */
+/* Destaca Buy Date antiga (>8 dias) */
 .cell-stale{
   background: rgba(255,78,205,.14);              /* pink translúcido */
   border: 1px solid rgba(255,78,205,.35);

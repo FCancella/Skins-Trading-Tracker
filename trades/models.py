@@ -15,6 +15,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -58,12 +59,14 @@ class Trade(models.Model):
     sell_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     buy_source = models.CharField(max_length=20, choices=SOURCE_CHOICES)
     sell_source = models.CharField(max_length=20, choices=SOURCE_CHOICES, null=True, blank=True)
-    date_of_purchase = models.DateField(default=timezone.now)
-    date_sold = models.DateField(null=True, blank=True)
+    buy_date = models.DateField(default=timezone.now)
+    sell_date = models.DateField(null=True, blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["owner"])]
-        ordering = ['-date_of_purchase', 'item_name']
+        ordering = [F('sell_date').desc(nulls_first=True),
+                    '-buy_date',
+                    'item_name']
 
     def __str__(self) -> str:
         return f"{self.item_name} ({self.buy_price})"

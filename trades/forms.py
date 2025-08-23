@@ -6,7 +6,7 @@ Two model forms are provided:
 * ``TradeForm`` for creating new trade entries, requiring an item name,
   buy price and buy source.
 * ``SellTradeForm`` for updating existing trades with sell information
-  (sell price, sell source, and date sold). When updating an unsold item,
+  (sell price, sell source, and buy date). When updating an unsold item,
   only these fields are editable.
 
 These forms leverage Django's ModelForm capabilities to automatically
@@ -26,12 +26,12 @@ class TradeForm(forms.ModelForm):
     class Meta:
         model = Trade
         fields = [
-            'item_name', 'buy_price', 'buy_source', 'date_of_purchase',
-            'sell_price', 'sell_source', 'date_sold'
+            'item_name', 'buy_price', 'buy_source', 'buy_date',
+            'sell_price', 'sell_source', 'sell_date'
         ]
         widgets = {
-            'date_of_purchase': forms.DateInput(attrs={'type': 'date'}),
-            'date_sold': forms.DateInput(attrs={'type': 'date'}),
+            'buy_date': forms.DateInput(attrs={'type': 'date'}),
+            'sell_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs) -> None:
@@ -57,16 +57,16 @@ class SellTradeForm(forms.ModelForm):
 
     class Meta:
         model = Trade
-        fields = ['sell_price', 'sell_source', 'date_sold']
+        fields = ['sell_price', 'sell_source', 'sell_date']
         widgets = {
-            'date_sold': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'sell_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        # Prefill the date_sold with today if it doesn't exist
-        if not self.instance.date_sold:
-            self.initial.setdefault('date_sold', timezone.now().date())
+        # Prefill the sell_date with today if it doesn't exist
+        if not self.instance.sell_date:
+            self.initial.setdefault('sell_date', timezone.now().date())
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
 

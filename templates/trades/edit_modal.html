@@ -14,7 +14,7 @@
         <div class="modal-body">
           <div class="mb-3"><label class="form-label">Sell Price</label>{{ trade.edit_form.sell_price|add_class:"form-control"}}</div>
           <div class="mb-3"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source|add_class:"form-select"}}</div>
-          <div class="mb-3"><label class="form-label">Sold Date</label>{{ trade.edit_form.date_sold|add_class:"form-control"}}</div>
+          <div class="mb-3"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date|add_class:"form-control"}}</div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
@@ -31,11 +31,11 @@
             <div class="col-12"><label class="form-label">Item Name</label>{{ trade.edit_form.item_name }}</div>
             <div class="col-6"><label class="form-label">Buy Price</label>{{ trade.edit_form.buy_price }}</div>
             <div class="col-6"><label class="form-label">Buy Source</label>{{ trade.edit_form.buy_source }}</div>
-            <div class="col-12"><label class="form-label">Date of Purchase</label>{{ trade.edit_form.date_of_purchase }}</div>
+            <div class="col-12"><label class="form-label">Buy Date</label>{{ trade.edit_form.buy_date }}</div>
             <hr class="hr-soft" />
             <div class="col-6"><label class="form-label">Sell Price</label>{{ trade.edit_form.sell_price }}</div>
             <div class="col-6"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source }}</div>
-            <div class="col-12"><label class="form-label">Date Sold</label>{{ trade.edit_form.date_sold }}</div>
+            <div class="col-12"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date }}</div>
           </div>
         </div>
         <div class="modal-footer">

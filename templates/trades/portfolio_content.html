@@ -19,12 +19,12 @@
               <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">PnL Realizado</div>
+              <div class="lbl">PnL</div>
               <div class="val">{{ summary.realized_pnl_value|currency_brl }}</div>
               <small class="text-muted-2">ROI: {{ summary.roi_percent|pct }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">PnL Médio (Vendas)</div>
+              <div class="lbl">Average PnL</div>
               <div class="val">{{ summary.average_pnl_percent|pct }}</div>
             </div>
           </div>
@@ -58,7 +58,7 @@
           <thead>
             <tr>
               <th>Item</th> <th>Buy Price</th> <th>Sell Price</th> <th>Buy Source</th>
-              <th>Sell Source</th> <th>Purchase Date</th> <th>Sold Date</th> <th>PnL</th> <th>Status</th>
+              <th>Sell Source</th> <th>Buy Date</th> <th>Sell Date</th> <th>PnL</th> <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -71,15 +71,15 @@
               <td>{{ trade.get_sell_source_display|default:"" }}</td>
               <td>
                 {% if trade.is_stale_purchase %}
-                  <span class="cell-stale">{{ trade.date_of_purchase|date:"d/m/Y" }}</span>
+                  <span class="cell-stale">{{ trade.buy_date|date:"d/m/Y" }}</span>
                 {% else %}
-                  {{ trade.date_of_purchase|date:"d/m/Y" }}
+                  {{ trade.buy_date|date:"d/m/Y" }}
                   {% if trade.days_until_stale is not None %}<small class="text-muted-2 fs-7">{{ trade.days_until_stale }}d</small>{% endif %}
                 {% endif %}
               </td>
               <td>
-                {% if trade.date_sold %}
-                  {{ trade.date_sold|date:"d/m/Y" }}
+                {% if trade.sell_date %}
+                  {{ trade.sell_date|date:"d/m/Y" }}
                   {% if trade.days_until_payment is not None %}<small class="text-muted-2 fs-7">{{ trade.days_until_payment }}d</small>{% endif %}
                 {% endif %}
               </td>

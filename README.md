@@ -9,7 +9,7 @@ cards and tables to organise the information clearly on a single page.
 ## Features
 
 * **Add new trades** with an item name, buy price, buy source and
-  purchase date (defaults to the current date). Allowed sources are
+  buy date (defaults to the current date). Allowed sources are
   Youpin, Skinport, Floatdb, Dash BOT and Dash P2P.
 * **Inline sell form** for each open trade. When a trade is sold you
   can enter the sell price, sell source and sold date directly in the

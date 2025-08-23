@@ -41,7 +41,7 @@ def spectator(request: HttpRequest) -> HttpResponse:
     if selected_user_id:
         try:
             selected_user = User.objects.get(id=selected_user_id, profile__is_public=True)
-            trades = Trade.objects.filter(owner=selected_user).order_by("-date_of_purchase")
+            trades = Trade.objects.filter(owner=selected_user)
             investments = Investment.objects.filter(owner=selected_user)
 
             closed_qs = trades.filter(sell_price__isnull=False)
@@ -65,7 +65,7 @@ def spectator(request: HttpRequest) -> HttpResponse:
             }
 
             # Chart Data
-            daily_pnl = list(closed_qs.values(date=F('date_sold')).annotate(daily_pnl=Sum(F('sell_price') - F('buy_price'))).order_by('date'))
+            daily_pnl = list(closed_qs.values(date=F('sell_date')).annotate(daily_pnl=Sum(F('sell_price') - F('buy_price'))).order_by('date'))
             accumulated_pnl = 0.0
             pnl_data = []
             for pnl in daily_pnl:
@@ -116,7 +116,7 @@ def index(request: HttpRequest) -> HttpResponse:
                 return redirect("index")
 
     # --- GET Request and Summary Calculations ---
-    trades = Trade.objects.filter(owner=request.user).order_by("-date_of_purchase")
+    trades = Trade.objects.filter(owner=request.user)
     investments = Investment.objects.filter(owner=request.user)
     today = timezone.localdate()
 
@@ -175,7 +175,7 @@ def index(request: HttpRequest) -> HttpResponse:
     # --- Chart Data ---
     daily_pnl = list(
         closed_qs
-        .values(date=F('date_sold'))
+        .values(date=F('sell_date'))
         .annotate(daily_pnl=Sum(F('sell_price') - F('buy_price')))
         .order_by('date')
     )
@@ -192,14 +192,14 @@ def index(request: HttpRequest) -> HttpResponse:
 
     # --- Form preparation ---
     for t in trades:
-        t.is_stale_purchase = bool(t.date_of_purchase and (today - t.date_of_purchase).days >= 7) and t.sell_price is None
+        t.is_stale_purchase = bool(t.buy_date and (today - t.buy_date).days >= 7) and t.sell_price is None
         
-        t.days_until_stale = 7 - (today - t.date_of_purchase).days
-        if t.days_until_stale < 0:
+        t.days_until_stale = 7 - (today - t.buy_date).days
+        if t.days_until_stale <= 0:
             t.days_until_stale = None
 
-        t.days_until_payment = 8 - (today - t.date_sold).days if t.date_sold else None
-        if t.days_until_payment and t.days_until_payment < 0:
+        t.days_until_payment = 8 - (today - t.sell_date).days if t.sell_date else None
+        if t.days_until_payment and t.days_until_payment <= 0:
             t.days_until_payment = None
 
         if t.sell_price is None:

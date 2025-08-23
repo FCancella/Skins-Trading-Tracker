@@ -8,7 +8,7 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="add" />
             <div class="col-6"><label class="form-label">Item Name</label>{{ add_form.item_name|add_class:"form-control" }}</div>
-            <div class="col-6"><label class="form-label">Date of Purchase</label>{{ add_form.date_of_purchase|add_class:"form-control" }}</div>
+            <div class="col-6"><label class="form-label">Date of Purchase</label>{{ add_form.buy_date|add_class:"form-control" }}</div>
             <div class="col-6"><label class="form-label">Buy Price</label>{{ add_form.buy_price|add_class:"form-control" }}</div>
             <div class="col-6"><label class="form-label">Buy Source</label>{{ add_form.buy_source|add_class:"form-select" }}</div>
             <div class="col-12"><button type="submit" class="btn btn-primary w-100">Add Trade</button></div>
