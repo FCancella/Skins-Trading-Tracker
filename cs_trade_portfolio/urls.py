@@ -26,7 +26,7 @@ urlpatterns = [
  
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
-    path("spectator/", trade_views.spectator, name="spectator"),
+    path("observer/", trade_views.observer, name="observer"),
     path("signup/", trade_views.signup, name="signup"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
 ]

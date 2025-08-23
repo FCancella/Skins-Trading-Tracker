@@ -29,7 +29,7 @@ def home(request: HttpRequest) -> HttpResponse:
         return redirect("index")
     return render(request, "trades/home.html")
 
-def spectator(request: HttpRequest) -> HttpResponse:
+def observer(request: HttpRequest) -> HttpResponse:
     """Displays a list of public users and their portfolios."""
     public_users = User.objects.filter(profile__is_public=True)
     selected_user_id = request.GET.get("user_id")
@@ -81,7 +81,7 @@ def spectator(request: HttpRequest) -> HttpResponse:
         "public_users": public_users, "selected_user": selected_user, "trades": trades,
         "summary": summary, "pnl_data": pnl_data,
     }
-    return render(request, "trades/spectator.html", context)
+    return render(request, "trades/observer.html", context)
 
 
 @login_required

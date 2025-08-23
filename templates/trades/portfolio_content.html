@@ -44,7 +44,7 @@
     </div>
   </div>
 
-  {% if not is_spectator %}
+  {% if not is_observer %}
     {% include 'trades/add_forms.html' %}
   {% endif %}
 </div>
@@ -90,12 +90,12 @@
               </td>
               <td>
                 <button type="button" class="badge status-{{ trade.sell_price|yesno:'closed,open' }} badge-button" 
-                  {% if not is_spectator %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
+                  {% if not is_observer %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
                   {{ trade.sell_price|yesno:'Closed,Open' }}
                 </button>
               </td>
             </tr>
-            {% if not is_spectator %}
+            {% if not is_observer %}
               {% include 'trades/edit_modal.html' with trade=trade %}
             {% endif %}
             {% empty %}
@@ -108,7 +108,7 @@
   </div>
 </div>
 
-{% if not is_spectator %}
+{% if not is_observer %}
 <div class="card mt-4">
     {% include 'trades/investment_section.html' %}
 </div>

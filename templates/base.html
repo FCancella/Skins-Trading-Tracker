@@ -17,6 +17,11 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body>
+    <div class="gradient-bg">
+      <div class="gradient-blob"></div>
+      <div class="gradient-blob"></div>
+      <div class="gradient-blob"></div>
+    </div>
     <nav class="navbar navbar-dark bg-gradient-dark border-bottom border-purple">
       <div class="container-xxl d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
@@ -31,6 +36,10 @@
                 Olá, {{ user.username }}
               </a>
               <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'index' %}">My Portfolio</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'observer' %}">Observer Mode</a></li>
+                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Configurações</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
