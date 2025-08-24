@@ -10,6 +10,7 @@ from __future__ import annotations
 from decimal import Decimal
 import requests
 
+from django.core.cache import cache
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -19,23 +20,38 @@ from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
-from django.utils import timezone
 
 from .forms import SellTradeForm, TradeForm, InvestmentForm
 from .models import Trade, Investment
+
+def _get_exchange_rate(currency: str) -> Decimal | None:
+    rate = cache.get(currency)
+    print(f"Cache hit: {rate}") if rate else print("Cache miss")
+    if rate:
+        return rate
+    try:
+        response = requests.get(f"https://open.er-api.com/v6/latest/{currency}")
+        response.raise_for_status()
+        data = response.json()
+        rate = Decimal(data["rates"]["BRL"]).quantize(Decimal("0.0001"))
+        cache.set(currency, rate)
+        return rate
+    except (requests.RequestException, KeyError, TypeError):
+        return None
 
 def _convert_currency_to_brl(amount_str: str, currency: str) -> Decimal | None:
     """Converte um valor de uma moeda estrangeira para BRL."""
     if currency not in ["CNY", "USD"]:
         return Decimal(amount_str)
     
+    rate = _get_exchange_rate(currency)
+    if rate is None:
+        return None
+        
     try:
-        response = requests.get(f"https://open.er-api.com/v6/latest/{currency}")
-        response.raise_for_status() # Lança um erro para status HTTP ruins
-        data = response.json()
-        rate = Decimal(data["rates"]["BRL"])
-        return round(Decimal(amount_str) * rate, 2)
-    except (requests.RequestException, KeyError, TypeError):
+        amount = Decimal(amount_str)
+        return round(amount * rate, 2)
+    except Exception:
         return None
 
 def _calculate_portfolio_metrics(user: User) -> dict:
