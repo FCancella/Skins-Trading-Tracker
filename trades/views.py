@@ -21,12 +21,11 @@ from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
-from .forms import SellTradeForm, TradeForm, InvestmentForm
+from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm
 from .models import Trade, Investment
 
 def _get_exchange_rate(currency: str) -> Decimal | None:
     rate = cache.get(currency)
-    print(f"Cache hit: {rate}") if rate else print("Cache miss")
     if rate:
         return rate
     try:
@@ -244,11 +243,12 @@ def signup(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return redirect("index")
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             return redirect("index")
     else:
-        form = UserCreationForm()
+        # E aqui também
+        form = CustomUserCreationForm()
     return render(request, "registration/signup.html", {"form": form})

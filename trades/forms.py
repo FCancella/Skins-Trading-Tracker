@@ -16,6 +16,8 @@ validation. Choice fields are rendered as select controls in templates.
 from __future__ import annotations
 
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 from .models import Trade, Investment
@@ -25,6 +27,26 @@ CURRENCY_CHOICES = [
     ('CNY', 'CNY'),
     ('USD', 'USD'),
 ]
+
+class CustomUserCreationForm(UserCreationForm):
+    """
+    Um formulário de criação de utilizador que inclui o campo de email.
+    """
+    email = forms.EmailField(
+        required=True,
+        help_text='Necessary for password recovery.'
+    )
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = UserCreationForm.Meta.fields + ('email',)
+
+    def clean_email(self):
+        """Valida se o email já está em uso."""
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este endereço de email já está a ser utilizado.")
+        return email
 
 class TradeForm(forms.ModelForm):
     buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect)
