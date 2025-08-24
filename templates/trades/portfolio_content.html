@@ -50,22 +50,28 @@
         <div class="card-body">
           <div class="row text-center">
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">NAV</div>
+              <div class="lbl">Total</div>
+              {% comment %} <div class="lbl">NAV</div> {% endcomment %}
               <div class="val">{{ summary.nav|currency_brl }}</div>
-              <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small>
+              <small class="text-muted-2">Investido: {{ summary.invested|currency_brl }}</small>
+              {% comment %} <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">MTM</div>
+              <div class="lbl">Inventário</div>
+              {% comment %} <div class="lbl">MTM</div> {% endcomment %}
               <div class="val">{{ summary.mtm_value|currency_brl }}</div>
-              <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small>
+              <small class="text-muted-2">Caixa: {{ summary.cash|currency_brl }}</small>
+              {% comment %} <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">PnL</div>
+              <div class="lbl">Profit</div>
+              {% comment %} <div class="lbl">PnL</div> {% endcomment %}
               <div class="val">{{ summary.realized_pnl_value|currency_brl }}</div>
               <small class="text-muted-2">ROI: {{ summary.roi_percent|pct }}</small>
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Average PnL</div>
+              <div class="lbl">Profit Médio</div>
+              {% comment %} <div class="lbl">Average PnL</div> {% endcomment %}
               <div class="val">{{ summary.average_pnl_percent|pct }}</div>
             </div>
           </div>
@@ -76,7 +82,7 @@
 
   <div class="col-12">
     <div class="card">
-      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">Realized PnL over time</div>
+      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">Profit history</div>
       <div class="collapse" id="collapseChart">
         <div class="card-body">
           <canvas id="pnlChart" style="height:200px; max-height:300px;"></canvas>
@@ -105,7 +111,8 @@
               <th class="sortable" data-sort-type="text">Sell Source</th>
               <th class="sortable" data-sort-type="date">Buy Date</th>
               <th class="sortable" data-sort-type="date">Sell Date</th>
-              <th class="sortable" data-sort-type="currency">PnL</th>
+              <th class="sortable" data-sort-type="currency">Profit</th>
+              {% comment %} <th class="sortable" data-sort-type="currency">PnL</th> {% endcomment %}
               <th>Status</th>
             </tr>
           </thead>

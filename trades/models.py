@@ -41,12 +41,16 @@ class Trade(models.Model):
     """Model representing a Counter‑Strike skin trade item."""
 
     SOURCE_CHOICES: list[tuple[str, str]] = [
-        ('youpin', 'Youpin'),
-        ('skinport', 'Skinport'),
-        ('floatdb', 'Floatdb'),
-        ('dash_bot', 'Dash BOT'),
-        ('dash_p2p', 'Dash P2P'),
         ('buff', 'BUFF'),
+        ('floatdb', 'CSFloat'),
+        ('csmoney', 'CS.Money'),
+        ('dash_bot', 'Dashskins'),
+        ('dash_p2p', 'Dash P2P'),
+        ('p2p', 'P2P'),
+        ('rent_skins', 'RentSkins'),
+        ('skinport', 'Skinport'),
+        ('steam', 'Steam'),
+        ('youpin', 'Youpin'),
     ]
 
     owner = models.ForeignKey(

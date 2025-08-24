@@ -79,7 +79,8 @@ body{
 }
 .table thead th{
   position:sticky; top:0;
-  background: #141725;
+  /* background: #141725; */
+  padding-bottom: 1rem;
   border-bottom:1px solid var(--border);
   z-index:1;
 }
@@ -268,22 +269,21 @@ button.badge.status-closed:disabled{
   }
 }
 
-/* --- Currency Toggle Button --- */
-.btn-check:checked+.btn-outline-primary {
-  background-color: var(--pink);
-  border-color: var(--pink);
-  color: #fff;
-}
-  
-.btn-outline-primary {
+/* --- Currency Toggle Buttons --- */
+
+/* Estilo Base */
+.btn-currency {
   color: var(--fg-2);
-  border-color: var(--border);
-  padding-left: 0.4rem;
-  padding-right: 0.4rem;
+  background-color: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.5rem;
+  transition: 0.2s ease-in-out;
 }
 
-.btn-outline-primary:hover {
-  background-color: rgba(255, 78, 205, 0.1);
-  border-color: var(--pink);
+/* Estado Selecionado (Checked) */
+.btn-check:checked + .btn-currency {
   color: #fff;
+  background: var(--purple);
+  border-color: var(--purple);
+  box-shadow:  0 0 0.2rem 0.05rem var(--purple);
 }
