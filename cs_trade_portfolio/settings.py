@@ -47,7 +47,8 @@ INSTALLED_APPS: list[str] = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'trades',  # our custom app
+    'trades',
+    'scanner'
 ]
 
 MIDDLEWARE: list[str] = [
