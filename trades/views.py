@@ -223,6 +223,19 @@ def index(request: HttpRequest) -> HttpResponse:
             if investment_form.is_valid():
                 investment_form.save(owner=request.user)
                 return redirect("index")
+        elif action == "delete":
+            trade_id = request.POST.get("trade_id")
+            trade = Trade.objects.get(pk=trade_id, owner=request.user)
+            trade.delete()
+            return redirect("index")
+        elif action == "unsell":
+            trade_id = request.POST.get("trade_id")
+            trade = Trade.objects.get(pk=trade_id, owner=request.user)
+            trade.sell_price = None
+            trade.sell_date = None
+            trade.sell_source = None
+            trade.save()
+            return redirect("index")
 
     # --- GET Request ---
     context = _calculate_portfolio_metrics(request.user)

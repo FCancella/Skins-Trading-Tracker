@@ -88,6 +88,31 @@ body{
 .table .status-open{ background:rgba(255,78,205,.18); color:#ffd6f1; }
 .table .status-closed{ background:rgba(122,43,246,.25); color:#e9dcff; }
 
+#portfolioTable {
+  min-width: 950px;
+}
+
+/* --- Estilos para Telas Pequenas (Mobile) --- */
+@media (max-width: 950px) {
+  .table th, .table td {
+    font-size: 0.75rem; /* Diminui a fonte */
+    padding: 0.2rem 0.2rem; /* Diminui o espaçamento interno */
+  }
+
+  .badge {
+    font-size: 0.6rem; /* Diminui a fonte do badge */
+    padding: .2rem .4rem;
+  }
+} 
+
+.table thead th{
+  position:sticky; top:0;
+  padding-bottom: 1rem;
+  border-bottom:1px solid var(--border);
+  z-index:1;
+  text-align: center; /* Adicionado para centralizar */
+}
+
 /* Badges */
 .badge{ border-radius:999px; padding:.4rem .65rem; font-weight:600; }
 

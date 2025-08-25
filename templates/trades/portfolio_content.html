@@ -126,9 +126,9 @@
               <td>{{ trade.get_sell_source_display|default:"" }}</td>
               <td>
                 {% if trade.sell_date or trade.days_until_tradable %}
-                {{ trade.buy_date|date:"d/m/Y" }}
+                {{ trade.buy_date|date:"d/m/y" }}
                 {% else %}
-                <span class="cell-stale">{{ trade.buy_date|date:"d/m/Y" }}</span>
+                <span class="cell-stale">{{ trade.buy_date|date:"d/m/y" }}</span>
                 {% endif %}
 
                 {% if trade.days_until_tradable %}
@@ -137,7 +137,7 @@
               </td>
               <td>
                 {% if trade.sell_date %}
-                  {{ trade.sell_date|date:"d/m/Y" }}
+                  {{ trade.sell_date|date:"d/m/y" }}
                   {% if trade.days_until_payment is not None %}<small class="text-muted-2 fs-7">{{ trade.days_until_payment }}d</small>{% endif %}
                 {% endif %}
               </td>
