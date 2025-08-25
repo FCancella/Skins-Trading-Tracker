@@ -1,13 +1,16 @@
 #!/bin/sh
 
-# Passo 1: (Como root) Corrija a propriedade do volume.
+# Passo 1: (Como root) Crie o diretório para os arquivos estáticos, se não existir.
+echo "Ensuring static files directory exists..."
+mkdir -p /app/staticfiles
+
+# Passo 2: (Como root) Corrija a propriedade do volume.
 # O Docker monta o volume como 'root', então damos a posse para o usuário 'app'.
 echo "Updating static files ownership..."
 chown -R app:app /app/staticfiles
 
-# Passo 2: (Como root) Passe a execução para o usuário 'app'.
+# Passo 3: (Como root) Passe a execução para o usuário 'app'.
 # O 'exec' garante que o Gunicorn se torne o processo principal do contêiner.
-# O 'su -s /bin/sh -c "..." app' executa todos os comandos dentro das aspas como o usuário 'app'.
 exec su -s /bin/sh -c '
     echo "Applying database migrations..."
     python manage.py migrate --no-input
