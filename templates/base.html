@@ -84,6 +84,8 @@
                 <input class="form-check-input" type="checkbox" role="switch" id="isPublicCheck" name="is_public" {% if user.profile.is_public %}checked{% endif %}>
                 <label class="form-check-label" for="isPublicCheck">Make your profile visible in Observer Mode</label>
               </div>
+              <hr>
+              <div class="d-grid"> <a href="{% url 'export_portfolio' %}" class="btn btn-outline-light mb-3">Export Portfolio (CSV)</a></div>
             </div>
           </form>
         </div>

@@ -9,6 +9,7 @@ components into a single responsive layout.
 from __future__ import annotations
 from decimal import Decimal
 import requests
+import pandas as pd
 
 from django.core.cache import cache
 from django.contrib.auth import login
@@ -20,6 +21,7 @@ from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
 from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm
 from .models import Trade, Investment
@@ -265,3 +267,23 @@ def signup(request: HttpRequest) -> HttpResponse:
         # E aqui também
         form = CustomUserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
+
+@login_required
+def export_portfolio(request: HttpRequest) -> HttpResponse:
+    """Gera e retorna um arquivo CSV com todos os trades do usuário usando pandas."""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="portfolio-{request.user.username}-{timezone.now().strftime('%Y-%m-%d')}.csv"'
+
+    trades = Trade.objects.filter(owner=request.user)
+    df = pd.DataFrame(list(trades.values()))
+    df.drop(columns=['id', 'owner_id'], inplace=True)
+
+    source_mapping = dict(Trade.SOURCE_CHOICES)
+    df['buy_source'] = df['buy_source'].map(source_mapping)
+    df['sell_source'] = df['sell_source'].map(source_mapping)
+
+    df.columns = [col.replace('_', ' ').title() for col in df.columns]
+
+    df.to_csv(response, sep=';', index=False, date_format='%d-%m-%Y')
+
+    return response
