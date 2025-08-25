@@ -94,6 +94,14 @@ body{
 
 /* --- Estilos para Telas Pequenas (Mobile) --- */
 @media (max-width: 950px) {
+  body {
+    font-size: 0.9rem; /* Adicionado para diminuir a fonte geral */
+  }
+
+  .kpi .val {
+    font-size: 1.3rem; 
+  }
+
   .table th, .table td {
     font-size: 0.75rem; /* Diminui a fonte */
     padding: 0.2rem 0.2rem; /* Diminui o espaçamento interno */
