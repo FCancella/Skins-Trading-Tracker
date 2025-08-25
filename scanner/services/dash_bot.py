@@ -19,7 +19,15 @@ remove = [
 def get_items(products, min, max, limit=10000):
     dash_bot_url = f"https://dashskins.com.br/api/listing/deals?is_instant=&limit=60&page={'{}'}&price_min={min}&price_max={max}"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.1 Safari/537.36",}
-    data = requests.get(dash_bot_url.format(1), headers = headers).json()
+    response = requests.get(dash_bot_url.format(1), headers = headers)
+
+    if response.status_code != 200:
+        erro+=1
+        print(f"Erro na requisição para dash_bot: {response.status_code}")
+        print(f"Erro: {response.text}")
+        return products
+
+    data = response.json()
 
     total_pages = -(-data['count']//data['limit'])
 

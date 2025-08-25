@@ -21,6 +21,7 @@ def get_items(products, min, max, limit=10000):
     response = requests.get(dash_p2p_url, headers=headers, timeout=15)
     if response.status_code != 200:
         print(f"Erro na requisição para dash_p2p: {response.status_code}")
+        print(f"Erro: {response.text}")
         return products
     data = response.json()
 
