@@ -272,7 +272,8 @@ def signup(request: HttpRequest) -> HttpResponse:
 def export_portfolio(request: HttpRequest) -> HttpResponse:
     """Gera e retorna um arquivo CSV com todos os trades do usuário usando pandas."""
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="portfolio-{request.user.username}-{timezone.now().strftime('%Y-%m-%d')}.csv"'
+    today = timezone.now().strftime('%Y-%m-%d')
+    response['Content-Disposition'] = f'attachment; filename="portfolio-{request.user.username}-{today}.csv"'
 
     trades = Trade.objects.filter(owner=request.user)
     df = pd.DataFrame(list(trades.values()))
