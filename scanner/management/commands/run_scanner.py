@@ -39,7 +39,7 @@ class Command(BaseCommand):
         # SEÇÃO 2: ATUALIZAR PREÇOS DO BUFF
         self.stdout.write('Step 2: Updating Buff prices...')
 
-        dash_items_to_check = ScannedItem.objects.filter(source='dash_bot')
+        dash_items_to_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p'])
         buff_items_in_db = ScannedItem.objects.filter(source='buff', timestamp__gte=timezone.now()-timedelta(hours=3))
         blacklist_items = BlackList.objects.all().values_list('name', flat=True)
 

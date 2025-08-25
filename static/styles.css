@@ -118,7 +118,7 @@ body{
   padding-bottom: 1rem;
   border-bottom:1px solid var(--border);
   z-index:1;
-  text-align: center; /* Adicionado para centralizar */
+  /* text-align: center; */
 }
 
 /* Badges */
