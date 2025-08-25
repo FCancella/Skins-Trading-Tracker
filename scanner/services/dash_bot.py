@@ -1,4 +1,4 @@
-import requests
+import cloudscraper
 import time
 import sys
 
@@ -17,9 +17,12 @@ remove = [
 ]
 
 def get_items(products, min, max, limit=10000):
+    scraper = cloudscraper.create_scraper()
+
     dash_bot_url = f"https://dashskins.com.br/api/listing/deals?is_instant=&limit=60&page={'{}'}&price_min={min}&price_max={max}"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.1 Safari/537.36",}
-    response = requests.get(dash_bot_url.format(1), headers = headers)
+    # response = requests.get(dash_bot_url.format(1), headers = headers)
+    response = scraper.get(dash_bot_url.format(1), timeout=20)
 
     if response.status_code != 200:
         erro+=1

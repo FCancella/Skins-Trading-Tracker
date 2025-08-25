@@ -1,4 +1,4 @@
-import requests
+import cloudscraper
 
 remove = [
     "Souvenir",
@@ -12,13 +12,15 @@ remove = [
 ]
 
 def get_items(products, min, max, limit=10000):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+    # headers = {
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    # }
+    scraper = cloudscraper.create_scraper()
 
     dash_p2p_url = f"https://api.dashskins.gg/v1/item?pageSize=100000&maxPriceBRL={max}&minPriceBRL={min}&sort=discount-desc"
 
-    response = requests.get(dash_p2p_url, headers=headers, timeout=15)
+    # response = requests.get(dash_p2p_url, headers=headers, timeout=15)
+    response = scraper.get(dash_p2p_url, timeout=20)
     if response.status_code != 200:
         print(f"Erro na requisição para dash_p2p: {response.status_code}")
         print(f"Erro: {response.text}")
