@@ -12,9 +12,16 @@ remove = [
 ]
 
 def get_items(products, min, max, limit=10000):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+
     dash_p2p_url = f"https://api.dashskins.gg/v1/item?pageSize=100000&maxPriceBRL={max}&minPriceBRL={min}&sort=discount-desc"
 
-    response = requests.get(dash_p2p_url)
+    response = requests.get(dash_p2p_url, headers=headers, timeout=15)
+    if response.status_code != 200:
+        print(f"Erro na requisição para dash_p2p: {response.status_code}")
+        return products
     data = response.json()
 
     dash_p2p_items = data.get("page", [])
