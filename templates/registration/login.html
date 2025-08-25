@@ -23,8 +23,15 @@
         <div class="mb-3">
             <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
             {{ form.password|add_class:"form-control" }}
+
+            <div class="text-start">
+                <span class="small text-muted-2">
+                    Forgot your password? <a href="{% url 'password_reset' %}" class="text-muted-2">Reset</a>
+                </span>
+            </div>
+            
             {% if form.password.errors %}
-            <div class="invalid-feedback d-block">{{ form.password.errors|striptags }}</div>
+            <div class="invalid-feedback d-block mt-1">{{ form.password.errors|striptags }}</div>
             {% endif %}
         </div>
 

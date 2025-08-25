@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load currency %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">Scanner Summary</div>
+  <div class="card-body">
+    <div class="row text-center">
+      <div class="col-6 col-md-4 kpi">
+        <div class="lbl">Última Atualização</div>
+        <div class="val">{{ last_check_time|date:"d/m/y H:i"|default:"N/A" }}</div>
+      </div>
+      <div class="col-6 col-md-4 kpi">
+        <div class="lbl">Itens Encontrados</div>
+        <div class="val">{{ total_items }}</div>
+      </div>
+      <div class="col-12 col-md-4 kpi mt-3 mt-md-0">
+        <div class="lbl">Próxima Atualização em</div>
+        <div class="val">{{ next_run_in|default:"N/A" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header">
+    Resultados do Scanner
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle" id="scannerTable">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Preço Buff</th>
+            <th>Preço Dash</th>
+            <th>Diferença (%)</th>
+            <th>Fonte</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="fw-medium">{{ item.name }}</td>
+            <td>
+            {{ item.buff_price|currency_brl|default:"-" }}
+            {% if item.buff_offers is not None %}
+                <small class="text-muted-2 fs-7">{{ item.buff_offers }}</small>
+            {% endif %}
+            </td>
+            <td>{{ item.dash_price|currency_brl|default:"-" }}</td>
+            <td>{{ item.diff }}%</td>
+            <td><span class="badge status-open">{{ item.source }}</span></td>
+        </tr>
+        {% empty %}
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

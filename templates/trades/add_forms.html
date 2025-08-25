@@ -7,10 +7,19 @@
           <form method="post" action="{% url 'index' %}" class="row g-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="add" />
-            <div class="col-6"><label class="form-label">Item Name</label>{{ add_form.item_name|add_class:"form-control" }}</div>
-            <div class="col-6"><label class="form-label">Date of Purchase</label>{{ add_form.date_of_purchase|add_class:"form-control" }}</div>
-            <div class="col-6"><label class="form-label">Buy Price</label>{{ add_form.buy_price|add_class:"form-control" }}</div>
-            <div class="col-6"><label class="form-label">Buy Source</label>{{ add_form.buy_source|add_class:"form-select" }}</div>
+            <div class="col-md-6"><label class="form-label">Item Name</label>{{ add_form.item_name|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Date of Purchase</label>{{ add_form.buy_date|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Buy Price</label>
+              <div class="d-flex align-items-center">
+                {{ add_form.buy_price|add_class:"form-control" }}
+                <div class="btn-group ms-2" role="group">
+                  <input type="radio" class="btn-check" name="buy_price_currency" id="buy_brl" value="BRL" checked><label class="btn btn-currency" for="buy_brl">BRL</label>
+                  <input type="radio" class="btn-check" name="buy_price_currency" id="buy_cny" value="CNY"><label class="btn btn-currency" for="buy_cny">CNY</label>
+                  <input type="radio" class="btn-check" name="buy_price_currency" id="buy_usd" value="USD"><label class="btn btn-currency" for="buy_usd">USD</label>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6"><label class="form-label">Buy Source</label>{{ add_form.buy_source|add_class:"form-select" }}</div>
             <div class="col-12"><button type="submit" class="btn btn-primary w-100">Add Trade</button></div>
           </form>
         </div>

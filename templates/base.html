@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}CS.TT{% endblock %}</title>
+    <title>{% block title %}CS2 Skins Trading Tracker{% endblock %}</title>
 
     <link rel="icon" href="{% static 'favicon.ico' %}">
 
@@ -17,21 +17,29 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body>
+    <div class="gradient-bg">
+      <div class="gradient-blob"></div>
+      <div class="gradient-blob"></div>
+      <div class="gradient-blob"></div>
+    </div>
     <nav class="navbar navbar-dark bg-gradient-dark border-bottom border-purple">
       <div class="container-xxl d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
           <a href="{% url 'home' %}">
-            <img src="{% static 'CSTT logo.png' %}" alt="CS.TT Logo" style="height: 30px; margin-right: 10px;">
+            <img src="{% static 'CSTT logo.png' %}" alt="CS2 Skins Trading Tracker Logo" style="height: 30px; margin-right: 10px;">
           </a>
         </div>
         <div>
           {% if user.is_authenticated %}
             <div class="dropdown">
               <a href="#" class="nav-link dropdown-toggle text-white" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Olá, {{ user.username }}
+                Hey, {{ user.username }}
               </a>
               <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Configurações</a></li>
+                <li><a class="dropdown-item" href="{% url 'index' %}">Portfolio</a></li>
+                <li><a class="dropdown-item" href="{% url 'scanner_list' %}">Scanner</a></li> <li><a class="dropdown-item" href="{% url 'observer' %}">Observer Mode</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Settings</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <form action="{% url 'logout' %}" method="post" class="d-inline">
@@ -53,6 +61,14 @@
       {% block content %}{% endblock %}
     </main>
 
+    <footer class="container-xxl text-center mt-5 py-3">
+      <p class="small text-muted-2">
+        CS2 Skins Trading Tracker &copy; {% now "Y" %}
+        <span class="mx-2">|</span>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#supportModal" class="text-muted-2">Contact us</a>
+      </p>
+    </footer>
+
     {% if user.is_authenticated %}
     <div class="modal fade" id="profileSettingsModal" tabindex="-1" aria-labelledby="profileSettingsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -60,18 +76,16 @@
           <form action="{% url 'toggle_profile_public' %}" method="post">
             {% csrf_token %}
             <div class="modal-header">
-              <h5 class="modal-title" id="profileSettingsModalLabel">Configurações de Perfil</h5>
+              <h5 class="modal-title" id="profileSettingsModalLabel">Profile Settings</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="isPublicCheck" name="is_public" {% if user.profile.is_public %}checked{% endif %}>
-                <label class="form-check-label" for="isPublicCheck">Tornar perfil público (visível no Modo Espectador)</label>
+                <label class="form-check-label" for="isPublicCheck">Make your profile visible in Observer Mode</label>
               </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary">Salvar</button>
+              <hr>
+              <div class="d-grid"> <a href="{% url 'export_portfolio' %}" class="btn btn-outline-light mb-3">Export Portfolio (CSV)</a></div>
             </div>
           </form>
         </div>
@@ -79,6 +93,20 @@
     </div>
     {% endif %}
 
+    <div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="supportModalLabel">Contact us</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="text-muted-2">For questions, suggestions, or issues, please email us at:</p>
+            <p class="h5" style="user-select: all; cursor: pointer;">contact@cstrack.online</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_scripts %}{% endblock %}
   </body>

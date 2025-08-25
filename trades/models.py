@@ -10,11 +10,13 @@ or loss and holding duration.
 """
 
 from decimal import Decimal
+from datetime import timedelta
 
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -39,12 +41,16 @@ class Trade(models.Model):
     """Model representing a Counter‑Strike skin trade item."""
 
     SOURCE_CHOICES: list[tuple[str, str]] = [
-        ('youpin', 'Youpin'),
-        ('skinport', 'Skinport'),
-        ('floatdb', 'Floatdb'),
-        ('dash_bot', 'Dash BOT'),
-        ('dash_p2p', 'Dash P2P'),
         ('buff', 'BUFF'),
+        ('floatdb', 'CSFloat'),
+        ('csmoney', 'CS.Money'),
+        ('dash_bot', 'Dashskins'),
+        ('dash_p2p', 'Dash P2P'),
+        ('p2p', 'P2P'),
+        ('rent_skins', 'RentSkins'),
+        ('skinport', 'Skinport'),
+        ('steam', 'Steam'),
+        ('youpin', 'Youpin'),
     ]
 
     owner = models.ForeignKey(
@@ -58,12 +64,14 @@ class Trade(models.Model):
     sell_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     buy_source = models.CharField(max_length=20, choices=SOURCE_CHOICES)
     sell_source = models.CharField(max_length=20, choices=SOURCE_CHOICES, null=True, blank=True)
-    date_of_purchase = models.DateField(default=timezone.now)
-    date_sold = models.DateField(null=True, blank=True)
+    buy_date = models.DateField(default=timezone.now)
+    sell_date = models.DateField(null=True, blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["owner"])]
-        ordering = ['-date_of_purchase', 'item_name']
+        ordering = [F('sell_date').desc(nulls_first=True),
+                    '-buy_date',
+                    'item_name']
 
     def __str__(self) -> str:
         return f"{self.item_name} ({self.buy_price})"
@@ -79,6 +87,20 @@ class Trade(models.Model):
         if self.sell_price is None or not self.buy_price:
             return None
         return (self.pnl_value / self.buy_price) * Decimal("100")
+
+    @property
+    def days_until_tradable(self) -> bool:
+        if self.sell_date:
+            return False
+        total_days = 7 - (timezone.localdate() - self.buy_date).days
+        return total_days if total_days > 0 else None
+
+    @property
+    def days_until_payment(self) -> int | None:
+        if not self.sell_date:
+            return None
+        days_remaining = 8 - (timezone.localdate() - self.sell_date).days
+        return days_remaining if days_remaining > 0 else None
 
 class Investment(models.Model):
     """Represents a single investment/contribution made by a user."""

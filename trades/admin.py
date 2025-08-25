@@ -23,13 +23,13 @@ class TradeAdmin(admin.ModelAdmin):
         'sell_price',
         'buy_source',
         'sell_source',
-        'date_of_purchase',
-        'date_sold',
+        'buy_date',
+        'sell_date',
         'pnl_value',
         'pnl_percent',
         'owner',
     )
-    list_filter = ('buy_source', 'sell_source', 'date_of_purchase', 'date_sold')
+    list_filter = ('buy_source', 'sell_source', 'buy_date', 'sell_date')
     search_fields = ('item_name',)
 
 @admin.register(Investment)
