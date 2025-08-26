@@ -16,16 +16,22 @@
     <h5 class="mb-3">History</h5>
     <div class="table-responsive">
       <table class="table table-sm align-middle">
-        <thead><tr><th>Date</th><th>Amount</th><th>Description</th></tr></thead>
+        <thead><tr><th>Date</th><th>Amount</th><th>Description</th><th></th></tr></thead>
         <tbody>
           {% for investment in investments %}
           <tr>
             <td>{{ investment.date|date:"d/m/Y" }}</td>
             <td>{{ investment.amount|currency_brl }}</td>
             <td>{{ investment.description }}</td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-ghost" data-bs-toggle="modal" data-bs-target="#editInvestmentModal-{{ investment.id }}">
+                    Edit
+                </button>
+            </td>
           </tr>
+          {% include 'trades/edit_investment_modal.html' with investment=investment %}
           {% empty %}
-          <tr><td colspan="3" class="text-center text-muted-2">No investments yet.</td></tr>
+          <tr><td colspan="4" class="text-center text-muted-2">No investments yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

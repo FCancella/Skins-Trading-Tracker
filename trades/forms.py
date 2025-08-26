@@ -119,9 +119,11 @@ class InvestmentForm(forms.ModelForm):
 
     def save(self, commit=True, owner=None):
         obj = super().save(commit=False)
-        if owner is None:
-            raise ValueError("InvestmentForm.save(owner=...) is required to set Investment.owner")
-        obj.owner = owner
+        if owner and not obj.pk:
+            obj.owner = owner
+        elif not obj.owner:
+            raise ValueError("InvestmentForm needs an owner to be saved.")
+        
         if commit:
             obj.save()
         return obj

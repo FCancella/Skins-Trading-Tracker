@@ -1,0 +1,39 @@
+{% load form_extras %}
+<div class="modal fade" id="editInvestmentModal-{{ investment.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-dark">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Investment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editInvestmentForm-{{ investment.id }}" method="post" action="{% url 'index' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit_investment">
+        <input type="hidden" name="investment_id" value="{{ investment.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            {{ investment.form.amount }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            {{ investment.form.description }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Date</label>
+            {{ investment.form.date }}
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer d-flex justify-content-between">
+          <form class="me-auto" method="post" action="{% url 'index' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_investment">
+              <input type="hidden" name="investment_id" value="{{ investment.id }}">
+              <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this investment?')">Delete</button>
+          </form>
+          <button type="submit" class="btn btn-primary" form="editInvestmentForm-{{ investment.id }}">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

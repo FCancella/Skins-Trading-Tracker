@@ -140,6 +140,9 @@ def _calculate_portfolio_metrics(user: User) -> dict:
             t.edit_form = SellTradeForm(instance=t)
         else:
             t.edit_form = TradeForm(instance=t)
+            
+    for i in investments:
+        i.form = InvestmentForm(instance=i)
 
     return {
         "trades": trades,
@@ -225,6 +228,18 @@ def index(request: HttpRequest) -> HttpResponse:
             if investment_form.is_valid():
                 investment_form.save(owner=request.user)
                 return redirect("index")
+        elif action == "edit_investment":
+            investment_id = request.POST.get("investment_id")
+            investment = Investment.objects.get(pk=investment_id, owner=request.user)
+            form = InvestmentForm(request.POST, instance=investment)
+            if form.is_valid():
+                form.save(owner=request.user)
+                return redirect("index")
+        elif action == "delete_investment":
+            investment_id = request.POST.get("investment_id")
+            investment = Investment.objects.get(pk=investment_id, owner=request.user)
+            investment.delete()
+            return redirect("index")
         elif action == "delete":
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)

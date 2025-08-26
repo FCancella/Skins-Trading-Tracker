@@ -53,9 +53,6 @@ class Command(BaseCommand):
         products = dash_p2p.get_items(products, 25, 500, 20)
         products = dash_bot.get_items(products, 25, 500, 80)
         
-
-        # Filtra itens que já têm preço recente do Buff
-        recent_buff_names = buff_items_in_db.values_list('name', flat=True)
         if not products:
             self.stdout.write(self.style.WARNING('No products found on Dash. Exiting.'))
             return
