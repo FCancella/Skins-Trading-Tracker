@@ -18,8 +18,8 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.api_base_url = "https://cstrack.online/scanner/api"
-        self.api_base_url = "http://localhost:8000/scanner/api"
+        self.api_base_url = "https://cstrack.online/scanner/api"
+        # self.api_base_url = "http://localhost:8000/scanner/api"
         self.headers = {
             "Content-Type": "application/json",
             "X-API-KEY": settings.SCANNER_API_KEY
