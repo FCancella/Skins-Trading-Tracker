@@ -53,26 +53,28 @@
               <div class="lbl">Total</div>
               {% comment %} <div class="lbl">NAV</div> {% endcomment %}
               <div class="val">{{ summary.nav|currency_brl }}</div>
-              <small class="text-muted-2">Investido: {{ summary.invested|currency_brl }}</small>
-              {% comment %} <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small> {% endcomment %}
+              <small class="text-muted-2">Caixa: {{ summary.cash|currency_brl }}</small>
+              {% comment %} <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Inventário</div>
               {% comment %} <div class="lbl">MTM</div> {% endcomment %}
               <div class="val">{{ summary.mtm_value|currency_brl }}</div>
-              <small class="text-muted-2">Caixa: {{ summary.cash|currency_brl }}</small>
-              {% comment %} <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small> {% endcomment %}
+              <small class="text-muted-2">Custo: {{ summary.cost_basis|currency_brl }}</small>
+              {% comment %} <small class="text-muted-2">Cost: {{ summary.cost_basis|currency_brl }}</small> {% endcomment %}
+            </div>
+            <div class="col-6 col-md-3 kpi">
+              <div class="lbl">ROI</div>
+              <div class="val">{{ summary.roi_percent|pct }}</div>
+              <small class="text-muted-2">Investido: {{ summary.invested|currency_brl }}</small>
+              {% comment %} <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Profit</div>
               {% comment %} <div class="lbl">PnL</div> {% endcomment %}
               <div class="val">{{ summary.realized_pnl_value|currency_brl }}</div>
-              <small class="text-muted-2">ROI: {{ summary.roi_percent|pct }}</small>
-            </div>
-            <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Profit Médio</div>
-              {% comment %} <div class="lbl">Average PnL</div> {% endcomment %}
-              <div class="val">{{ summary.average_pnl_percent|pct }}</div>
+              <small class="text-muted-2">% médio: {{ summary.average_pnl_percent|pct }}</small>
+              {% comment %} <small class="text-muted-2">Average PnL: {{ summary.average_pnl_percent|pct }}</small> {% endcomment %}
             </div>
           </div>
         </div>
