@@ -1,107 +1,108 @@
-# 1. Atualiza o banco com os itens disponiveis (Dash) (a cada 1hr)
-# 2. Busca o preço dos itens disponíveis (Buff) (a cada 3 hr)
-# 3. Compara e mostra as maiores diferenças de preço
-
-from django.core.management.base import BaseCommand
-from datetime import timedelta
-from django.utils import timezone
-from scanner.models import BlackList, ScannedItem
-from scanner.services import dash_bot, dash_p2p, buff
+import os
+import requests
+import json
 from decimal import Decimal
+from django.core.management.base import BaseCommand
+from django.conf import settings
+from scanner.services import dash_bot, dash_p2p, buff
+
+# Classe auxiliar para serializar objetos Decimal para JSON
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return str(obj)
+        return super(DecimalEncoder, self).default(obj)
 
 class Command(BaseCommand):
-    help = 'Runs the full scanner script to update Dash items and Buff prices.'
+    help = 'Runs the full scanner script by interacting with the API.'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.api_base_url = "https://cstrack.online/scanner/api"
+        self.api_base_url = "http://localhost:8000/scanner/api"
+        self.headers = {
+            "Content-Type": "application/json",
+            "X-API-KEY": settings.SCANNER_API_KEY
+        }
+
+    def _api_request(self, method, endpoint, data=None):
+        """Função auxiliar para fazer requisições à API."""
+        url = f"{self.api_base_url}/{endpoint}/"
+        try:
+            if method.upper() == 'GET':
+                response = requests.get(url, headers=self.headers)
+            elif method.upper() == 'POST':
+                response = requests.post(url, headers=self.headers, data=json.dumps(data, cls=DecimalEncoder))
+            else:
+                raise ValueError("Unsupported HTTP method")
+            
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            self.stdout.write(self.style.ERROR(f"API Error at {endpoint}: {e}"))
+            if e.response:
+                self.stdout.write(self.style.ERROR(f"Response: {e.response.text}"))
+            return None
 
     def handle(self, *args, **kwargs):
-        self.stdout.write(self.style.SUCCESS('--- Starting Scanner Script ---'))
+        self.stdout.write(self.style.SUCCESS('--- Starting Scanner Script (API Mode) ---'))
 
-        # SEÇÃO 1: ATUALIZAR ITENS DA DASH
-        self.stdout.write('Step 1: Fetching items from Dash...')
-        price_min = 25
-        price_max = 500
-        products = {} 
-
-        products = dash_p2p.get_items(products, price_min, price_max, 20)
-        products = dash_bot.get_items(products, price_min, price_max, 80)
-
-        ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).delete()
+        # SEÇÃO 1: BUSCAR ITENS DA DASH E ENVIAR PARA A API
+        self.stdout.write('Step 1: Fetching items from Dash and sending to API...')
+        products = {}
+        products = dash_p2p.get_items(products, 25, 500, 20)
+        products = dash_bot.get_items(products, 25, 500, 80)
         
-        items_to_create = [
-            ScannedItem(
-                name=name,
-                price=info['price'],
-                source=info['source']
-            ) for name, info in products.items()
-        ]
-        ScannedItem.objects.bulk_create(items_to_create)
-        self.stdout.write(self.style.SUCCESS(f'-> Found and created {len(items_to_create)} items from Dash.'))
-
-        # SEÇÃO 2: ATUALIZAR PREÇOS DO BUFF
-        self.stdout.write('Step 2: Updating Buff prices...')
-
-        dash_items_to_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p'])
-        buff_items_in_db = ScannedItem.objects.filter(source='buff', timestamp__gte=timezone.now()-timedelta(hours=3))
-        blacklist_items = BlackList.objects.all().values_list('name', flat=True)
-
-        # Filtra itens da blacklist
-        dash_items_to_check = dash_items_to_check.exclude(name__in=blacklist_items)
 
         # Filtra itens que já têm preço recente do Buff
         recent_buff_names = buff_items_in_db.values_list('name', flat=True)
-        items_needing_update = dash_items_to_check.exclude(name__in=recent_buff_names)
+        if not products:
+            self.stdout.write(self.style.WARNING('No products found on Dash. Exiting.'))
+            return
+            
+        api_payload = {"items": [{"name": name, "price": info['price'], "source": info['source']} for name, info in products.items()]}
+        response_data = self._api_request('POST', 'add-items', api_payload)
         
-        self.stdout.write(f'-> Found {items_needing_update.count()} items needing a Buff price update.')
+        if not response_data:
+            self.stdout.write(self.style.ERROR('Failed to add items via API. Aborting.'))
+            return
+        
+        created_count = response_data.get("created_items", "N/A")
+        self.stdout.write(self.style.SUCCESS(f'-> API reported {created_count} items created.'))
 
-        for index, item in enumerate(items_needing_update):
-            buff_info = buff.get_item_info(item.name)
+        # SEÇÃO 2: OBTER LISTA DE ITENS PARA ATUALIZAR E BUSCAR PREÇOS DO BUFF
+        self.stdout.write('Step 2: Getting items list and updating Buff prices...')
+        response_data = self._api_request('GET', 'items-to-update')
+        
+        if not response_data:
+            self.stdout.write(self.style.ERROR('Failed to get items to update. Aborting.'))
+            return
+
+        items_to_update = response_data.get("items_to_update", [])
+        self.stdout.write(f'-> Found {len(items_to_update)} items needing a Buff price update.')
+        
+        buff_prices_payload = []
+        for index, item_name in enumerate(items_to_update):
+            buff_info = buff.get_item_info(item_name)
             if buff_info:
-                self.stdout.write(f"{index + 1}/{items_needing_update.count()} {item.name}: Buff Price = {buff_info['price']}, Offers = {buff_info['offers']}")
-                ScannedItem.objects.create(
-                    name=item.name,
-                    price=buff_info['price'],
-                    offers=buff_info['offers'],
-                    source='buff'
-                )
-                if buff_info.get('offers', 0) < 50:
-                    BlackList.objects.update_or_create(
-                        name=item.name,
-                        defaults={'offers': buff_info['offers']}
-                    )
+                buff_info['name'] = item_name  # Ensure the name is included
+                self.stdout.write(f"  {index + 1}/{len(items_to_update)}: Fetched '{item_name}' - Price: {buff_info['price']}")
+                buff_prices_payload.append(buff_info)
+            else:
+                self.stdout.write(self.style.WARNING(f"  {index + 1}/{len(items_to_update)}: '{item_name}' not found on Buff."))
 
-        # SEÇÃO 3: COMPARAR PREÇOS E CALCULAR DIFERENÇA
-        self.stdout.write('Step 3: Calculating price differences...')
+        if buff_prices_payload:
+            response_data = self._api_request('POST', 'update-buff-prices', {"items": buff_prices_payload})
+            if response_data:
+                updated_count = response_data.get("updated_items", "N/A")
+                self.stdout.write(self.style.SUCCESS(f'-> Sent {len(buff_prices_payload)} Buff prices to API. Updated: {updated_count}'))
+
+        # SEÇÃO 3: ACIONAR O CÁLCULO DE DIFERENÇAS
+        self.stdout.write('Step 3: Triggering price difference calculation...')
+        response_data = self._api_request('POST', 'calculate-differences')
         
-        # Pega todos os itens da Dash que devem ser comparados
-        dash_items_to_compare = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p'])
-        items_processed = 0
+        if response_data:
+            processed_count = response_data.get("processed_items", "N/A")
+            self.stdout.write(self.style.SUCCESS(f'-> Calculation triggered. API processed {processed_count} items.'))
 
-        for dash_item in dash_items_to_compare:
-            try:
-                # Busca o item correspondente do Buff no banco de dados
-                buff_item = ScannedItem.objects.get(source='buff', name=dash_item.name)
-                
-                # Garante que os preços não sejam nulos ou zero para evitar erros de divisão
-                if buff_item.price and dash_item.price and buff_item.price > 0 and dash_item.price > 0:
-                    buff_price = Decimal(buff_item.price)
-                    dash_price = Decimal(dash_item.price)
-
-                    # Calcula a diferença inicial
-                    diff = int((buff_price / dash_price - 1) * 100)
-                    
-                    # Recalcula com a taxa se a condição for atendida
-                    if diff < -7:
-                        diff = int((buff_price / (dash_price * Decimal('0.93')) - 1) * 100)
-                    
-                    # Salva a diferença no registro do item da Dash
-                    dash_item.diff = diff
-                    buff_item.diff = diff
-                    dash_item.save()
-                    buff_item.save()
-                    items_processed += 1
-
-            except ScannedItem.DoesNotExist:
-                # Se não houver um preço do Buff para comparar, pula para o próximo item
-                continue
-        
-        self.stdout.write(self.style.SUCCESS(f'-> Calculated differences for {items_processed} items.'))
         self.stdout.write(self.style.SUCCESS('--- Scanner Script Finished ---'))

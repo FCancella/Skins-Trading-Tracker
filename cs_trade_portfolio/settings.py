@@ -22,6 +22,9 @@ BASE_DIR: Path = Path(__file__).resolve().parent.parent
 # Carregue a chave secreta de uma variável de ambiente.
 SECRET_KEY: str = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-dev')
 
+# Chave de API para o Scanner
+SCANNER_API_KEY = os.environ.get('SCANNER_API_KEY', 'default-scanner-api-key-for-dev')
+
 # ATENÇÃO: DEBUG deve ser False em produção!
 DEBUG: bool = os.environ.get('DEBUG', 'False').lower() == 'true'
 

@@ -1,18 +1,5 @@
 """
 URL configuration for the Counter‑Strike skin trade management project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from __future__ import annotations
 
@@ -23,8 +10,8 @@ from django.contrib import admin
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),  # login, logout, password views
- 
+    path("accounts/", include("django.contrib.auth.urls")),
+
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
     path("observer/", trade_views.observer, name="observer"),
@@ -33,4 +20,10 @@ urlpatterns = [
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
 
     path("scanner/", scanner_views.scanner_view, name="scanner_list"),
+    
+    # Endpoints da API do Scanner
+    path("scanner/api/add-items/", scanner_views.scanner_api_add_items, name="scanner_api_add_items"),
+    path("scanner/api/items-to-update/", scanner_views.get_items_to_update, name="scanner_api_get_items_to_update"),
+    path("scanner/api/update-buff-prices/", scanner_views.update_buff_prices, name="scanner_api_update_buff_prices"),
+    path("scanner/api/calculate-differences/", scanner_views.calculate_differences, name="scanner_api_calculate_differences"),
 ]
