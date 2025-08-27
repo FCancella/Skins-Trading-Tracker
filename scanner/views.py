@@ -107,7 +107,7 @@ def calculate_differences(request):
     for dash_item in dash_items_to_compare:
         try:
             buff_item = ScannedItem.objects.filter(source='buff', name=dash_item.name, timestamp__gte=timezone.now() - timedelta(hours=3)).first()
-            if buff_item.price and dash_item.price and buff_item.price > 0 and dash_item.price > 0:
+            if buff_item and buff_item.price and dash_item.price and buff_item.price > 0 and dash_item.price > 0:
                 buff_price = Decimal(buff_item.price)
                 dash_price = Decimal(dash_item.price)
                 diff = int((buff_price / dash_price - 1) * 100)
@@ -134,7 +134,13 @@ def scanner_view(request):
     ).exclude(diff__isnull=True).order_by('-diff')
     
     item_names = dash_items.values_list('name', flat=True)
-    buff_prices_qs = ScannedItem.objects.filter(source='buff', name__in=item_names)
+    
+    # Busca apenas o preço mais recente de cada item no Buff
+    buff_prices_qs = ScannedItem.objects.filter(
+        source='buff', 
+        name__in=item_names
+    ).order_by('name', '-timestamp').distinct('name')
+    
     buff_data_map = {item.name: {'price': item.price, 'offers': item.offers} for item in buff_prices_qs}
     
     processed_items = [{

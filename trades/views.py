@@ -89,10 +89,7 @@ def _calculate_portfolio_metrics(user: User) -> dict:
     average_pnl_percent = (average_pnl_factor - 1) * 100
 
     # 4. MTM (Mark to Market)
-    mtm_value = sum(
-        (t.buy_price * ((average_pnl_factor - 1) * Decimal('0.7') + 1))
-        for t in trades if t.sell_price is None
-    )
+    mtm_value = cost_basis * (1 + (average_pnl_factor - 1) * Decimal('0.7')) if cost_basis > 0 else Decimal('0.0')
 
     # 5. Total Investment
     total_investment = investments.aggregate(total=Coalesce(Sum("amount"), Value(Decimal('0.0'))))["total"]
