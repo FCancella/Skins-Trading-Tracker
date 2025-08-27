@@ -309,7 +309,7 @@ button.badge.status-closed:disabled{
   color: var(--fg-2);
   background-color: var(--bg-2);
   border: 1px solid var(--border);
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.4rem;
   transition: 0.2s ease-in-out;
 }
 
