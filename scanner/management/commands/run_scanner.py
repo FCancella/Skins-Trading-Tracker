@@ -57,7 +57,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('No products found on Dash. Exiting.'))
             return
             
-        api_payload = {"items": [{"name": name, "price": info['price'], "source": info['source']} for name, info in products.items()]}
+        api_payload = {"items": [{"name": name, "price": info['price'], "source": info['source'], "link": info['link']} for name, info in products.items()]}
         response_data = self._api_request('POST', 'add-items', api_payload)
         
         if not response_data:

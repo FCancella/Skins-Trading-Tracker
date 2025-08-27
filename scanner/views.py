@@ -35,7 +35,7 @@ def scanner_api_add_items(request):
 
         ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).delete()
         items_to_create = [
-            ScannedItem(name=item['name'], price=item['price'], source=item['source'])
+            ScannedItem(name=item['name'], price=item['price'], source=item['source'], link=item['link'])
             for item in items
         ]
         ScannedItem.objects.bulk_create(items_to_create)
@@ -149,7 +149,8 @@ def scanner_view(request):
         'buff_offers': buff_data_map.get(item.name, {}).get('offers'),
         'dash_price': item.price,
         'diff': item.diff,
-        'source': item.source
+        'source': item.source,
+        'link': item.link
     } for item in dash_items]
 
     last_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).order_by('-timestamp').first()

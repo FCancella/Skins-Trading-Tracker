@@ -60,6 +60,9 @@ def get_items(products, min, max, limit=10000):
                 break
             
             market_hash_name = item['market_hash_name']
+            id = item['_id']
+            link_name = market_hash_name.replace(" ", "-").replace("|", "").replace("(", "").replace(")", "").lower()
+            link = f"https://dashskins.com.br/item/{link_name}/{id}"
             price = float(item.get('price', 1e05))
 
             if any(substring in market_hash_name for substring in remove):
@@ -67,8 +70,8 @@ def get_items(products, min, max, limit=10000):
 
             if market_hash_name in products and price >= products[market_hash_name].get('price', 0):
                 continue
-            
-            products[market_hash_name] = {'price': price, 'source': 'dash_bot'}
+
+            products[market_hash_name] = {'price': price, 'source': 'dash_bot', 'link': link}
             item_counter += 1
 
     print(f"* BOT DashSkins parse concluded. {item_counter} item's analyzed")

@@ -5,6 +5,7 @@ class ScannedItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     offers = models.IntegerField(null=True, blank=True)
     source = models.CharField(max_length=50)
+    link = models.URLField(max_length=500, null=True, blank=True)
     diff = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now=True)
 
