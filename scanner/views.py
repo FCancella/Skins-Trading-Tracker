@@ -153,6 +153,8 @@ def scanner_view(request):
         'link': item.link
     } for item in dash_items]
 
+    print(processed_items)
+
     last_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).order_by('-timestamp').first()
     last_check_time = last_check.timestamp if last_check else None
     next_run_in = None
