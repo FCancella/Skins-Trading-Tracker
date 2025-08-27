@@ -95,6 +95,7 @@
 
   {% if not is_observer %}
     {% include 'trades/add_forms.html' %}
+    {% include 'trades/bulk_add_form.html' %}
   {% endif %}
 </div>
 
@@ -119,24 +120,41 @@
             </tr>
           </thead>
           <tbody>
-            {% for trade in trades %}
+            {% for group in trade_data.grouped_open_trades %}
+            <tr>
+              <td class="fw-medium">{{ group.trade.item_name }} {% if group.quantity > 1 %}<span class="text-muted-2">({{ group.quantity }})</span>{% endif %}</td>
+              <td>{{ group.trade.buy_price|currency_brl }}</td>
+              <td>{{ group.trade.sell_price|currency_brl|default:"—" }}</td>
+              <td>{{ group.trade.get_buy_source_display }}</td>
+              <td>{{ group.trade.get_sell_source_display|default:"" }}</td>
+              <td>
+                <span class="{{ group.trade.days_until_tradable|yesno:',cell-stale' }}">{{ group.trade.buy_date|date:"d/m/y" }}</span>
+                {% if group.trade.days_until_tradable %}
+                <small class="text-muted-2 fs-7">{{ group.trade.days_until_tradable }}d</small>
+                {% endif %}
+              </td>
+              <td>{% if group.trade.sell_date %}{{ group.trade.sell_date|date:"d/m/y" }}{% endif %}</td>
+              <td>—</td>
+              <td>
+                <button type="button" class="badge status-open badge-button" 
+                  {% if not is_observer %}data-bs-toggle="modal" data-bs-target="#editModal-{{ group.trade.id }}"{% else %}disabled{% endif %}>
+                  Open
+                </button>
+              </td>
+            </tr>
+            {% if not is_observer %}
+              {% include 'trades/edit_modal.html' with trade=group.trade %}
+            {% endif %}
+            {% endfor %}
+
+            {% for trade in trade_data.closed_trades %}
             <tr>
               <td class="fw-medium">{{ trade.item_name }}</td>
               <td>{{ trade.buy_price|currency_brl }}</td>
               <td>{{ trade.sell_price|currency_brl|default:"—" }}</td>
               <td>{{ trade.get_buy_source_display }}</td>
               <td>{{ trade.get_sell_source_display|default:"" }}</td>
-              <td>
-                {% if trade.sell_date or trade.days_until_tradable %}
-                {{ trade.buy_date|date:"d/m/y" }}
-                {% else %}
-                <span class="cell-stale">{{ trade.buy_date|date:"d/m/y" }}</span>
-                {% endif %}
-
-                {% if trade.days_until_tradable %}
-                <small class="text-muted-2 fs-7">{{ trade.days_until_tradable }}d</small>
-                {% endif %}
-              </td>
+              <td>{{ trade.buy_date|date:"d/m/y" }}</td>
               <td>
                 {% if trade.sell_date %}
                   {{ trade.sell_date|date:"d/m/y" }}
@@ -149,18 +167,20 @@
                 {% else %} — {% endif %}
               </td>
               <td>
-                <button type="button" class="badge status-{{ trade.sell_price|yesno:'closed,open' }} badge-button" 
+                <button type="button" class="badge status-closed badge-button" 
                   {% if not is_observer %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
-                  {{ trade.sell_price|yesno:'Closed,Open' }}
+                  Closed
                 </button>
               </td>
             </tr>
             {% if not is_observer %}
               {% include 'trades/edit_modal.html' with trade=trade %}
             {% endif %}
-            {% empty %}
-            <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>
             {% endfor %}
+
+            {% if not trade_data.grouped_open_trades and not trade_data.closed_trades %}
+            <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>
+            {% endif %}
           </tbody>
         </table>
       </div>

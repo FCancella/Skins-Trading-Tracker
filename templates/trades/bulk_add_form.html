@@ -1,0 +1,56 @@
+{% load form_extras %}
+<div class="col-12">
+    <div class="card">
+      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseBulkAddItem" aria-expanded="false" aria-controls="collapseBulkAddItem">Bulk Add Items</div>
+      <div class="collapse" id="collapseBulkAddItem">
+        <div class="card-body">
+          {% if bulk_add_form.non_field_errors %}
+            <div class="alert alert-danger py-2">{{ bulk_add_form.non_field_errors|striptags }}</div>
+          {% endif %}
+          <form method="post" action="{% url 'index' %}" class="row g-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="bulk_add" />
+            
+            <div class="col-12">
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <label class="form-label">Item Name</label>
+                  {{ bulk_add_form.item_name }}
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Buy Date</label>
+                  {{ bulk_add_form.buy_date }}
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Quantity</label>
+                  {{ bulk_add_form.quantity }}
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Buy Price (per item)</label>
+                        <div class="d-flex align-items-center">
+                            {{ bulk_add_form.buy_price }}
+                            <div class="btn-group ms-2" role="group">
+                                <input type="radio" class="btn-check" name="buy_price_currency" id="bulk_buy_brl" value="BRL" checked><label class="btn btn-currency" for="bulk_buy_brl">BRL</label>
+                                <input type="radio" class="btn-check" name="buy_price_currency" id="bulk_buy_cny" value="CNY"><label class="btn btn-currency" for="bulk_buy_cny">CNY</label>
+                                <input type="radio" class="btn-check" name="buy_price_currency" id="bulk_buy_usd" value="USD"><label class="btn btn-currency" for="bulk_buy_usd">USD</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Buy Source</label>
+                        {{ bulk_add_form.buy_source }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12"><button type="submit" class="btn btn-primary w-100 mt-2">Add Bulk Trades</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>

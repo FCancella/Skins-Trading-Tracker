@@ -10,6 +10,7 @@ from __future__ import annotations
 from decimal import Decimal
 import requests
 import pandas as pd
+from collections import defaultdict
 
 from django.core.cache import cache
 from django.contrib.auth import login
@@ -23,7 +24,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm
+from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm, BulkTradeForm
 from .models import Trade, Investment
 
 def _get_exchange_rate(currency: str) -> Decimal | None:
@@ -134,18 +135,37 @@ def _calculate_portfolio_metrics(user: User) -> dict:
             'pnl': accumulated_pnl,
         })
 
-    # --- Form preparation ---
-    for t in trades:
-        if t.sell_price is None:
-            t.edit_form = SellTradeForm(instance=t)
-        else:
-            t.edit_form = TradeForm(instance=t)
-            
+    # --- Grouping and Form Preparation ---
+    # Group open trades
+    grouped_open_trades_map = defaultdict(list)
+    for trade in open_qs:
+        key = (trade.item_name, trade.buy_price, trade.buy_source, trade.buy_date)
+        grouped_open_trades_map[key].append(trade)
+
+    grouped_open_trades = []
+    for trades_in_group in grouped_open_trades_map.values():
+        first_trade = trades_in_group[0]
+        first_trade.edit_form = SellTradeForm(instance=first_trade)
+        grouped_open_trades.append({
+            'trade': first_trade,
+            'quantity': len(trades_in_group),
+        })
+
+    # Prepare forms for closed trades
+    closed_trades = list(closed_qs)
+    for t in closed_trades:
+        t.edit_form = TradeForm(instance=t)
+
     for i in investments:
         i.form = InvestmentForm(instance=i)
 
+    trade_data = {
+        'grouped_open_trades': grouped_open_trades,
+        'closed_trades': closed_trades
+    }
+
     return {
-        "trades": trades,
+        "trade_data": trade_data,
         "investments": investments,
         "summary": summary,
         "pnl_data": pnl_data,
@@ -179,10 +199,14 @@ def observer(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
+    add_form = TradeForm()
+    bulk_add_form = BulkTradeForm()
+    investment_form = InvestmentForm()
+
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "add":
-            add_form = TradeForm(request.POST)
+            add_form = TradeForm(request.POST) # Re-populate form on error
             price = request.POST.get("buy_price")
             currency = request.POST.get("buy_price_currency")
             
@@ -197,6 +221,21 @@ def index(request: HttpRequest) -> HttpResponse:
             if add_form.is_valid():
                 add_form.save(owner=request.user)
                 return redirect("index")
+        elif action == "bulk_add":
+            bulk_add_form = BulkTradeForm(request.POST) # Re-populate
+            if bulk_add_form.is_valid():
+                data = bulk_add_form.cleaned_data
+                quantity = data.pop('quantity')
+                currency = data.pop('buy_price_currency')
+                
+                converted_price = _convert_currency_to_brl(data['buy_price'], currency)
+                if converted_price is None:
+                    bulk_add_form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
+                else:
+                    data['buy_price'] = converted_price
+                    trades_to_create = [Trade(owner=request.user, **data) for _ in range(quantity)]
+                    Trade.objects.bulk_create(trades_to_create)
+                    return redirect("index")
         elif action == "sell":
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
@@ -254,10 +293,11 @@ def index(request: HttpRequest) -> HttpResponse:
             trade.save()
             return redirect("index")
 
-    # --- GET Request ---
+    # --- GET Request or failed POST ---
     context = _calculate_portfolio_metrics(request.user)
-    context["add_form"] = TradeForm()
-    context["investment_form"] = InvestmentForm()
+    context["add_form"] = add_form
+    context["bulk_add_form"] = bulk_add_form
+    context["investment_form"] = investment_form
     
     return render(request, "trades/index.html", context)
 

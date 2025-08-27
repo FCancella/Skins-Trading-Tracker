@@ -127,3 +127,20 @@ class InvestmentForm(forms.ModelForm):
         if commit:
             obj.save()
         return obj
+
+class BulkTradeForm(forms.Form):
+    """Form for adding multiple trades at once."""
+    item_name = forms.CharField(max_length=100)
+    quantity = forms.IntegerField(min_value=1, initial=1)
+    buy_price = forms.DecimalField(max_digits=10, decimal_places=2)
+    buy_source = forms.ChoiceField(choices=Trade.SOURCE_CHOICES)
+    buy_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), initial=timezone.now().date())
+    buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect(attrs={'class': 'btn-check'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Apply default bootstrap classes to fields
+        for name, field in self.fields.items():
+            if name == 'buy_price_currency': continue
+            css_class = 'form-select' if isinstance(field, forms.ChoiceField) else 'form-control'
+            field.widget.attrs.setdefault('class', css_class)
