@@ -16,7 +16,7 @@ def get_items(products, min, max, limit=10000):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
 
-    dash_p2p_url = f"https://api.dashskins.gg/v1/item?pageSize=100000&maxPriceBRL={max}&minPriceBRL={min}&sort=discount-desc"
+    dash_p2p_url = f"https://api.dashskins.gg/v1/item?pageSize=2000&maxPriceBRL={max}&minPriceBRL={min}&sort=discount-desc"
 
     response = requests.get(dash_p2p_url, headers=headers, timeout=15)
     if response.status_code != 200:
