@@ -20,7 +20,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from .models import Trade, Investment
+from .models import Trade, Investment, SOURCE_CHOICES
 
 CURRENCY_CHOICES = [
     ('BRL', 'BRL'),
@@ -107,7 +107,7 @@ class InvestmentForm(forms.ModelForm):
 
     class Meta:
         model = Investment
-        fields = ['amount', 'description', 'date']
+        fields = ['amount', 'description', 'source', 'date']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
@@ -133,7 +133,7 @@ class BulkTradeForm(forms.Form):
     item_name = forms.CharField(max_length=100)
     quantity = forms.IntegerField(min_value=1, initial=1)
     buy_price = forms.DecimalField(max_digits=10, decimal_places=2)
-    buy_source = forms.ChoiceField(choices=Trade.SOURCE_CHOICES)
+    buy_source = forms.ChoiceField(choices=SOURCE_CHOICES)
     buy_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), initial=timezone.now().date())
     buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect(attrs={'class': 'btn-check'}))
 

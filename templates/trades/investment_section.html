@@ -8,7 +8,8 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="invest">
       <div class="col-md-3"><label class="form-label">Amount</label>{{ investment_form.amount }}</div>
-      <div class="col-md-6"><label class="form-label">Description</label>{{ investment_form.description }}</div>
+      <div class="col-md-3"><label class="form-label">Description</label>{{ investment_form.description }}</div>
+      <div class="col-md-3"><label class="form-label">Source</label>{{ investment_form.source }}</div>
       <div class="col-md-3"><label class="form-label">Date</label>{{ investment_form.date }}</div>
       <div class="col-12"><button type="submit" class="btn btn-primary w-100">Add Investment</button></div>
     </form>
@@ -16,13 +17,14 @@
     <h5 class="mb-3">History</h5>
     <div class="table-responsive">
       <table class="table table-sm align-middle">
-        <thead><tr><th>Date</th><th>Amount</th><th>Description</th><th></th></tr></thead>
+        <thead><tr><th>Date</th><th>Amount</th><th>Description</th><th>Source</th><th></th></tr></thead>
         <tbody>
           {% for investment in investments %}
           <tr>
             <td>{{ investment.date|date:"d/m/Y" }}</td>
             <td>{{ investment.amount|currency_brl }}</td>
             <td>{{ investment.description }}</td>
+            <td>{{ investment.get_source_display }}</td>
             <td class="text-end">
                 <button type="button" class="btn btn-sm btn-ghost" data-bs-toggle="modal" data-bs-target="#editInvestmentModal-{{ investment.id }}">
                     Edit
@@ -31,7 +33,7 @@
           </tr>
           {% include 'trades/edit_investment_modal.html' with investment=investment %}
           {% empty %}
-          <tr><td colspan="4" class="text-center text-muted-2">No investments yet.</td></tr>
+          <tr><td colspan="5" class="text-center text-muted-2">No investments yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

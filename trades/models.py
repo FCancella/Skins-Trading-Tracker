@@ -20,6 +20,19 @@ from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+SOURCE_CHOICES: list[tuple[str, str]] = [
+    ('buff', 'BUFF'),
+    ('floatdb', 'CSFloat'),
+    ('csmoney', 'CS.Money'),
+    ('dash_bot', 'Dashskins'),
+    ('dash_p2p', 'Dash P2P'),
+    ('p2p', 'P2P'),
+    ('rent_skins', 'RentSkins'),
+    ('skinport', 'Skinport'),
+    ('steam', 'Steam'),
+    ('youpin', 'Youpin'),
+]
+
 class Profile(models.Model):
     """Represents user profile settings."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -39,20 +52,6 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Trade(models.Model):
     """Model representing a Counter‑Strike skin trade item."""
-
-    SOURCE_CHOICES: list[tuple[str, str]] = [
-        ('buff', 'BUFF'),
-        ('floatdb', 'CSFloat'),
-        ('csmoney', 'CS.Money'),
-        ('dash_bot', 'Dashskins'),
-        ('dash_p2p', 'Dash P2P'),
-        ('p2p', 'P2P'),
-        ('rent_skins', 'RentSkins'),
-        ('skinport', 'Skinport'),
-        ('steam', 'Steam'),
-        ('youpin', 'Youpin'),
-    ]
-
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -111,6 +110,7 @@ class Investment(models.Model):
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=255)
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='other')
     date = models.DateField(default=timezone.now)
 
     class Meta:

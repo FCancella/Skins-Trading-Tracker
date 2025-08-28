@@ -35,8 +35,8 @@ class TradeAdmin(admin.ModelAdmin):
 @admin.register(Investment)
 class InvestmentAdmin(admin.ModelAdmin):
     """Admin view for Investments."""
-    list_display = ('owner', 'amount', 'description', 'date')
-    list_filter = ('owner', 'date')
+    list_display = ('owner', 'amount', 'description', 'source', 'date')
+    list_filter = ('owner', 'date', 'source')
     search_fields = ('description',)
 
 @admin.register(Profile)
