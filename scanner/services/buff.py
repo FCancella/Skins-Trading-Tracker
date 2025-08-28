@@ -16,6 +16,7 @@ cookies = {c.strip().split("=", 1)[0]: c.strip().split("=", 1)[1] for c in cooki
 def get_skin_data(item_id, cnybrl):
 
     buff_api_url = f"https://buff.163.com/api/market/goods/sell_order?game=csgo&page_num=1&goods_id={item_id}"
+    link = f"https://buff.163.com/market/goods?game=csgo&goods_id={item_id}"
 
     while True:
         try:
@@ -50,7 +51,7 @@ def get_skin_data(item_id, cnybrl):
 
     buff_price = round(buff_price, 2)
 
-    return {'price': buff_price, 'offers': buff_offers, 'source': 'buff', 'link': buff_api_url}
+    return {'price': buff_price, 'offers': buff_offers, 'source': 'buff', 'link': link}
 
 def get_item_info(item):
 
