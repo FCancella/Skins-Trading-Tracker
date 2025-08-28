@@ -81,6 +81,7 @@ def update_buff_prices(request):
                 name=item['name'],
                 price=item['price'],
                 offers=item['offers'],
+                link=item['link'],
                 source='buff'
             )
             created_count += 1
