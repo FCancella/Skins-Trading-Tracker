@@ -160,12 +160,31 @@ def _calculate_portfolio_metrics(user: User) -> dict:
         'grouped_open_trades': grouped_open_trades,
         'closed_trades': closed_trades
     }
+    
+    # --- Cash per source calculation ---
+    cash_per_source = defaultdict(Decimal)
+
+    for investment in investments:
+        cash_per_source[investment.get_source_display()] += investment.amount
+
+    for trade in trades:
+        cash_per_source[trade.get_buy_source_display()] -= trade.buy_price
+
+    for trade in closed_qs:
+        cash_per_source[trade.get_sell_source_display()] += trade.sell_price
+
+    cash_per_source_data = {
+        'labels': list(cash_per_source.keys()),
+        'values': [float(v) for v in cash_per_source.values() if abs(v) > 0.01],
+    }
+
 
     return {
         "trade_data": trade_data,
         "investments": investments,
         "summary": summary,
         "pnl_data": pnl_data,
+        "cash_per_source_data": cash_per_source_data,
     }
 
 def home(request: HttpRequest) -> HttpResponse:

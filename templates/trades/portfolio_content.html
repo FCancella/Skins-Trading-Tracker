@@ -192,6 +192,15 @@
 <div class="card mt-3">
     {% include 'trades/investment_section.html' %}
 </div>
+
+<div class="card mt-3">
+    <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseCashSource" aria-expanded="true" aria-controls="collapseCashSource">Cash per Source</div>
+    <div class="collapse show" id="collapseCashSource">
+        <div class="card-body">
+            <canvas id="cashSourceChart" style="height:200px; max-height:300px;"></canvas>
+        </div>
+    </div>
+</div>
 {% endif %}
 
 
@@ -212,6 +221,41 @@
         }]},
         options: { responsive: true, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false }}}
       });
+    }
+
+    const cashSourceData = {{ cash_per_source_data|safe }};
+    if (cashSourceData && cashSourceData.labels.length > 0) {
+        const ctx = document.getElementById('cashSourceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: cashSourceData.labels,
+                datasets: [{
+                    label: 'Cash per Source (R$)',
+                    data: cashSourceData.values,
+                    backgroundColor: 'rgba(255, 78, 205, 0.2)',
+                    borderColor: 'rgba(255, 78, 205, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
     }
 
     const portfolioTable = document.getElementById('portfolioTable');
