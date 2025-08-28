@@ -175,7 +175,18 @@ def _calculate_portfolio_metrics(user: User) -> dict:
 
     cash_per_source_data = {
         'labels': list(cash_per_source.keys()),
-        'values': [float(v) for v in cash_per_source.values() if abs(v) > 0.01],
+        'values': [float(v) for v in cash_per_source.values()],
+    }
+
+    # --- Inventory Cost per Source Calculation ---
+    inventory_cost_by_source = open_qs.values('buy_source').annotate(
+        total_cost=Sum('buy_price')
+    ).order_by('-total_cost')
+
+    source_display_map = dict(SOURCE_CHOICES)
+    inventory_cost_data = {
+        'labels': [source_display_map.get(item['buy_source'], item['buy_source']) for item in inventory_cost_by_source],
+        'values': [float(item['total_cost']) for item in inventory_cost_by_source]
     }
 
 
@@ -185,6 +196,7 @@ def _calculate_portfolio_metrics(user: User) -> dict:
         "summary": summary,
         "pnl_data": pnl_data,
         "cash_per_source_data": cash_per_source_data,
+        "inventory_cost_data": inventory_cost_data,
     }
 
 def home(request: HttpRequest) -> HttpResponse:
