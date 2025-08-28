@@ -79,20 +79,22 @@ class Command(BaseCommand):
         self.stdout.write(f'-> Found {len(items_to_update)} items needing a Buff price update.')
         
         buff_prices_payload = []
-        for index, item_name in enumerate(items_to_update):
-            buff_info = buff.get_item_info(item_name)
-            if buff_info:
-                buff_info['name'] = item_name  # Ensure the name is included
-                self.stdout.write(f"  {index + 1}/{len(items_to_update)}: Fetched '{item_name}' - Price: {buff_info['price']}")
-                buff_prices_payload.append(buff_info)
-            else:
-                self.stdout.write(self.style.WARNING(f"  {index + 1}/{len(items_to_update)}: '{item_name}' not found on Buff."))
-
-        if buff_prices_payload:
-            response_data = self._api_request('POST', 'update-buff-prices', {"items": buff_prices_payload})
-            if response_data:
-                updated_count = response_data.get("updated_items", "N/A")
-                self.stdout.write(self.style.SUCCESS(f'-> Sent {len(buff_prices_payload)} Buff prices to API. Updated: {updated_count}'))
+        try:
+            for index, item_name in enumerate(items_to_update):
+                buff_info = buff.get_item_info(item_name)
+                if buff_info:
+                    buff_info['name'] = item_name  # Ensure the name is included
+                    self.stdout.write(f"  {index + 1}/{len(items_to_update)}: Fetched '{item_name}' - Price: {buff_info['price']}")
+                    buff_prices_payload.append(buff_info)
+                else:
+                    self.stdout.write(self.style.WARNING(f"  {index + 1}/{len(items_to_update)}: '{item_name}' not found on Buff."))
+        finally:
+            if buff_prices_payload:
+                self.stdout.write(self.style.SUCCESS(f'Sending {len(buff_prices_payload)} fetched Buff prices to the API...'))
+                response_data = self._api_request('POST', 'update-buff-prices', {"items": buff_prices_payload})
+                if response_data:
+                    updated_count = response_data.get("updated_items", "N/A")
+                    self.stdout.write(self.style.SUCCESS(f'-> API reported {updated_count} items updated.'))
 
         # SEÇÃO 3: ACIONAR O CÁLCULO DE DIFERENÇAS
         self.stdout.write('Step 3: Triggering price difference calculation...')
