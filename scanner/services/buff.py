@@ -50,7 +50,7 @@ def get_skin_data(item_id, cnybrl):
 
     buff_price = round(buff_price, 2)
 
-    return {'price': buff_price, 'offers': buff_offers, 'source': 'buff'}
+    return {'price': buff_price, 'offers': buff_offers, 'source': 'buff', 'link': buff_api_url}
 
 def get_item_info(item):
 

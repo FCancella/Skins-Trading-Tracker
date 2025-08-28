@@ -141,7 +141,7 @@ def scanner_view(request):
         name__in=item_names
     ).order_by('name', '-timestamp').distinct('name')
     
-    buff_data_map = {item.name: {'price': item.price, 'offers': item.offers} for item in buff_prices_qs}
+    buff_data_map = {item.name: {'price': item.price, 'offers': item.offers, 'link': item.link} for item in buff_prices_qs}
     
     processed_items = [{
         'name': item.name,
@@ -150,7 +150,8 @@ def scanner_view(request):
         'dash_price': item.price,
         'diff': item.diff,
         'source': item.source,
-        'link': item.link
+        'link': item.link,
+        'buff_link': buff_data_map.get(item.name, {}).get('link')
     } for item in dash_items]
 
     last_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).order_by('-timestamp').first()
