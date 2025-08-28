@@ -11,6 +11,7 @@ from decimal import Decimal
 import requests
 import pandas as pd
 from collections import defaultdict
+from datetime import timedelta
 
 from django.core.cache import cache
 from django.contrib.auth import login
@@ -199,6 +200,57 @@ def _calculate_portfolio_metrics(user: User) -> dict:
         "inventory_cost_data": inventory_cost_data,
     }
 
+def _calculate_update_notifications(user: User) -> dict:
+    """
+    Calcula as notificações de atualização de tradability e pagamento.
+    """
+    today = timezone.localdate()
+    tomorrow = today + timedelta(days=1)
+
+    # Trades que ficam "tradable" (buy_date + 7)
+    tradable_today_count = Trade.objects.filter(
+        owner=user, sell_date__isnull=True, buy_date=today - timedelta(days=7)
+    ).count()
+    tradable_tomorrow_count = Trade.objects.filter(
+        owner=user, sell_date__isnull=True, buy_date=today - timedelta(days=6)
+    ).count()
+
+    # Trades cujo pagamento é liberado (sell_date + 8)
+    payment_today_count = Trade.objects.filter(
+        owner=user, sell_date=today - timedelta(days=8)
+    ).count()
+    payment_tomorrow_count = Trade.objects.filter(
+        owner=user, sell_date=today - timedelta(days=7)
+    ).count()
+
+    updates_today = tradable_today_count + payment_today_count
+    updates_tomorrow = tradable_tomorrow_count + payment_tomorrow_count
+
+    next_update_date = None
+    if updates_today == 0 and updates_tomorrow == 0:
+        # Encontrar a próxima data de atualização
+        next_tradable = Trade.objects.filter(
+            owner=user, sell_date__isnull=True, buy_date__gt=today - timedelta(days=6)
+        ).order_by('buy_date').first()
+
+        next_payment = Trade.objects.filter(
+            owner=user, sell_date__gt=today - timedelta(days=7)
+        ).order_by('sell_date').first()
+
+        next_tradable_date = (next_tradable.buy_date + timedelta(days=7)) if next_tradable else None
+        next_payment_date = (next_payment.sell_date + timedelta(days=8)) if next_payment else None
+
+        if next_tradable_date and next_payment_date:
+            next_update_date = min(next_tradable_date, next_payment_date)
+        else:
+            next_update_date = next_tradable_date or next_payment_date
+
+    return {
+        "updates_today": updates_today,
+        "updates_tomorrow": updates_tomorrow,
+        "next_update_date": next_update_date,
+    }
+
 def home(request: HttpRequest) -> HttpResponse:
     """Displays the homepage with options to login or spectate."""
     if request.user.is_authenticated:
@@ -323,6 +375,9 @@ def index(request: HttpRequest) -> HttpResponse:
 
     # --- GET Request or failed POST ---
     context = _calculate_portfolio_metrics(request.user)
+    notification_context = _calculate_update_notifications(request.user)
+    context.update(notification_context)
+    
     context["add_form"] = add_form
     context["bulk_add_form"] = bulk_add_form
     context["investment_form"] = investment_form

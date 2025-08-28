@@ -107,7 +107,42 @@
         </div>
       </div>
     </div>
+
+    {% if user.is_authenticated and updates_today is not None %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+      <div id="updateToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <strong class="me-auto">📢 Notificações de Atualização</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          {% if updates_today > 0 or updates_tomorrow > 0 %}
+            <p class="mb-1"><strong>{{ updates_today }}</strong> atualizações hoje.</p>
+            <p class="mb-0"><strong>{{ updates_tomorrow }}</strong> atualizações amanhã.</p>
+          {% elif next_update_date %}
+            <p class="mb-0">Nenhuma atualização hoje ou amanhã.</p>
+            <p class="mb-0">Próxima atualização em: <strong>{{ next_update_date|date:"d/m/Y" }}</strong>.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        var toastEl = document.getElementById('updateToast');
+        if (toastEl) {
+          var toastBody = toastEl.querySelector('.toast-body');
+          if (toastBody && toastBody.innerText.trim() !== "") {
+            var toast = new bootstrap.Toast(toastEl, { delay: 10000 });
+            toast.show();
+          }
+        }
+      });
+    </script>
+    
     {% block extra_scripts %}{% endblock %}
   </body>
 </html>
