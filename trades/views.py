@@ -20,6 +20,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 
 from django.db.models import F, Sum, Value
+from django.db.models import F, Sum, Value, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -57,7 +58,7 @@ def _convert_currency_to_brl(amount_str: str, currency: str) -> Decimal | None:
     except Exception:
         return None
 
-def _calculate_portfolio_metrics(user: User) -> dict:
+def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict:
     """
     Calcula as métricas de portfólio para um determinado usuário.
 
@@ -68,18 +69,31 @@ def _calculate_portfolio_metrics(user: User) -> dict:
     investments = Investment.objects.filter(owner=user)
 
     open_qs = trades.filter(sell_price__isnull=True)
-    closed_qs = trades.filter(sell_price__isnull=False)
+    
+    closed_qs_all = trades.filter(sell_price__isnull=False)
+    
+    more_trades = False
+    closed_qs_display = closed_qs_all
+    if len(closed_qs_all) <= 15 or show_history:
+        pass
+    else:
+        more_trades = True
+        dates = trades.dates('sell_date', 'day').order_by('-sell_date')[:2]
+        closed_qs_display = closed_qs_all.filter(
+            Q(sell_date__gte=dates[1]) | Q(sell_date__isnull=True)
+        )
+    print(not show_history and more_trades)
 
     # 1. Custo (Cost Basis)
     cost_basis = open_qs.aggregate(total=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))))['total']
 
-    # 2. PnL Realizado (Realized PnL)
-    realized_pnl_value = closed_qs.aggregate(
+    # 2. PnL Realizado (Realized PnL) - Use all closed trades for metrics
+    realized_pnl_value = closed_qs_all.aggregate(
         pnl=Coalesce(Sum(F("sell_price") - F("buy_price")), Value(Decimal('0.0')))
     )['pnl']
 
-    # 3. PnL Médio (para itens vendidos)
-    closed_aggregates = closed_qs.aggregate(
+    # 3. PnL Médio (para itens vendidos) - Use all closed trades for metrics
+    closed_aggregates = closed_qs_all.aggregate(
         buy_sum=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))),
         sell_sum=Coalesce(Sum("sell_price"), Value(Decimal('0.0')))
     )
@@ -117,7 +131,7 @@ def _calculate_portfolio_metrics(user: User) -> dict:
 
     # --- Chart Data ---
     daily_pnl = list(
-        closed_qs
+        closed_qs_all
         .values(date=F('sell_date'))
         .annotate(daily_pnl=Sum(F('sell_price') - F('buy_price')))
         .order_by('date')
@@ -149,8 +163,8 @@ def _calculate_portfolio_metrics(user: User) -> dict:
             'quantity': len(trades_in_group),
         })
 
-    # Prepare forms for closed trades
-    closed_trades = list(closed_qs)
+    # Prepare forms for closed trades to be displayed
+    closed_trades = list(closed_qs_display)
     for t in closed_trades:
         t.edit_form = TradeForm(instance=t)
 
@@ -171,7 +185,7 @@ def _calculate_portfolio_metrics(user: User) -> dict:
     for trade in trades:
         cash_per_source[trade.get_buy_source_display()] -= trade.buy_price
 
-    for trade in closed_qs:
+    for trade in closed_qs_all:
         cash_per_source[trade.get_sell_source_display()] += trade.sell_price
 
     cash_per_source_data = {
@@ -198,6 +212,8 @@ def _calculate_portfolio_metrics(user: User) -> dict:
         "pnl_data": pnl_data,
         "cash_per_source_data": cash_per_source_data,
         "inventory_cost_data": inventory_cost_data,
+        "show_history": show_history,
+        "more_trades": more_trades
     }
 
 def _calculate_update_notifications(user: User) -> dict:
@@ -263,12 +279,13 @@ def observer(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         public_users = public_users.exclude(id=request.user.id)
     selected_user_id = request.GET.get("user_id")
-    context = {"public_users": public_users, "selected_user": None}
+    show_history = request.GET.get("history") == "true"
+    context = {"public_users": public_users, "selected_user": None, "show_history": show_history}
 
     if selected_user_id:
         try:
             selected_user = User.objects.get(id=selected_user_id, profile__is_public=True)
-            portfolio_data = _calculate_portfolio_metrics(selected_user)
+            portfolio_data = _calculate_portfolio_metrics(selected_user, show_history)
             context.update(portfolio_data)
             context["selected_user"] = selected_user
         except User.DoesNotExist:
@@ -282,6 +299,7 @@ def index(request: HttpRequest) -> HttpResponse:
     add_form = TradeForm()
     bulk_add_form = BulkTradeForm()
     investment_form = InvestmentForm()
+    show_history = request.GET.get("history", "false") == "true"
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -374,7 +392,7 @@ def index(request: HttpRequest) -> HttpResponse:
             return redirect("index")
 
     # --- GET Request or failed POST ---
-    context = _calculate_portfolio_metrics(request.user)
+    context = _calculate_portfolio_metrics(request.user, show_history)
     notification_context = _calculate_update_notifications(request.user)
     context.update(notification_context)
     

@@ -192,6 +192,14 @@
             {% if not trade_data.grouped_open_trades and not trade_data.closed_trades %}
             <tr><td colspan="9" class="text-center text-muted-2">No trades yet.</td></tr>
             {% endif %}
+            
+            {% if not show_history and more_trades %}
+            <tr>
+              <td colspan="9" class="text-center py-2">
+                <a href="?{% if is_observer and selected_user %}user_id={{ selected_user.id }}&{% endif %}history=true" class="badge status-closed badge-button" style="text-decoration:none">Load all trades</a>
+              </td>
+            </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
