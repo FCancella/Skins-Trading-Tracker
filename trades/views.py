@@ -25,7 +25,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm, BulkTradeForm
-from .models import Trade, Investment
+from .models import Trade, Investment, SOURCE_CHOICES
 
 def _get_exchange_rate(currency: str) -> Decimal | None:
     rate = cache.get(currency)
@@ -350,7 +350,7 @@ def export_portfolio(request: HttpRequest) -> HttpResponse:
     df = pd.DataFrame(list(trades.values()))
     df.drop(columns=['id', 'owner_id'], inplace=True)
 
-    source_mapping = dict(Trade.SOURCE_CHOICES)
+    source_mapping = dict(SOURCE_CHOICES)
     df['buy_source'] = df['buy_source'].map(source_mapping)
     df['sell_source'] = df['sell_source'].map(source_mapping)
 
