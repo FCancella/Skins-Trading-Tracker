@@ -40,7 +40,7 @@ def get_items_to_price(request):
     ).values_list('name', flat=True)
 
     # 3. Filtra a lista de itens do portfólio para encontrar aqueles que PRECISAM de um novo preço
-    items_needing_price = list(set(open_portfolio_items) - set(recent_buff_items))
+    items_needing_price = list(set(open_portfolio_items) - set(recent_buff_items))[:100]
 
     return JsonResponse({"items_to_price": items_needing_price})
 

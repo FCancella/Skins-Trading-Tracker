@@ -18,10 +18,10 @@ urlpatterns = [
     path("signup/", trade_views.signup, name="signup"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
+    
+    path("settings/", trade_views.settings_view, name="settings"),
 
     path("scanner/", scanner_views.scanner_view, name="scanner_list"),
-    
-    # Endpoints da API do Scanner
     path("scanner/api/add-items/", scanner_views.scanner_api_add_items, name="scanner_api_add_items"),
     path("scanner/api/items-to-update/", scanner_views.get_items_to_update, name="scanner_api_get_items_to_update"),
     path("scanner/api/update-buff-prices/", scanner_views.update_buff_prices, name="scanner_api_update_buff_prices"),
