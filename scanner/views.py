@@ -11,13 +11,6 @@ from django.conf import settings
 from .models import ScannedItem, BlackList, SchedulerLogs
 from trades.models import Trade
 
-def log_scheduler_event(request):
-    """
-    Função para registrar eventos do scheduler no banco de dados.
-    """
-    message = request.POST.get("message", "")
-    SchedulerLogs.objects.create(message=message)
-
 # Decorator para autenticação da API
 def api_key_required(view_func):
     @csrf_exempt
@@ -27,6 +20,15 @@ def api_key_required(view_func):
             return JsonResponse({"error": "Unauthorized"}, status=401)
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+@api_key_required
+@require_POST
+def log_scheduler_event(request):
+    """
+    Função para registrar eventos do scheduler no banco de dados.
+    """
+    message = request.POST.get("message", "")
+    SchedulerLogs.objects.create(message=message)
 
 @api_key_required
 @require_http_methods(["GET"])
