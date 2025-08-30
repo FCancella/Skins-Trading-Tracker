@@ -50,6 +50,7 @@ services:
   scheduler:
     build: .
     container_name: cstracker_scheduler
+    entrypoint: []
     command: >
       sh -c "
         while true; do
