@@ -46,13 +46,31 @@
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-12"><label class="form-label">Item Name</label>{{ trade.edit_form.item_name }}</div>
-              <div class="col-6"><label class="form-label">Buy Price</label>{{ trade.edit_form.buy_price }}</div>
+              <div class="col-12"><label class="form-label">Buy Price</label>
+                <div class="d-flex align-items-center">
+                  {{ trade.edit_form.buy_price|add_class:"form-control" }}
+                  <div class="btn-group ms-2" role="group">
+                    <input type="radio" class="btn-check" name="buy_price_currency" id="edit_buy_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-currency" for="edit_buy_brl_{{ trade.id }}">BRL</label>
+                    <input type="radio" class="btn-check" name="buy_price_currency" id="edit_buy_cny_{{ trade.id }}" value="CNY"><label class="btn btn-currency" for="edit_buy_cny_{{ trade.id }}">CNY</label>
+                    <input type="radio" class="btn-check" name="buy_price_currency" id="edit_buy_usd_{{ trade.id }}" value="USD"><label class="btn btn-currency" for="edit_buy_usd_{{ trade.id }}">USD</label>
+                  </div>
+                </div>
+              </div>
               <div class="col-6"><label class="form-label">Buy Source</label>{{ trade.edit_form.buy_source }}</div>
-              <div class="col-12"><label class="form-label">Buy Date</label>{{ trade.edit_form.buy_date }}</div>
+              <div class="col-6"><label class="form-label">Buy Date</label>{{ trade.edit_form.buy_date }}</div>
               <hr class="hr-soft" />
-              <div class="col-6"><label class="form-label">Sell Price</label>{{ trade.edit_form.sell_price }}</div>
+              <div class="col-12"><label class="form-label">Sell Price</label>
+                <div class="d-flex align-items-center">
+                  {{ trade.edit_form.sell_price|add_class:"form-control" }}
+                  <div class="btn-group ms-2" role="group">
+                    <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-currency" for="edit_sell_brl_{{ trade.id }}">BRL</label>
+                    <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_cny_{{ trade.id }}" value="CNY"><label class="btn btn-currency" for="edit_sell_cny_{{ trade.id }}">CNY</label>
+                    <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_usd_{{ trade.id }}" value="USD"><label class="btn btn-currency" for="edit_sell_usd_{{ trade.id }}">USD</label>
+                  </div>
+                </div>
+              </div>
               <div class="col-6"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source }}</div>
-              <div class="col-12"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date }}</div>
+              <div class="col-6"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date }}</div>
             </div>
           </div>
         </form>

@@ -238,54 +238,31 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
 
 def _calculate_update_notifications(user: User) -> dict:
     """
-    Calcula as notificações de atualização de tradability e pagamento.
+    Calcula as notificações de liberação de trade e pagamento para hoje e os próximos 2 dias.
     """
     today = timezone.localdate()
-    tomorrow = today + timedelta(days=1)
+    notifications = []
 
-    # Trades que ficam "tradable" (buy_date + 7)
-    tradable_today_count = Trade.objects.filter(
-        owner=user, sell_date__isnull=True, buy_date=today - timedelta(days=7)
-    ).count()
-    tradable_tomorrow_count = Trade.objects.filter(
-        owner=user, sell_date__isnull=True, buy_date=today - timedelta(days=6)
-    ).count()
+    for i in range(3): # Loop para hoje, amanhã e depois de amanhã
+        current_day = today + timedelta(days=i)
+        
+        tradable_count = Trade.objects.filter(
+            owner=user, sell_date__isnull=True, buy_date=current_day - timedelta(days=7)
+        ).count()
 
-    # Trades cujo pagamento é liberado (sell_date + 8)
-    payment_today_count = Trade.objects.filter(
-        owner=user, sell_date=today - timedelta(days=8)
-    ).count()
-    payment_tomorrow_count = Trade.objects.filter(
-        owner=user, sell_date=today - timedelta(days=7)
-    ).count()
+        payment_count = Trade.objects.filter(
+            owner=user, sell_date=current_day - timedelta(days=8)
+        ).count()
 
-    updates_today = tradable_today_count + payment_today_count
-    updates_tomorrow = tradable_tomorrow_count + payment_tomorrow_count
+        # Adiciona à lista apenas se houver algo para notificar nesse dia
+        if tradable_count > 0 or payment_count > 0:
+            notifications.append({
+                'day': current_day,
+                'tradable_count': tradable_count,
+                'payment_count': payment_count,
+            })
 
-    next_update_date = None
-    if updates_today == 0 and updates_tomorrow == 0:
-        # Encontrar a próxima data de atualização
-        next_tradable = Trade.objects.filter(
-            owner=user, sell_date__isnull=True, buy_date__gt=today - timedelta(days=6)
-        ).order_by('buy_date').first()
-
-        next_payment = Trade.objects.filter(
-            owner=user, sell_date__gt=today - timedelta(days=7)
-        ).order_by('sell_date').first()
-
-        next_tradable_date = (next_tradable.buy_date + timedelta(days=7)) if next_tradable else None
-        next_payment_date = (next_payment.sell_date + timedelta(days=8)) if next_payment else None
-
-        if next_tradable_date and next_payment_date:
-            next_update_date = min(next_tradable_date, next_payment_date)
-        else:
-            next_update_date = next_tradable_date or next_payment_date
-
-    return {
-        "updates_today": updates_today,
-        "updates_tomorrow": updates_tomorrow,
-        "next_update_date": next_update_date,
-    }
+    return {"notifications": notifications}
 
 def home(request: HttpRequest) -> HttpResponse:
     """Displays the homepage with options to login or spectate."""
@@ -320,6 +297,7 @@ def index(request: HttpRequest) -> HttpResponse:
     bulk_add_form = BulkTradeForm()
     investment_form = InvestmentForm()
     show_history = request.GET.get("history", "false") == "true"
+    today = timezone.localdate()
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -376,7 +354,31 @@ def index(request: HttpRequest) -> HttpResponse:
         elif action == "edit":
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
-            form = TradeForm(request.POST, instance=trade)
+            post_data = request.POST.copy()
+            form = TradeForm(post_data, instance=trade) # Bind initial data to check for errors later
+
+            # Handle buy price conversion
+            buy_price = post_data.get("buy_price")
+            buy_currency = post_data.get("buy_price_currency")
+            if buy_price and buy_currency and buy_currency != 'BRL':
+                converted_buy_price = _convert_currency_to_brl(buy_price, buy_currency)
+                if converted_buy_price is not None:
+                    post_data['buy_price'] = converted_buy_price
+                else:
+                    form.add_error('buy_price', f"Could not convert {buy_currency} to BRL.")
+            
+            # Handle sell price conversion
+            sell_price = post_data.get("sell_price")
+            sell_currency = post_data.get("sell_price_currency")
+            if sell_price and sell_currency and sell_currency != 'BRL':
+                converted_sell_price = _convert_currency_to_brl(sell_price, sell_currency)
+                if converted_sell_price is not None:
+                    post_data['sell_price'] = converted_sell_price
+                else:
+                    form.add_error('sell_price', f"Could not convert {sell_currency} to BRL.")
+
+            # Re-bind form with potentially converted data
+            form = TradeForm(post_data, instance=trade)
             if form.is_valid():
                 form.save(owner=request.user)
                 return redirect("index")
@@ -419,6 +421,8 @@ def index(request: HttpRequest) -> HttpResponse:
     context["add_form"] = add_form
     context["bulk_add_form"] = bulk_add_form
     context["investment_form"] = investment_form
+    context["today"] = today
+    context["tomorrow"] = today + timedelta(days=1)
     
     return render(request, "trades/index.html", context)
 

@@ -1,6 +1,85 @@
 {% load currency %}
 {% load form_extras %}
 
+{% if notifications %}
+<div class="notification-box mb-4">
+  {% for item in notifications %}
+    <div class="notification-day-group">
+      <div class="notification-day">
+        {% if item.day == today %}Today{% elif item.day == tomorrow %}Tomorrow{% else %}{{ item.day|date:"l, M d" }}{% endif %}
+      </div>
+      <div class="notification-details">
+        {% if item.tradable_count > 0 %}
+        <div class="notification-item">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span class="count">{{ item.tradable_count }}</span>
+          <span class="label">Trade Lock</span>
+        </div>
+        {% endif %}
+        {% if item.payment_count > 0 %}
+        <div class="notification-item">
+           <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span class="count">{{ item.payment_count }}</span>
+          <span class="label">Trade Protection</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<style>
+  .notification-box {
+    background: rgba(18, 18, 26, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.75rem 1.5rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .notification-day-group {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 50px;
+  }
+  .notification-day-group:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+  .notification-day {
+    font-weight: 700;
+    color: var(--fg-1);
+    min-width: 140px; /* Ajuste a largura conforme necessário */
+    text-align: left;
+  }
+  .notification-details {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .notification-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .notification-item .icon {
+    width: 16px;
+    height: 16px;
+    color: var(--pink); /* Cor restaurada */
+  }
+  .notification-item .count {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--fg-1);
+  }
+  .notification-item .label {
+    color: var(--fg-2);
+    font-size: 0.9rem;
+  }
+</style>
+{% endif %}
+
+
+
 <style>
   /* Adiciona um cursor de ponteiro para indicar que os cabeçalhos são clicáveis */
   .table th.sortable {

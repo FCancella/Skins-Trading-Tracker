@@ -49,7 +49,8 @@ class CustomUserCreationForm(UserCreationForm):
         return email
 
 class TradeForm(forms.ModelForm):
-    buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect)
+    buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect, required=False)
+    sell_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect, required=False)
 
     """Form for creating or updating a trade."""
 
