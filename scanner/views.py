@@ -27,9 +27,20 @@ def log_scheduler_event(request):
     """
     Função para registrar eventos do scheduler no banco de dados.
     """
-    data = json.loads(request.body)
-    message = data.get("message")
-    SchedulerLogs.objects.create(message=message)
+    try:
+        # Carrega os dados do corpo da requisição JSON
+        data = json.loads(request.body)
+        message = data.get("message", "Empty message, try 'docker compose logs scheduler'")
+
+        # Cria o log no banco de dados
+        SchedulerLogs.objects.create(message=message)
+        
+        return JsonResponse({"status": "success", "message": "Log created successfully"}, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 @api_key_required
 @require_http_methods(["GET"])
