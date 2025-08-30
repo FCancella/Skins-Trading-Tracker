@@ -46,35 +46,67 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.stdout.write(self.style.SUCCESS('--- Starting Pricing Script (API Mode) ---'))
-
-        # 1. OBTER LISTA DE ITENS PARA ATUALIZAR E BUSCAR PREÇOS DO BUFF
+        
+        # Lista para guardar as linhas do log
+        log_summary_lines = []
+        
+        # --- 1. OBTER LISTA DE ITENS E BUSCAR PREÇOS ---
         self.stdout.write('Step 1: Getting items list to price...')
         response_data = self._api_request('GET', 'items-to-price')
         
         if not response_data:
-            self.stdout.write(self.style.ERROR('Failed to get items to price. Aborting.'))
+            error_message = 'Failed to get items to price from API. Aborting.'
+            self.stdout.write(self.style.ERROR(error_message))
+            log_summary_lines.append(error_message)
+            self._send_log_to_api("\n".join(log_summary_lines))
             return
 
         items_to_update = response_data.get("items_to_price", [])
-        self.stdout.write(f'-> Found {len(items_to_update)} items needing a Buff price update.')
+        found_items_message = f'Found {len(items_to_update)} items needing a Buff price update.'
+        self.stdout.write(f'-> {found_items_message}')
+        log_summary_lines.append(found_items_message)
         
         buff_prices_payload = []
+        items_not_found = 0
         try:
             for index, item_name in enumerate(items_to_update):
                 buff_info = buff.get_item_info(item_name)
                 if buff_info:
-                    buff_info['name'] = item_name  # Ensure the name is included
+                    buff_info['name'] = item_name
                     self.stdout.write(f"  {index + 1}/{len(items_to_update)}: Fetched '{item_name}' - Price: {buff_info['price']}")
                     buff_prices_payload.append(buff_info)
                 else:
+                    items_not_found += 1
                     self.stdout.write(self.style.WARNING(f"  {index + 1}/{len(items_to_update)}: '{item_name}' not found on Buff."))
+        
         finally:
+            # Adiciona estatísticas sobre a busca de preços ao log
+            log_summary_lines.append(f"Successfully fetched prices for {len(buff_prices_payload)} items.")
+            if items_not_found > 0:
+                log_summary_lines.append(f"Could not find {items_not_found} items on Buff.")
+
+            # --- 2. ENVIAR PREÇOS ATUALIZADOS PARA A API ---
             if buff_prices_payload:
                 self.stdout.write(self.style.SUCCESS(f'Sending {len(buff_prices_payload)} fetched Buff prices to the API...'))
-                # Reutiliza o endpoint existente para salvar os preços do Buff
                 response_data = self._api_request('POST', 'update-buff-prices', {"items": buff_prices_payload})
                 if response_data:
-                    updated_count = response_data.get("updated_items", "N/A")
-                    self.stdout.write(self.style.SUCCESS(f'-> API reported {updated_count} items updated.'))
+                    updated_count = response_data.get("updated_items", 0)
+                    success_message = f'API reported {updated_count} items updated successfully.'
+                    self.stdout.write(self.style.SUCCESS(f'-> {success_message}'))
+                    log_summary_lines.append(success_message)
+                else:
+                    error_message = 'API call to update-buff-prices failed or returned no data.'
+                    self.stdout.write(self.style.ERROR(error_message))
+                    log_summary_lines.append(error_message)
 
+        # --- 3. ENVIAR O RESUMO FINAL PARA A API DE LOGS ---
+        final_log_message = "\n".join(log_summary_lines)
+        self._send_log_to_api(final_log_message)
+        
         self.stdout.write(self.style.SUCCESS('--- Pricing Script Finished ---'))
+
+    def _send_log_to_api(self, message):
+        """Função auxiliar para enviar a mensagem de log para a API."""
+        self.stdout.write("\nSending final summary to log API...")
+        self._api_request('POST', 'log-scheduler-event', {"message": message})
+        self.stdout.write("-> Log sent.")

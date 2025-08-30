@@ -8,9 +8,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.conf import settings
-from .models import ScannedItem, BlackList
+from .models import ScannedItem, BlackList, SchedulerLogs
 from trades.models import Trade
 
+def log_scheduler_event(request):
+    """
+    Função para registrar eventos do scheduler no banco de dados.
+    """
+    message = request.POST.get("message", "")
+    SchedulerLogs.objects.create(message=message)
 
 # Decorator para autenticação da API
 def api_key_required(view_func):
@@ -40,7 +46,7 @@ def get_items_to_price(request):
     ).values_list('name', flat=True)
 
     # 3. Filtra a lista de itens do portfólio para encontrar aqueles que PRECISAM de um novo preço
-    items_needing_price = list(set(open_portfolio_items) - set(recent_buff_items))
+    items_needing_price = list(set(open_portfolio_items) - set(recent_buff_items))[:100]
 
     return JsonResponse({"items_to_price": items_needing_price})
 

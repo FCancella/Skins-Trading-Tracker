@@ -29,3 +29,15 @@ class BlackList(models.Model):
 
     def __str__(self):
         return self.name
+
+class SchedulerLogs(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "Scheduler Log"
+        verbose_name_plural = "Scheduler Logs"
+
+    def __str__(self):
+        return f"Log {self.id} - {self.timestamp}"
