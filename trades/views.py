@@ -8,11 +8,10 @@ components into a single responsive layout.
 """
 from __future__ import annotations
 from decimal import Decimal
-import os
 import requests
 import pandas as pd
 from collections import defaultdict
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from django.core.cache import cache
 from django.contrib.auth import login
@@ -465,26 +464,3 @@ def export_portfolio(request: HttpRequest) -> HttpResponse:
     df.to_csv(response, sep=';', index=False, date_format='%d-%m-%Y')
 
     return response
-
-@login_required
-def settings_view(request: HttpRequest) -> HttpResponse:
-    """Exibe a página de configurações e os logs do scheduler."""
-    log_file_path = '/app/logs/scheduler.log'
-    log_content = "Arquivo de log não encontrado. O scheduler pode ainda não ter rodado."
-    last_run_timestamp = None
-
-    if os.path.exists(log_file_path):
-        with open(log_file_path, 'r') as f:
-            # Lê as últimas 100 linhas para não sobrecarregar a página
-            lines = f.readlines()
-            log_content = "".join(lines[-100:])
-
-        # Pega a data da última modificação do arquivo
-        last_modified_time = os.path.getmtime(log_file_path)
-        last_run_timestamp = datetime.fromtimestamp(last_modified_time)
-
-    context = {
-        "log_content": log_content,
-        "last_run": last_run_timestamp
-    }
-    return render(request, "trades/settings.html", context)
