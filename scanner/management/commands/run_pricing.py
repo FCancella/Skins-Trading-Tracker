@@ -108,5 +108,5 @@ class Command(BaseCommand):
     def _send_log_to_api(self, message):
         """Função auxiliar para enviar a mensagem de log para a API."""
         self.stdout.write("\nSending final summary to log API...")
-        self._api_request('POST', 'log-scheduler-event', {"message": message})
+        self._api_request('POST', 'logs', {"message": message})
         self.stdout.write("-> Log sent.")
