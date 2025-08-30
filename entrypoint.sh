@@ -3,6 +3,7 @@
 # Passo 1: (Como root) Crie o diretório para os arquivos estáticos, se não existir.
 echo "Ensuring static files directory exists..."
 mkdir -p /app/staticfiles
+mkdir -p /app/logs
 
 # Passo 2: (Como root) Corrija a propriedade do volume.
 # O Docker monta o volume como 'root', então damos a posse para o usuário 'app'.
