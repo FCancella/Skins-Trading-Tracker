@@ -10,6 +10,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.conf import settings
 from .models import ScannedItem, BlackList, SchedulerLogs
 from trades.models import Trade
+from django.core.paginator import Paginator
 
 # Decorator para autenticação da API
 def api_key_required(view_func):
@@ -214,3 +215,19 @@ def scanner_view(request):
         'next_run_in': next_run_in,
     }
     return render(request, 'scanner/scanner_list.html', context)
+
+@login_required
+def scheduler_logs_view(request):
+    """
+    Exibe os logs do scheduler com paginação.
+    """
+    logs_list = SchedulerLogs.objects.all().order_by('-timestamp')
+    paginator = Paginator(logs_list, 25) # Mostra 25 logs por página
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+    }
+    return render(request, 'scanner/scheduler_logs.html', context)

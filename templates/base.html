@@ -37,9 +37,11 @@
               </a>
               <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
                 <li><a class="dropdown-item" href="{% url 'index' %}">Portfolio</a></li>
-                <li><a class="dropdown-item" href="{% url 'scanner_list' %}">Scanner</a></li> <li><a class="dropdown-item" href="{% url 'observer' %}">Observer Mode</a></li>
+                <li><a class="dropdown-item" href="{% url 'scanner_list' %}">Scanner</a></li>
+                <li><a class="dropdown-item" href="{% url 'observer' %}">Observer Mode</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Settings</a></li>
+                <li><a class="dropdown-item" href="{% url 'scheduler_logs' %}">Logs</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <form action="{% url 'logout' %}" method="post" class="d-inline">
