@@ -27,7 +27,8 @@ def log_scheduler_event(request):
     """
     Função para registrar eventos do scheduler no banco de dados.
     """
-    message = request.POST.get("message", "")
+    data = json.loads(request.body)
+    message = data.get("message")
     SchedulerLogs.objects.create(message=message)
 
 @api_key_required
