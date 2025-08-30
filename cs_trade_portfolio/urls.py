@@ -26,4 +26,5 @@ urlpatterns = [
     path("scanner/api/items-to-update/", scanner_views.get_items_to_update, name="scanner_api_get_items_to_update"),
     path("scanner/api/update-buff-prices/", scanner_views.update_buff_prices, name="scanner_api_update_buff_prices"),
     path("scanner/api/calculate-differences/", scanner_views.calculate_differences, name="scanner_api_calculate_differences"),
+    path("scanner/api/items-to-price/", scanner_views.get_items_to_price, name="scanner_api_get_items_to_price"),
 ]

@@ -40,6 +40,11 @@
   .table th.sort-desc::after {
     opacity: 1;
   }
+  
+  .market-price {
+    font-style: italic;
+    color: #a0a1b7; /* Um pouco mais claro que o text-muted-2 */
+  }
 </style>
 
 <div class="row g-3 mt-1">
@@ -135,7 +140,13 @@
             <tr>
               <td class="fw-medium">{{ group.trade.item_name }} {% if group.quantity > 1 %}<span class="text-muted-2">({{ group.quantity }})</span>{% endif %}</td>
               <td>{{ group.trade.buy_price|currency_brl }}</td>
-              <td>{{ group.trade.sell_price|currency_brl|default:"—" }}</td>
+              <td>
+                {% if group.trade.market_price %}
+                  <span class="market-price" title="Preço de mercado (Buff)">{{ group.trade.market_price|currency_brl }}</span>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
               <td>{{ group.trade.get_buy_source_display }}</td>
               <td>{{ group.trade.get_sell_source_display|default:"" }}</td>
               <td>

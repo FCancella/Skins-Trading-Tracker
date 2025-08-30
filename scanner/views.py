@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.conf import settings
 from .models import ScannedItem, BlackList
+from trades.models import Trade
 
 
 # Decorator para autenticação da API
@@ -20,6 +21,29 @@ def api_key_required(view_func):
             return JsonResponse({"error": "Unauthorized"}, status=401)
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+@api_key_required
+@require_http_methods(["GET"])
+def get_items_to_price(request):
+    """
+    Endpoint que retorna uma lista de itens em portfólio (não vendidos)
+    que não têm um preço Buff recente.
+    """
+    # 1. Pega todos os nomes de itens únicos que estão em aberto no portfólio
+    open_portfolio_items = Trade.objects.filter(sell_price__isnull=True).values_list('item_name', flat=True).distinct()
+
+    # 2. Pega os nomes de itens que JÁ TÊM um preço Buff recente (últimas 5 horas)
+    recent_buff_items = ScannedItem.objects.filter(
+        source='buff',
+        name__in=open_portfolio_items,
+        timestamp__gte=timezone.now() - timedelta(hours=5)
+    ).values_list('name', flat=True)
+
+    # 3. Filtra a lista de itens do portfólio para encontrar aqueles que PRECISAM de um novo preço
+    items_needing_price = list(set(open_portfolio_items) - set(recent_buff_items))
+
+    return JsonResponse({"items_to_price": items_needing_price})
+
 
 @api_key_required
 @require_POST

@@ -28,6 +28,7 @@ from django.utils import timezone
 
 from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm, BulkTradeForm
 from .models import Trade, Investment, SOURCE_CHOICES
+from scanner.models import ScannedItem
 
 def _get_exchange_rate(currency: str) -> Decimal | None:
     rate = cache.get(currency)
@@ -148,6 +149,22 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
         })
 
     # --- Grouping and Form Preparation ---
+    
+    # Buscar preços de mercado atuais para itens em aberto
+    open_item_names = open_qs.values_list('item_name', flat=True).distinct()
+    
+    buff_prices_qs = ScannedItem.objects.filter(
+        name__in=open_item_names,
+        source='buff'
+    ).order_by('name', '-timestamp') # Ordena para que o mais recente venha primeiro para cada nome
+
+    market_prices = {}
+    # Itera sobre os resultados; como está ordenado, o primeiro que encontrarmos
+    # para cada nome será o mais recente.
+    for item in buff_prices_qs:
+        if item.name not in market_prices:
+            market_prices[item.name] = item.price
+    
     # Group open trades
     grouped_open_trades_map = defaultdict(list)
     for trade in open_qs:
@@ -158,6 +175,9 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     for trades_in_group in grouped_open_trades_map.values():
         first_trade = trades_in_group[0]
         first_trade.edit_form = SellTradeForm(instance=first_trade)
+        # Adicionar o preço de mercado ao objeto de trade para uso no template
+        first_trade.market_price = market_prices.get(first_trade.item_name)
+        
         grouped_open_trades.append({
             'trade': first_trade,
             'quantity': len(trades_in_group),
