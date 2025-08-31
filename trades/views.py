@@ -213,25 +213,12 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
         'values': [float(v) for v in cash_per_source.values()],
     }
 
-    # --- Inventory Cost per Source Calculation ---
-    inventory_cost_by_source = open_qs.values('buy_source').annotate(
-        total_cost=Sum('buy_price')
-    ).order_by('-total_cost')
-
-    source_display_map = dict(SOURCE_CHOICES)
-    inventory_cost_data = {
-        'labels': [source_display_map.get(item['buy_source'], item['buy_source']) for item in inventory_cost_by_source],
-        'values': [float(item['total_cost']) for item in inventory_cost_by_source]
-    }
-
-
     return {
         "trade_data": trade_data,
         "investments": investments,
         "summary": summary,
         "pnl_data": pnl_data,
         "cash_per_source_data": cash_per_source_data,
-        "inventory_cost_data": inventory_cost_data,
         "show_history": show_history,
         "more_trades": more_trades
     }

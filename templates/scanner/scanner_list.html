@@ -41,7 +41,7 @@
         <tbody>
         {% for item in items %}
         <tr>
-            <td class="fw-medium"><a href="{{ item.buff_link }}" target="_blank">{{ item.name }}</a></td>
+            <td class="fw-medium"><a href="{{ item.buff_link }}" target="_blank" style="text-decoration:none">{{ item.name }}</a></td>
             <td>
             {{ item.buff_price|currency_brl|default:"-" }}
             {% if item.buff_offers is not None %}
