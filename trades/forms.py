@@ -3,7 +3,7 @@ Form definitions for the `trades` app.
 
 Two model forms are provided:
 
-* ``TradeForm`` for creating new trade entries, requiring an item name,
+* ``AddTradeForm`` for creating new trade entries, requiring an item name,
   buy price and buy source.
 * ``SellTradeForm`` for updating existing trades with sell information
   (sell price, sell source, and buy date). When updating an unsold item,
@@ -48,7 +48,7 @@ class CustomUserCreationForm(UserCreationForm):
             raise forms.ValidationError("Este endereço de email já está a ser utilizado.")
         return email
 
-class TradeForm(forms.ModelForm):
+class EditTradeForm(forms.ModelForm):
     buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect, required=False)
     sell_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect, required=False)
 
@@ -129,7 +129,7 @@ class InvestmentForm(forms.ModelForm):
             obj.save()
         return obj
 
-class BulkTradeForm(forms.Form):
+class AddTradeForm(forms.Form):
     """Form for adding multiple trades at once."""
     item_name = forms.CharField(max_length=100)
     quantity = forms.IntegerField(min_value=1, initial=1)

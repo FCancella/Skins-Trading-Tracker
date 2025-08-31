@@ -26,7 +26,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import SellTradeForm, TradeForm, InvestmentForm, CustomUserCreationForm, BulkTradeForm
+from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
 from .models import Trade, Investment, SOURCE_CHOICES
 from scanner.models import ScannedItem
 
@@ -186,7 +186,7 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     # Prepare forms for closed trades to be displayed
     closed_trades = list(closed_qs_display)
     for t in closed_trades:
-        t.edit_form = TradeForm(instance=t)
+        t.edit_form = EditTradeForm(instance=t)
 
     for i in investments:
         i.form = InvestmentForm(instance=i)
@@ -280,8 +280,7 @@ def observer(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
-    add_form = TradeForm()
-    bulk_add_form = BulkTradeForm()
+    add_form = AddTradeForm()
     investment_form = InvestmentForm()
     show_history = request.GET.get("history", "false") == "true"
     today = timezone.localdate()
@@ -289,31 +288,15 @@ def index(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "add":
-            add_form = TradeForm(request.POST) # Re-populate form on error
-            price = request.POST.get("buy_price")
-            currency = request.POST.get("buy_price_currency")
-            
-            converted_price = _convert_currency_to_brl(price, currency)
-            if converted_price is None:
-                add_form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
-            else:
-                post_data = request.POST.copy()
-                post_data['buy_price'] = converted_price
-                add_form = TradeForm(post_data)
-
+            add_form = AddTradeForm(request.POST) # Re-populate
             if add_form.is_valid():
-                add_form.save(owner=request.user)
-                return redirect("index")
-        elif action == "bulk_add":
-            bulk_add_form = BulkTradeForm(request.POST) # Re-populate
-            if bulk_add_form.is_valid():
-                data = bulk_add_form.cleaned_data
+                data = add_form.cleaned_data
                 quantity = data.pop('quantity')
                 currency = data.pop('buy_price_currency')
                 
                 converted_price = _convert_currency_to_brl(data['buy_price'], currency)
                 if converted_price is None:
-                    bulk_add_form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
+                    add_form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
                 else:
                     data['buy_price'] = converted_price
                     trades_to_create = [Trade(owner=request.user, **data) for _ in range(quantity)]
@@ -342,7 +325,7 @@ def index(request: HttpRequest) -> HttpResponse:
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
             post_data = request.POST.copy()
-            form = TradeForm(post_data, instance=trade) # Bind initial data to check for errors later
+            form = EditTradeForm(post_data, instance=trade) # Bind initial data to check for errors later
 
             # Handle buy price conversion
             buy_price = post_data.get("buy_price")
@@ -365,7 +348,7 @@ def index(request: HttpRequest) -> HttpResponse:
                     form.add_error('sell_price', f"Could not convert {sell_currency} to BRL.")
 
             # Re-bind form with potentially converted data
-            form = TradeForm(post_data, instance=trade)
+            form = EditTradeForm(post_data, instance=trade)
             if form.is_valid():
                 form.save(owner=request.user)
                 return redirect("index")
@@ -406,7 +389,6 @@ def index(request: HttpRequest) -> HttpResponse:
     context.update(notification_context)
     
     context["add_form"] = add_form
-    context["bulk_add_form"] = bulk_add_form
     context["investment_form"] = investment_form
     context["today"] = today
     context["tomorrow"] = today + timedelta(days=1)
