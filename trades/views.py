@@ -104,8 +104,32 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     average_pnl_factor = (closed_sell_sum / closed_buy_sum) if closed_buy_sum > 0 else Decimal('1.0')
     average_pnl_percent = (average_pnl_factor - 1) * 100
 
+    # --- Grouping and Form Preparation ---
+    
+    # Buscar preços de mercado atuais para itens em aberto
+    open_item_names = open_qs.values_list('item_name', flat=True).distinct()
+    
+    buff_prices_qs = ScannedItem.objects.filter(
+        name__in=open_item_names,
+        source='buff'
+    ).order_by('name', '-timestamp') # Ordena para que o mais recente venha primeiro para cada nome
+
+    market_prices = {}
+    # Itera sobre os resultados; como está ordenado, o primeiro que encontrarmos
+    # para cada nome será o mais recente.
+    for item in buff_prices_qs:
+        if item.name not in market_prices:
+            market_prices[item.name] = item.price
+            
     # 4. MTM (Mark to Market)
-    mtm_value = cost_basis * (1 + (average_pnl_factor - 1) * Decimal('0.7')) if cost_basis > 0 else Decimal('0.0')
+    mtm_value = Decimal('0.0')
+    for trade in open_qs:
+        market_price = market_prices.get(trade.item_name)
+        if market_price:
+            mtm_value += market_price
+        else:
+            # Fallback to estimation if no market price is available
+            mtm_value += trade.buy_price * (1 + (average_pnl_factor - 1) * Decimal('0.5'))
 
     # 5. Total Investment
     total_investment = investments.aggregate(total=Coalesce(Sum("amount"), Value(Decimal('0.0'))))["total"]
@@ -147,23 +171,6 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
             'date': pnl['date'].strftime("%Y-%m-%d"),
             'pnl': accumulated_pnl,
         })
-
-    # --- Grouping and Form Preparation ---
-    
-    # Buscar preços de mercado atuais para itens em aberto
-    open_item_names = open_qs.values_list('item_name', flat=True).distinct()
-    
-    buff_prices_qs = ScannedItem.objects.filter(
-        name__in=open_item_names,
-        source='buff'
-    ).order_by('name', '-timestamp') # Ordena para que o mais recente venha primeiro para cada nome
-
-    market_prices = {}
-    # Itera sobre os resultados; como está ordenado, o primeiro que encontrarmos
-    # para cada nome será o mais recente.
-    for item in buff_prices_qs:
-        if item.name not in market_prices:
-            market_prices[item.name] = item.price
     
     # Group open trades
     grouped_open_trades_map = defaultdict(list)
