@@ -11,7 +11,7 @@ from decimal import Decimal
 import requests
 import pandas as pd
 from collections import defaultdict
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.core.cache import cache
 from django.contrib.auth import login
@@ -22,9 +22,11 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum, Value
 from django.db.models import F, Sum, Value, Q
 from django.db.models.functions import Coalesce
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
+from django.utils.timezone import make_aware
+
 
 from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
 from .models import Trade, Investment, SOURCE_CHOICES
@@ -444,3 +446,49 @@ def export_portfolio(request: HttpRequest) -> HttpResponse:
     df.to_csv(response, sep=';', index=False, date_format='%d-%m-%Y')
 
     return response
+
+@login_required
+def price_history(request, trade_id):
+    trade = get_object_or_404(Trade, pk=trade_id, owner=request.user)
+    
+    # Define the time for the buy price as 1 hour before the start of the buy date
+    buy_datetime = make_aware(datetime.combine(trade.buy_date, datetime.min.time()))# - timedelta(hours=1)
+    
+    # The range for scanning intermediate prices starts from the actual buy date
+    start_scan_datetime = make_aware(datetime.combine(trade.buy_date, datetime.min.time()))
+    
+    if trade.sell_date:
+        end_datetime = make_aware(datetime.combine(trade.sell_date, datetime.max.time()))
+    else:
+        end_datetime = timezone.now()
+
+    scanned_prices = ScannedItem.objects.filter(
+        name=trade.item_name,
+        source="buff",  # Filter by source="buff"
+        timestamp__range=[start_scan_datetime, end_datetime]
+    ).order_by('timestamp').values('timestamp', 'price')
+
+    price_data = []
+    
+    # Add the initial buy price with its adjusted timestamp
+    price_data.append({
+        'x': buy_datetime.isoformat(),
+        'y': (float(trade.buy_price)/float(trade.buy_price)-1)*100
+    })
+
+    # Add intermediate prices from Buff
+    for item in scanned_prices:
+        price_data.append({
+            'x': item['timestamp'].isoformat(),
+            'y': (float(item['price'])/float(trade.buy_price)-1)*100
+        })
+
+    # Add sell price at the end of the sell_date (if it exists)
+    if trade.sell_price and trade.sell_date:
+        sell_datetime = make_aware(datetime.combine(trade.sell_date, datetime.max.time()))
+        price_data.append({
+            'x': sell_datetime.isoformat(),
+            'y': (float(trade.sell_price)/float(trade.buy_price)-1)*100
+        })
+
+    return JsonResponse({'prices': price_data})

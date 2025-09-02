@@ -18,6 +18,7 @@ urlpatterns = [
     path("signup/", trade_views.signup, name="signup"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
+    path("price-history/<int:trade_id>/", trade_views.price_history, name="price_history"),
 
     path("scanner/", scanner_views.scanner_view, name="scanner_list"),
     path("scanner/logs/", scanner_views.scheduler_logs_view, name="scheduler_logs"),
