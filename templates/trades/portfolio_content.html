@@ -205,7 +205,7 @@
           <tbody>
             {% for group in trade_data.grouped_open_trades %}
             <tr>
-              <td class="fw-medium">{{ group.trade.item_name }} {% if group.quantity > 1 %}<span class="text-muted-2">({{ group.quantity }})</span>{% endif %}</td>
+              <td class="fw-medium">
                 <a href="#" class="text-white text-decoration-none" data-bs-toggle="modal" data-bs-target="#priceHistoryModal" data-trade-id="{{ group.trade.id }}" data-item-name="{{ group.trade.item_name }}">
                   {{ group.trade.item_name }} {% if group.quantity > 1 %}<span class="text-muted-2">({{ group.quantity }})</span>{% endif %}
                 </a>
