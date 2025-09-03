@@ -61,8 +61,8 @@ class EditTradeForm(forms.ModelForm):
             'sell_price', 'sell_source', 'sell_date'
         ]
         widgets = {
-            'buy_date': forms.DateInput(attrs={'type': 'date'}),
-            'sell_date': forms.DateInput(attrs={'type': 'date'}),
+            'buy_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'sell_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
 
     def __init__(self, *args, **kwargs) -> None:
@@ -92,14 +92,14 @@ class SellTradeForm(forms.ModelForm):
         model = Trade
         fields = ['sell_price', 'sell_source', 'sell_date']
         widgets = {
-            'sell_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'sell_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         # Prefill the sell_date with today if it doesn't exist
         if not self.instance.sell_date:
-            self.initial.setdefault('sell_date', timezone.now().date())
+            self.initial.setdefault('sell_date', timezone.now())
         for field in self.fields.values():
             field.widget.attrs.setdefault('class', 'form-control')
 
@@ -135,7 +135,7 @@ class AddTradeForm(forms.Form):
     quantity = forms.IntegerField(min_value=1, initial=1)
     buy_price = forms.DecimalField(max_digits=10, decimal_places=2)
     buy_source = forms.ChoiceField(choices=SOURCE_CHOICES)
-    buy_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), initial=timezone.now().date())
+    buy_date = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}), initial=timezone.now)
     buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect(attrs={'class': 'btn-check'}))
 
     def __init__(self, *args, **kwargs):

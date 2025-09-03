@@ -63,8 +63,8 @@ class Trade(models.Model):
     sell_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     buy_source = models.CharField(max_length=20, choices=SOURCE_CHOICES)
     sell_source = models.CharField(max_length=20, choices=SOURCE_CHOICES, null=True, blank=True)
-    buy_date = models.DateField(default=timezone.now)
-    sell_date = models.DateField(null=True, blank=True)
+    buy_date = models.DateTimeField(default=timezone.now)
+    sell_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["owner"])]
@@ -91,14 +91,14 @@ class Trade(models.Model):
     def days_until_tradable(self) -> bool:
         if self.sell_date:
             return False
-        total_days = 7 - (timezone.localdate() - self.buy_date).days
+        total_days = 7 - (timezone.now() - self.buy_date).days
         return total_days if total_days > 0 else None
 
     @property
     def days_until_payment(self) -> int | None:
         if not self.sell_date:
             return None
-        days_remaining = 8 - (timezone.localdate() - self.sell_date).days
+        days_remaining = 8 - (timezone.now() - self.sell_date).days
         return days_remaining if days_remaining > 0 else None
 
 class Investment(models.Model):
