@@ -2,7 +2,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content modal-dark">
       <div class="modal-header">
-        <h5 class="modal-title" id="priceHistoryModalLabel">Price History</h5>
+        <h5 class="modal-title" id="priceHistoryModalLabel">Profit History</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemName = button.dataset.itemName;
     
     const modalTitle = priceHistoryModal.querySelector('.modal-title');
-    modalTitle.textContent = `Price History: ${itemName}`;
+    modalTitle.textContent = `Profit History: ${itemName}`;
 
     const response = await fetch(`/price-history/${tradeId}/`);
     const data = await response.json();
@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'line',
       data: {
         datasets: [{
-          label: 'Price Change (%)',
-          data: data.prices,
+          label: 'Profit (%)',
+          data: data.profits,
           borderColor: 'rgba(255, 78, 205, 0.8)',
           backgroundColor: 'rgba(255, 78, 205, 0.2)',
           fill: true,
@@ -66,7 +66,28 @@ document.addEventListener('DOMContentLoaded', () => {
           y: {
             title: {
               display: true,
-              text: 'Price Change (%)'
+              text: 'Profit (%)'
+            },
+            ticks: {
+              callback: function(value) {
+                return value.toFixed(2) + '%';
+              }
+            }
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y.toFixed(2) + '%';
+                }
+                return label;
+              }
             }
           }
         }

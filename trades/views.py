@@ -451,44 +451,42 @@ def export_portfolio(request: HttpRequest) -> HttpResponse:
 def price_history(request, trade_id):
     trade = get_object_or_404(Trade, pk=trade_id, owner=request.user)
     
-    # Define the time for the buy price as 1 hour before the start of the buy date
-    buy_datetime = make_aware(datetime.combine(trade.buy_date, datetime.min.time()))# - timedelta(hours=1)
-    
-    # The range for scanning intermediate prices starts from the actual buy date
-    start_scan_datetime = make_aware(datetime.combine(trade.buy_date, datetime.min.time()))
-    
-    if trade.sell_date:
-        end_datetime = make_aware(datetime.combine(trade.sell_date, datetime.max.time()))
-    else:
-        end_datetime = timezone.now()
+    start_datetime = trade.buy_date
+    end_datetime = trade.sell_date or timezone.now()
+
+    # Return an error if buy_price is zero to avoid division errors
+    if trade.buy_price == 0:
+        return JsonResponse({'error': 'Buy price cannot be zero.'}, status=400)
 
     scanned_prices = ScannedItem.objects.filter(
         name=trade.item_name,
-        source="buff",  # Filter by source="buff"
-        timestamp__range=[start_scan_datetime, end_datetime]
+        source="buff",
+        timestamp__range=[start_datetime, end_datetime]
     ).order_by('timestamp').values('timestamp', 'price')
 
-    price_data = []
-    
-    # Add the initial buy price with its adjusted timestamp
-    price_data.append({
-        'x': buy_datetime.isoformat(),
-        'y': (float(trade.buy_price)/float(trade.buy_price)-1)*100
+    profit_data = []
+    buy_price = float(trade.buy_price)
+
+    # The first point is the purchase itself, representing 0% profit.
+    profit_data.append({
+        'x': start_datetime.isoformat(),
+        'y': 0
     })
 
-    # Add intermediate prices from Buff
+    # Calculate profit percentage for each intermediate scanned price.
     for item in scanned_prices:
-        price_data.append({
+        profit = ((float(item['price']) / buy_price) - 1) * 100
+        profit_data.append({
             'x': item['timestamp'].isoformat(),
-            'y': (float(item['price'])/float(trade.buy_price)-1)*100
+            'y': profit
         })
 
-    # Add sell price at the end of the sell_date (if it exists)
-    if trade.sell_price and trade.sell_date:
-        sell_datetime = make_aware(datetime.combine(trade.sell_date, datetime.max.time()))
-        price_data.append({
-            'x': sell_datetime.isoformat(),
-            'y': (float(trade.sell_price)/float(trade.buy_price)-1)*100
+    # If the item was sold, the last point is the final profit percentage.
+    if trade.sell_date and trade.sell_price is not None:
+        final_profit = ((float(trade.sell_price) / buy_price) - 1) * 100
+        profit_data.append({
+            'x': end_datetime.isoformat(),
+            'y': final_profit
         })
 
-    return JsonResponse({'prices': price_data})
+    return JsonResponse({'profits': profit_data})
