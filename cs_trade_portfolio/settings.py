@@ -20,16 +20,16 @@ from pathlib import Path
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
 # Carregue a chave secreta de uma variável de ambiente.
-SECRET_KEY: str = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-dev')
+SECRET_KEY: str = os.environ.get('SECRET_KEY')
 
 # Chave de API para o Scanner
-SCANNER_API_KEY = os.environ.get('SCANNER_API_KEY', 'default-scanner-api-key-for-dev')
+SCANNER_API_KEY = os.environ.get('SCANNER_API_KEY')
 
 # ATENÇÃO: DEBUG deve ser False em produção!
 DEBUG: bool = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Carregue os hosts permitidos de uma variável de ambiente.
-ALLOWED_HOSTS_str: str = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS_str: str = os.environ.get('DJANGO_ALLOWED_HOSTS')
 ALLOWED_HOSTS: list[str] = ALLOWED_HOSTS_str.split(',') if ALLOWED_HOSTS_str else []
 
 # Carregue as origens confiáveis para CSRF (essencial para proxy reverso com Nginx)
@@ -161,7 +161,4 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.environ.get(
-    'DEFAULT_FROM_EMAIL',
-    'webmaster@localhost'
-)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
