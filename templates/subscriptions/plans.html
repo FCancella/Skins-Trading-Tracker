@@ -1,13 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center text-center mb-5">
+
+{% if messages %}
+<div class="row justify-content-center mb-4">
+  <div class="col-12 col-md-8">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success-soft{% else %}alert-danger-soft{% endif %} alert-thin text-center" role="alert">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if is_eligible_for_trial %}
+<div class="row justify-content-center mb-5">
+  <div class="col-12 col-md-8">
+    <div class="card card-body text-center p-4 border-pink" style="--bs-border-opacity: .4;">
+      <h4 class="card-title">Novo por aqui?</h4>
+      <p class="text-muted-2">Ative seu teste gratuito e explore todas as funcionalidades por 14 dias, sem compromisso.</p>
+      <a href="{% url 'activate_trial' %}" class="btn btn-primary mt-2">Ativar 14 Dias Grátis</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row justify-content-center text-center mb-4">
+  <div class="col-12">
+    <h1 class="display-4 fw-bold mb-3">CS2 Trades Tracker</h1>
+    <h2 class="fw-bold">Veja como seu portfólio será gerenciado</h2>
+    <p class="text-muted-2">Acompanhe seus lucros, inventário e investimentos em um só lugar.</p>
+  </div>
+</div>
+
+{% if portfolio_data %}
+  {% include 'trades/portfolio_content.html' with trade_data=portfolio_data.trade_data summary=portfolio_data.summary pnl_data=portfolio_data.pnl_data is_observer=True %}
+{% else %}
+  <div class="alert alert-info">Pré-visualização do portfólio indisponível no momento.</div>
+{% endif %}
+
+<hr class="hr-soft my-5">
+
+<div class="row justify-content-center text-center mb-4">
   <div class="col-12 col-md-8">
     <h1 class="display-4 fw-bold mb-3">Planos de Assinatura</h1>
     <p class="lead text-muted-2">Desbloqueie todas as funcionalidades e maximize seus trades.</p>
   </div>
 </div>
-
 <div class="row justify-content-center align-items-center">
   {% for id, plan in plans.items %}
   <div class="col-12 col-md-6 col-lg-4 mb-4">
@@ -41,4 +81,5 @@
   </div>
   {% endfor %}
 </div>
+
 {% endblock %}

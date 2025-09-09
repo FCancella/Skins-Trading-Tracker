@@ -1,5 +1,3 @@
-# fcancella/skins-trading-tracker/Skins-Trading-Tracker-697708bd243f0513af09b95ce1260f4b38149968/subscriptions/views.py
-
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -8,10 +6,13 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from django.contrib import messages
 
 import mercadopago
 
 from .models import Subscription
+from trades.views import _calculate_portfolio_metrics
 
 PLANS = {
     "1": {"name": "1 Mês", "price": 9.99, "days": 30, "is_popular": False},
@@ -31,11 +32,9 @@ def subscription_details(request: HttpRequest) -> HttpResponse:
     return render(request, "subscriptions/subscription_details.html", {"subscription": subscription})
 
 
-@login_required
 def plans(request: HttpRequest) -> HttpResponse:
-    # Calcula os descontos para exibir no template
+    # Lógica para processar planos e descontos (sem alteração)
     base_monthly_price = PLANS["1"]["price"]
-    
     processed_plans = {}
     for plan_id, plan_details in PLANS.items():
         months = plan_details["days"] / 30
@@ -43,15 +42,52 @@ def plans(request: HttpRequest) -> HttpResponse:
         discount = 0
         if months > 1:
             discount = round((1 - (monthly_price / base_monthly_price)) * 100)
-        
         processed_plans[plan_id] = {
             **plan_details,
             "monthly_price": f"{monthly_price:.2f}".replace('.',','),
             "discount": discount,
         }
-        
-    context = {"plans": processed_plans}
+    
+    # Lógica da pré-visualização do portfólio (sem alteração)
+    demo_user = User.objects.filter(profile__is_public=True).first()
+    portfolio_data = {}
+    if demo_user:
+        portfolio_data = _calculate_portfolio_metrics(demo_user)
+
+    # Nova lógica para verificar elegibilidade do teste gratuito
+    is_eligible_for_trial = True
+    if request.user.is_authenticated:
+        # Usuário é elegível se nunca teve uma assinatura (nenhum ID de pagamento registrado)
+        is_eligible_for_trial = not Subscription.objects.filter(user=request.user, mp_payment_id__isnull=False).exists()
+
+
+    context = {
+        "plans": processed_plans,
+        "portfolio_data": portfolio_data,
+        "selected_user": demo_user,
+        "is_eligible_for_trial": is_eligible_for_trial,
+    }
     return render(request, "subscriptions/plans.html", context)
+
+@login_required
+def activate_trial(request: HttpRequest) -> HttpResponse:
+    """Ativa o teste gratuito de 14 dias para usuários elegíveis."""
+    subscription, created = Subscription.objects.get_or_create(user=request.user)
+
+    # Verifica se o usuário já teve alguma assinatura antes
+    if Subscription.objects.filter(user=request.user, mp_payment_id__isnull=False).exists():
+        messages.error(request, 'O período de teste gratuito já foi utilizado.')
+        return redirect('plans')
+
+    subscription.status = 'approved'
+    subscription.end_date = timezone.now() + timedelta(days=14)
+    # Identificador único para o teste gratuito
+    subscription.mp_payment_id = f"TRIAL_{request.user.id}_{timezone.now().timestamp()}"
+    subscription.save()
+    
+    messages.success(request, 'Teste gratuito de 14 dias ativado com sucesso!')
+    return redirect('payment_success')
+
 
 @login_required
 def create_payment(request: HttpRequest) -> HttpResponse:
@@ -62,13 +98,11 @@ def create_payment(request: HttpRequest) -> HttpResponse:
         if not plan:
             return redirect("plans")
 
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
-
         subscription, created = Subscription.objects.get_or_create(user=request.user)
-        
-        # Salva o ID do plano na sessão para a nova tentativa
+
+        # Lógica Padrão do Mercado Pago
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         request.session['pending_plan_id'] = plan_id
-        
         subscription.status = '-'
         subscription.save()
 

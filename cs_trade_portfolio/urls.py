@@ -35,6 +35,7 @@ urlpatterns = [
     # Payment URLs
     path("subscription/", subscription_views.subscription_details, name="subscription_details"),
     path("plans/", subscription_views.plans, name="plans"),
+    path("activate-trial/", subscription_views.activate_trial, name="activate_trial"),
     path("create-payment/", subscription_views.create_payment, name="create_payment"),
     path("retry-payment/", subscription_views.retry_payment, name="retry_payment"),
     path("payment-success/", subscription_views.payment_success, name="payment_success"),
