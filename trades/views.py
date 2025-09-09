@@ -487,10 +487,10 @@ def price_history(request, trade_id):
     buy_price = float(trade.buy_price)
 
     # The first point is the purchase itself, representing 0% profit.
-    profit_data.append({
-        'x': start_datetime.isoformat(),
-        'y': 0
-    })
+    # profit_data.append({
+    #     'x': scanned_prices[0]['timestamp'].isoformat(),
+    #     'y': 0
+    # })
 
     # Calculate profit percentage for each intermediate scanned price.
     for item in scanned_prices:

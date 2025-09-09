@@ -33,6 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
         chart.destroy();
     }
     
+    // Calculate min and max for the y-axis
+    const profits = data.profits.map(p => p.y);
+    const dataMin = Math.min(...profits);
+    const dataMax = Math.max(...profits);
+    const chartMin = Math.min(-20, Math.round(dataMin-10));
+    const chartMax = Math.max(20, Math.round(dataMax+10));
+
     chart = new Chart(chartCanvas, {
       type: 'line',
       data: {
@@ -64,6 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           },
           y: {
+            min: chartMin,
+            max: chartMax,
             title: {
               display: true,
               text: 'Profit (%)'
