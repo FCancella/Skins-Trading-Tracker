@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from trades import views as trade_views
 from scanner import views as scanner_views
+from subscriptions import views as subscription_views
 from django.urls import include, path
 from django.contrib import admin
 
@@ -30,4 +31,14 @@ urlpatterns = [
     path("scanner/api/update-buff-prices/", scanner_views.update_buff_prices, name="scanner_api_update_buff_prices"),
     path("scanner/api/calculate-differences/", scanner_views.calculate_differences, name="scanner_api_calculate_differences"),
     path("scanner/api/items-to-price/", scanner_views.get_items_to_price, name="scanner_api_get_items_to_price"),
+
+    # Payment URLs
+    path("subscription/", subscription_views.subscription_details, name="subscription_details"),
+    path("plans/", subscription_views.plans, name="plans"),
+    path("create-payment/", subscription_views.create_payment, name="create_payment"),
+    path("retry-payment/", subscription_views.retry_payment, name="retry_payment"),
+    path("payment-success/", subscription_views.payment_success, name="payment_success"),
+    path("payment-failure/", subscription_views.payment_failure, name="payment_failure"),
+    path("payment-pending/", subscription_views.payment_pending, name="payment_pending"),
+    path("mp-webhook/", subscription_views.mp_webhook, name="mp_webhook"),
 ]

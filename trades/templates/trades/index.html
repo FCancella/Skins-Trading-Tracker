@@ -1,5 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% include 'trades/portfolio_content.html' with is_observer=False %}
+
+  {% if subscription and subscription.is_active %}
+    {% if subscription.days_remaining < 15 %}
+      <div class="alert alert-warning-soft d-flex align-items-center mb-4 alert-thin">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+        <div>
+          Sua assinatura expira em <strong>{{ subscription.days_remaining }} dia{{ subscription.days_remaining|pluralize }}</strong>.
+          <a href="{% url 'plans' %}" class="alert-link">Renove agora</a> para não perder o acesso.
+        </div>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-danger-soft d-flex align-items-center mb-4 alert-thin">
+      <i class="bi bi-lock-fill me-3 fs-5"></i>
+      <div>
+        <strong>Modo Somente Leitura</strong>. Para adicionar ou editar trades, 
+        <a href="{% url 'plans' %}" class="alert-link">assine um plano</a>.
+      </div>
+    </div>
+  {% endif %}
+
+  {% include 'trades/portfolio_content.html' with is_observer=False is_read_only=is_read_only %}
+
 {% endblock %}

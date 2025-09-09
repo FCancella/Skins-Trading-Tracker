@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8">
+    <div class="card">
+      <div class="card-header">
+        Minha Assinatura
+      </div>
+      <div class="card-body p-4">
+        <h3 class="card-title">Plano Ativo</h3>
+        <p class="text-muted-2">Obrigado por ser um assinante! Aqui estão os detalhes do seu plano:</p>
+        
+        <ul class="list-group list-group-flush mt-4">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Status
+            <span class="badge bg-success-soft">Ativa</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Data de Início
+            <span>{{ subscription.updated_at|date:"d/m/Y" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Válida até
+            <span>{{ subscription.end_date|date:"d/m/Y" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Dias Restantes
+            <span>{{ subscription.days_remaining }}</span>
+          </li>
+        </ul>
+
+        <div class="d-grid mt-4">
+            <a href="{% url 'plans' %}" class="btn btn-outline-light">Ver outros planos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

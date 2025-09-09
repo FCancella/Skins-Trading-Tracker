@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center text-center mb-5">
+  <div class="col-12 col-md-8">
+    <h1 class="display-4 fw-bold mb-3">Planos de Assinatura</h1>
+    <p class="lead text-muted-2">Desbloqueie todas as funcionalidades e maximize seus trades.</p>
+  </div>
+</div>
+
+<div class="row justify-content-center align-items-center">
+  {% for id, plan in plans.items %}
+  <div class="col-12 col-md-6 col-lg-4 mb-4">
+    <div class="plan-card {% if plan.is_popular %}popular{% endif %}">
+      {% if plan.is_popular %}
+        <div class="popular-badge">MAIS POPULAR</div>
+      {% endif %}
+      
+      <h3 class="plan-name">{{ plan.name }}</h3>
+      
+      <div class="plan-price">
+        <span class="price-currency">R$</span>{{ plan.price|floatformat:2|slice:":-3" }}<span class="price-cents">,{{ plan.price|floatformat:2|slice:"-2:" }}</span>
+      </div>
+      
+      <p class="plan-monthly-price text-muted-2">
+        Equivale a R$ {{ plan.monthly_price }}/mês
+      </p>
+
+      {% if plan.discount > 0 %}
+      <div class="plan-discount">
+        Economize {{ plan.discount }}%
+      </div>
+      {% endif %}
+
+      <form action="{% url 'create_payment' %}" method="post" class="d-grid">
+        {% csrf_token %}
+        <input type="hidden" name="plan" value="{{ id }}">
+        <button type="submit" class="btn btn-primary btn-lg mt-4">Assinar Agora</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

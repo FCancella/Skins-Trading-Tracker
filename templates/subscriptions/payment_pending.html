@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-sm-10 col-md-8 text-center">
+    <div class="card p-4">
+      <div class="card-body">
+        <h1 class="display-5 fw-bold text-warning mb-3">Pagamento Pendente</h1>
+        <p class="lead text-muted-2 mb-4">
+          Seu pagamento está sendo processado. Você receberá uma notificação assim que for aprovado.
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'retry_payment' %}" class="btn btn-primary btn-lg px-5">Tentar Novamente</a>
+            <a href="{% url 'index' %}" class="btn btn-outline-light btn-lg px-5">Voltar ao Início</a>
+        </div>
+        <hr class="hr-soft my-4">
+        <div>
+          <p class="text-muted-2 mb-1">Se a aprovação demorar mais que o esperado, entre em contato.</p>
+          <p class="h5" style="user-select: all; cursor: pointer;">contact@cstrack.online</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

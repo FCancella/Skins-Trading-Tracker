@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-sm-10 col-md-8 text-center">
+    <div class="card p-4">
+      <div class="card-body">
+        <h1 class="display-5 fw-bold text-success mb-3">Pagamento Aprovado!</h1>
+        <p class="lead text-muted-2 mb-4">
+          Sua assinatura está ativa. Agora você tem acesso completo a todas as funcionalidades da plataforma.
+        </p>
+        <a href="{% url 'index' %}" class="btn btn-primary btn-lg px-5">Ir para o Portfólio</a>
+        <hr class="hr-soft my-4">
+        <div>
+          <p class="text-muted-2 mb-1">Encontrou algum problema ou tem alguma dúvida?</p>
+          <p class="h5" style="user-select: all; cursor: pointer;">contact@cstrack.online</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

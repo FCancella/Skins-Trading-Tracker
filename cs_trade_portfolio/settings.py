@@ -14,10 +14,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from __future__ import annotations
 
 import os
-import dj_database_url
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
+
+# Credenciais do Mercado Pago
+MERCADOPAGO_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY')
+MERCADOPAGO_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
+MERCADOPAGO_WEBHOOK_SECRET = os.environ.get('MERCADOPAGO_WEBHOOK_SECRET')
 
 # Carregue a chave secreta de uma variável de ambiente.
 SECRET_KEY: str = os.environ.get('SECRET_KEY')
@@ -51,7 +57,8 @@ INSTALLED_APPS: list[str] = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'trades',
-    'scanner'
+    'scanner',
+    'subscriptions'
 ]
 
 MIDDLEWARE: list[str] = [

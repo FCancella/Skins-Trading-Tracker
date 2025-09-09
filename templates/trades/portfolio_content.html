@@ -177,7 +177,7 @@
     </div>
   </div>
 
-  {% if not is_observer %}
+  {% if not is_observer and not is_read_only %}
     {% include 'trades/add_trade_form.html' %}
   {% endif %}
 </div>
@@ -230,12 +230,12 @@
               <td>—</td>
               <td>
                 <button type="button" class="badge status-open badge-button" 
-                  {% if not is_observer %}data-bs-toggle="modal" data-bs-target="#editModal-{{ group.trade.id }}"{% else %}disabled{% endif %}>
+                  {% if not is_observer and not is_read_only %}data-bs-toggle="modal" data-bs-target="#editModal-{{ group.trade.id }}"{% else %}disabled{% endif %}>
                   Open
                 </button>
               </td>
             </tr>
-            {% if not is_observer %}
+            {% if not is_observer and not is_read_only %}
               {% include 'trades/edit_modal.html' with trade=group.trade %}
             {% endif %}
             {% endfor %}
@@ -265,12 +265,12 @@
               </td>
               <td>
                 <button type="button" class="badge status-closed badge-button" 
-                  {% if not is_observer %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
+                  {% if not is_observer and not is_read_only %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
                   Closed
                 </button>
               </td>
             </tr>
-            {% if not is_observer %}
+            {% if not is_observer and not is_read_only %}
               {% include 'trades/edit_modal.html' with trade=trade %}
             {% endif %}
             {% endfor %}
@@ -293,7 +293,7 @@
   </div>
 </div>
 
-{% if not is_observer %}
+{% if not is_observer and not is_read_only %}
 <div class="card mt-3">
     {% include 'trades/investment_section.html' %}
 </div>

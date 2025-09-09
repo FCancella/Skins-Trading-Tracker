@@ -31,6 +31,7 @@ from django.utils.timezone import make_aware
 from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
 from .models import Trade, Investment, SOURCE_CHOICES
 from scanner.models import ScannedItem
+from subscriptions.models import Subscription
 
 def _get_exchange_rate(currency: str) -> Decimal | None:
     rate = cache.get(currency)
@@ -293,8 +294,24 @@ def index(request: HttpRequest) -> HttpResponse:
     investment_form = InvestmentForm()
     show_history = request.GET.get("history", "false") == "true"
     today = timezone.localdate()
+    
+    subscription = None
+    is_active = False
+    try:
+        subscription = request.user.subscription
+        is_active = subscription.is_active
+    except Subscription.DoesNotExist:
+        pass
+    
+    is_read_only = not is_active
+
+    if is_read_only:
+        if not Trade.objects.filter(owner=request.user).exists():
+            return redirect("plans")   
 
     if request.method == "POST":
+        if is_read_only:
+            return redirect("index")
         action = request.POST.get("action")
         if action == "add":
             add_form = AddTradeForm(request.POST) # Re-populate
@@ -401,6 +418,8 @@ def index(request: HttpRequest) -> HttpResponse:
     context["investment_form"] = investment_form
     context["today"] = today
     context["tomorrow"] = today + timedelta(days=1)
+    context["is_read_only"] = is_read_only
+    context["subscription"] = subscription
     
     return render(request, "trades/index.html", context)
 
@@ -461,7 +480,7 @@ def price_history(request, trade_id):
     scanned_prices = ScannedItem.objects.filter(
         name=trade.item_name,
         source="buff",
-        timestamp__range=[start_datetime, end_datetime]
+        timestamp__range=[start_datetime - timedelta(hours=2), end_datetime]
     ).order_by('timestamp').values('timestamp', 'price')
 
     profit_data = []
