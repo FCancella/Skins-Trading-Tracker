@@ -51,7 +51,11 @@
 <div class="row justify-content-center align-items-center">
   {% for id, plan in plans.items %}
   <div class="col-12 col-md-6 col-lg-4 mb-4">
-    <div class="plan-card {% if plan.is_popular %}popular{% endif %}">
+    <div class="plan-card {% if plan.is_popular %}popular{% endif %} {% if not payment_enabled %}disabled-plan{% endif %}">
+      {% if not payment_enabled %}
+        <div class="disabled-overlay"></div>
+        <div class="disabled-badge">DESABILITADO</div>
+      {% endif %}
       {% if plan.is_popular %}
         <div class="popular-badge">MAIS POPULAR</div>
       {% endif %}

@@ -26,6 +26,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from django.conf import settings
 
 
 from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
@@ -297,11 +298,18 @@ def index(request: HttpRequest) -> HttpResponse:
     
     subscription = None
     is_active = False
-    try:
-        subscription = request.user.subscription
-        is_active = subscription.is_active
-    except Subscription.DoesNotExist:
-        pass
+    if settings.PAYMENT:
+        try:
+            subscription = request.user.subscription
+            is_active = subscription.is_active
+        except Subscription.DoesNotExist:
+            pass
+    else:
+        is_active = True
+        subscription = {
+            "is_active": True,
+            "days_remaining": 999
+        }
     
     is_read_only = not is_active
 

@@ -24,6 +24,7 @@ BASE_DIR: Path = Path(__file__).resolve().parent.parent
 MERCADOPAGO_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY')
 MERCADOPAGO_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN')
 MERCADOPAGO_WEBHOOK_SECRET = os.environ.get('MERCADOPAGO_WEBHOOK_SECRET')
+PAYMENT: bool = os.environ.get('PAYMENT', 'True').lower() == 'true'
 
 # Carregue a chave secreta de uma variável de ambiente.
 SECRET_KEY: str = os.environ.get('SECRET_KEY')
