@@ -1,0 +1,16 @@
+# docker-compose.local.yml - Versão simplificada para desenvolvimento local
+services:
+  web:
+    build: .
+    container_name: cstracker_web_local
+    entrypoint: []
+    command: >
+      sh -c "python manage.py migrate && 
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app  # Monta o código local no container para hot-reloading
+    ports:
+      - "8000:8000" # Expõe a porta da aplicação para o seu computador
+    env_file:
+      - ./.env
+    restart: unless-stopped
