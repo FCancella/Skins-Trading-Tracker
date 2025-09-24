@@ -90,7 +90,10 @@
                 <label class="form-check-label" for="isPublicCheck">Make your profile visible in Observer Mode</label>
               </div>
               <hr>
-              <div class="d-grid"> <a href="{% url 'export_portfolio' %}" class="btn btn-outline-light mb-3">Export Portfolio (CSV)</a></div>
+              <div class="d-grid gap-2">
+                <a href="{% url 'export_portfolio' %}" class="btn btn-outline-light">Export Portfolio</a>
+                <a href="{% url 'password_change' %}" class="btn btn-outline-light">Mudar senha</a>
+              </div>
             </div>
           </form>
         </div>

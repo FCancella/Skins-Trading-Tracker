@@ -12,6 +12,8 @@ from django.contrib import admin
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+    # Já está incluido em "django.contrib.auth.urls"
+    # path("accounts/password_change/", PasswordChangeView.as_view(template_name='registration/passwordChangeForm.html),
 
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
