@@ -22,15 +22,24 @@ PLANS = {
 
 @login_required
 def subscription_details(request: HttpRequest) -> HttpResponse:
-    try:
-        subscription = request.user.subscription
-        if not subscription.is_active:
+    if settings.PAYMENT:
+        try:
+            subscription = request.user.subscription
+            if not subscription.is_active:
+                return redirect("plans")
+        except Subscription.DoesNotExist:
             return redirect("plans")
-    except Subscription.DoesNotExist:
-        return redirect("plans")
+
+    else:
+        # Cria uma assinatura "fake" para quando os pagamentos estão desativados
+        subscription = {
+            "is_active": True,
+            "days_remaining": "∞",
+            "end_date": "Permanente",
+            "updated_at": timezone.now(),
+        }
 
     return render(request, "subscriptions/subscription_details.html", {"subscription": subscription})
-
 
 def plans(request: HttpRequest) -> HttpResponse:
     # Lógica para processar planos e descontos (sem alteração)
@@ -66,6 +75,7 @@ def plans(request: HttpRequest) -> HttpResponse:
         "portfolio_data": portfolio_data,
         "selected_user": demo_user,
         "is_eligible_for_trial": is_eligible_for_trial,
+        "payment_enabled": settings.PAYMENT, # Passa a configuração para o template
     }
     return render(request, "subscriptions/plans.html", context)
 

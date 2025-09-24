@@ -26,6 +26,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from django.conf import settings
 
 
 from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
@@ -82,11 +83,11 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
         pass
     else:
         more_trades = True
-        dates = trades.dates('sell_date', 'day').order_by('-sell_date')[:2]
-        closed_qs_display = closed_qs_all.filter(
-            Q(sell_date__gte=dates[1]) | Q(sell_date__isnull=True)
-        )
-    print(not show_history and more_trades)
+        recent_dates = list(trades.filter(sell_date__isnull=False).order_by('-sell_date').values_list('sell_date', flat=True).distinct()[:2])
+        if len(recent_dates) > 1:
+            closed_qs_display = closed_qs_all.filter(
+                Q(sell_date__gte=recent_dates[1]) | Q(sell_date__isnull=True)
+            )
 
     # 1. Custo (Cost Basis)
     cost_basis = open_qs.aggregate(total=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))))['total']
@@ -297,11 +298,18 @@ def index(request: HttpRequest) -> HttpResponse:
     
     subscription = None
     is_active = False
-    try:
-        subscription = request.user.subscription
-        is_active = subscription.is_active
-    except Subscription.DoesNotExist:
-        pass
+    if settings.PAYMENT:
+        try:
+            subscription = request.user.subscription
+            is_active = subscription.is_active
+        except Subscription.DoesNotExist:
+            pass
+    else:
+        is_active = True
+        subscription = {
+            "is_active": True,
+            "days_remaining": 999
+        }
     
     is_read_only = not is_active
 
