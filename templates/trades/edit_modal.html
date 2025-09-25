@@ -7,38 +7,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       
-      {% if trade.sell_price is None %}
-        <form id="sellForm-{{ trade.id }}" method="post" action="{% url 'index' %}">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="sell">
-          <input type="hidden" name="trade_id" value="{{ trade.id }}">
-          <div class="modal-body">
-            <div class="mb-3"><label class="form-label">Sell Price</label>
-              <div class="d-flex align-items-center">
-                {{ trade.edit_form.sell_price|add_class:"form-control"}}
-                <div class="btn-group ms-2" role="group">
-                    <input type="radio" class="btn-check" name="sell_price_currency" id="sell_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-currency" for="sell_brl_{{ trade.id }}">BRL</label>
-                    <input type="radio" class="btn-check" name="sell_price_currency" id="sell_cny_{{ trade.id }}" value="CNY"><label class="btn btn-currency" for="sell_cny_{{ trade.id }}">CNY</label>
-                    <input type="radio" class="btn-check" name="sell_price_currency" id="sell_usd_{{ trade.id }}" value="USD"><label class="btn btn-currency" for="sell_usd_{{ trade.id }}">USD</label>
-                </div>
-              </div>
-            </div>
-            <div class="mb-3"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source|add_class:"form-select"}}</div>
-            <div class="mb-3"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date|add_class:"form-control"}}</div>
-          </div>
-        </form>
-        
-        <div class="modal-footer d-flex justify-content-between">
-          <form class="me-auto" method="post" action="{% url 'index' %}">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="delete">
-              <input type="hidden" name="trade_id" value="{{ trade.id }}">
-              <button type="submit" class="btn btn-danger" onclick="return confirm('Você tem certeza que deseja excluir este trade? Esta ação não pode ser desfeita.')">Delete</button>
-          </form>
-          <button type="submit" class="btn btn-primary" form="sellForm-{{ trade.id }}">Save</button>
-        </div>
-        
-      {% else %}
+
         <form id="editForm-{{ trade.id }}" method="post" action="{% url 'index' %}" class="row g-3 m-0">
           {% csrf_token %}
           <input type="hidden" name="action" value="edit">
@@ -58,19 +27,21 @@
               </div>
               <div class="col-6"><label class="form-label">Buy Source</label>{{ trade.edit_form.buy_source }}</div>
               <div class="col-6"><label class="form-label">Buy Date</label>{{ trade.edit_form.buy_date }}</div>
+              {% if trade.sell_price is not None %} 
               <hr class="hr-soft" />
-              <div class="col-12"><label class="form-label">Sell Price</label>
-                <div class="d-flex align-items-center">
-                  {{ trade.edit_form.sell_price|add_class:"form-control" }}
-                  <div class="btn-group ms-2" role="group">
-                    <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-currency" for="edit_sell_brl_{{ trade.id }}">BRL</label>
-                    <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_cny_{{ trade.id }}" value="CNY"><label class="btn btn-currency" for="edit_sell_cny_{{ trade.id }}">CNY</label>
-                    <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_usd_{{ trade.id }}" value="USD"><label class="btn btn-currency" for="edit_sell_usd_{{ trade.id }}">USD</label>
+                <div class="col-12"><label class="form-label">Sell Price</label>
+                  <div class="d-flex align-items-center">
+                    {{ trade.edit_form.sell_price|add_class:"form-control" }}
+                    <div class="btn-group ms-2" role="group">
+                      <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-currency" for="edit_sell_brl_{{ trade.id }}">BRL</label>
+                      <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_cny_{{ trade.id }}" value="CNY"><label class="btn btn-currency" for="edit_sell_cny_{{ trade.id }}">CNY</label>
+                      <input type="radio" class="btn-check" name="sell_price_currency" id="edit_sell_usd_{{ trade.id }}" value="USD"><label class="btn btn-currency" for="edit_sell_usd_{{ trade.id }}">USD</label>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="col-6"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source }}</div>
-              <div class="col-6"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date }}</div>
+                <div class="col-6"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source }}</div>
+                <div class="col-6"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date }}</div>
+              {% endif %}
             </div>
           </div>
         </form>
@@ -83,17 +54,20 @@
                     <input type="hidden" name="trade_id" value="{{ trade.id }}">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this trade? This action cannot be undone.')">Delete</button>
                 </form>
+                {% if trade.sell_price is None %}
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#sellModal-{{ trade.id }}">Sell</button>
+                {% else %}
                 <form method="post" action="{% url 'index' %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="unsell">
                     <input type="hidden" name="trade_id" value="{{ trade.id }}">
                     <button type="submit" class="btn btn-outline-secondary" onclick="return confirm('Are you sure you want to remove the selling information?')">Unsell</button>
                 </form>
+                {% endif %}
             </div>
 
             <button type="submit" class="btn btn-primary" form="editForm-{{ trade.id }}">Save</button>
         </div>
-      {% endif %}
     </div>
   </div>
 </div>

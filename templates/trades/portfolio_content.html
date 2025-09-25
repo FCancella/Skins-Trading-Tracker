@@ -230,13 +230,14 @@
               <td>—</td>
               <td>
                 <button type="button" class="badge status-open badge-button" 
-                  {% if not is_observer and not is_read_only %}data-bs-toggle="modal" data-bs-target="#editModal-{{ group.trade.id }}"{% else %}disabled{% endif %}>
+                  {% if not is_observer and not is_read_only %}data-bs-toggle="modal" data-bs-target="#sellModal-{{ group.trade.id }}"{% else %}disabled{% endif %}>
                   Open
                 </button>
               </td>
             </tr>
             {% if not is_observer and not is_read_only %}
               {% include 'trades/edit_modal.html' with trade=group.trade %}
+              {% include 'trades/sell_modal.html' with trade=group.trade %}
             {% endif %}
             {% endfor %}
 
@@ -272,6 +273,7 @@
             </tr>
             {% if not is_observer and not is_read_only %}
               {% include 'trades/edit_modal.html' with trade=trade %}
+              {% include 'trades/sell_modal.html' with trade=trade %}
             {% endif %}
             {% endfor %}
 
