@@ -35,6 +35,7 @@ from scanner.models import ScannedItem
 from subscriptions.models import Subscription
 
 def _get_exchange_rate(currency: str) -> Decimal | None:
+    '''Obtém a taxa de câmbio atual para a moeda especificada em relação ao BRL (moeda exibida).'''
     rate = cache.get(currency)
     if rate:
         return rate
@@ -185,7 +186,7 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     grouped_open_trades = []
     for trades_in_group in grouped_open_trades_map.values():
         first_trade = trades_in_group[0]
-        first_trade.edit_form = SellTradeForm(instance=first_trade)
+        first_trade.edit_form = EditTradeForm(instance=first_trade)
         # Adicionar o preço de mercado ao objeto de trade para uso no template
         first_trade.market_price = market_prices.get(first_trade.item_name)
         
@@ -263,13 +264,13 @@ def _calculate_update_notifications(user: User) -> dict:
     return {"notifications": notifications}
 
 def home(request: HttpRequest) -> HttpResponse:
-    """Displays the homepage with options to login or spectate."""
+    """Exibe a homepage com a possibilidade de ser tanto usuário como espectador."""
     if request.user.is_authenticated:
         return redirect("index")
     return render(request, "trades/home.html")
 
 def observer(request: HttpRequest) -> HttpResponse:
-    """Displays a list of public users and their portfolios."""
+    """Exibe uma lista com usuários públicos e seu portfólio."""
     public_users = User.objects.filter(profile__is_public=True)
     if request.user.is_authenticated:
         public_users = public_users.exclude(id=request.user.id)
@@ -291,6 +292,7 @@ def observer(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
+    '''Exibe a página principal com o portfólio do usuário e formulários para adicionar/editar trades.'''
     add_form = AddTradeForm()
     investment_form = InvestmentForm()
     show_history = request.GET.get("history", "false") == "true"
@@ -321,7 +323,7 @@ def index(request: HttpRequest) -> HttpResponse:
         if is_read_only:
             return redirect("index")
         action = request.POST.get("action")
-        if action == "add":
+        if action == "add": # Adicionar um novo trade na base de dados
             add_form = AddTradeForm(request.POST) # Re-populate
             if add_form.is_valid():
                 data = add_form.cleaned_data

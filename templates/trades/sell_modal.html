@@ -1,0 +1,51 @@
+{% load form_extras %}
+<div class="modal fade" id="sellModal-{{ trade.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-dark">
+      <div class="modal-header">
+        <h5 class="modal-title">Sell: {{ trade.item_name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <form id="sellForm-{{ trade.id }}" method="post" action="{% url 'index' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="sell">
+          <input type="hidden" name="trade_id" value="{{ trade.id }}">
+          <div class="modal-body">
+            <div class="mb-3"><label class="form-label">Sell Price</label>
+              <div class="d-flex align-items-center">
+                {{ trade.edit_form.sell_price|add_class:"form-control"}}
+                <div class="btn-group ms-2" role="group">
+                    <input type="radio" class="btn-check" name="sell_price_currency" id="sell_brl_{{ trade.id }}" value="BRL" checked><label class="btn btn-currency" for="sell_brl_{{ trade.id }}">BRL</label>
+                    <input type="radio" class="btn-check" name="sell_price_currency" id="sell_cny_{{ trade.id }}" value="CNY"><label class="btn btn-currency" for="sell_cny_{{ trade.id }}">CNY</label>
+                    <input type="radio" class="btn-check" name="sell_price_currency" id="sell_usd_{{ trade.id }}" value="USD"><label class="btn btn-currency" for="sell_usd_{{ trade.id }}">USD</label>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source|add_class:"form-select"}}</div>
+            <div class="mb-3"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date|add_class:"form-control"}}</div>
+          </div>
+        </form>
+        <div class="modal-footer d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <form class="me-auto" method="post" action="{% url 'index' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="trade_id" value="{{ trade.id }}">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Você tem certeza que deseja excluir este trade? Esta ação não pode ser desfeita.')">Delete</button>
+                </form>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}">Update</button>
+                {% if trade.sell_price is not None %}
+                <form method="post" action="{% url 'index' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="unsell">
+                    <input type="hidden" name="trade_id" value="{{ trade.id }}">
+                    <button type="submit" class="btn btn-outline-secondary" onclick="return confirm('Are you sure you want to remove the selling information?')">Unsell</button>
+                </form>
+                {% endif %}
+                
+            </div>
+            <button type="submit" class="btn btn-primary" form="sellForm-{{ trade.id }}">Save</button>
+        </div>
+    </div>
+  </div>
+</div>
