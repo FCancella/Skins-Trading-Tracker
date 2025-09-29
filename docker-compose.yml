@@ -4,8 +4,8 @@ services:
     container_name: cstracker_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    ports:
-      - "127.0.0.1:5432:5432" # Só permite conexao externa via tunel SSH
+    # ports:
+    #   - "127.0.0.1:5432:5432" # Só permite conexao externa via tunel SSH
     env_file:
       - ./.env
     restart: unless-stopped
