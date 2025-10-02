@@ -47,7 +47,9 @@
                 <li><a class="dropdown-item" href="{% url 'subscription_details' %}">Assinatura</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Settings</a></li>
+                {% if user.is_superuser %}
                 <li><a class="dropdown-item" href="{% url 'scheduler_logs' %}">Logs</a></li>
+                {% endif %}
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <form action="{% url 'logout' %}" method="post" class="d-inline">
