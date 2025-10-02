@@ -49,8 +49,10 @@
                 👤 {{ user.username }}
               </a>
               <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                {% if PAYMENT_ENABLED %}
                 <li><a class="dropdown-item" href="{% url 'subscription_details' %}">Assinatura</a></li>
                 <li><hr class="dropdown-divider"></li>
+                {% endif %}
                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Settings</a></li>
                 {% if user.is_superuser %}
                 <li><a class="dropdown-item" href="{% url 'scheduler_logs' %}">Logs</a></li>
