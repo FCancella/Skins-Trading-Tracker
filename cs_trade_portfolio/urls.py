@@ -8,6 +8,11 @@ from scanner import views as scanner_views
 from subscriptions import views as subscription_views
 from django.urls import include, path
 from django.contrib import admin
+from django.conf import settings
+
+def global_settings_context(request):
+    """Expõe a configuração PAYMENT para todos os templates."""
+    return {'PAYMENT_ENABLED': settings.PAYMENT}
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -17,6 +22,7 @@ urlpatterns = [
 
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
+    path("about/", trade_views.about, name="about"), 
     path("observer/", trade_views.observer, name="observer"),
     path("signup/", trade_views.signup, name="signup"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),

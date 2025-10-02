@@ -86,6 +86,7 @@ TEMPLATES: list[dict[str, object]] = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'cs_trade_portfolio.urls.global_settings_context'
             ],
         },
     },

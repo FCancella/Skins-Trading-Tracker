@@ -49,10 +49,13 @@ class CustomUserCreationForm(UserCreationForm):
         return email
 
 class EditTradeForm(forms.ModelForm):
+    """
+    Form for creating or updating a trade.
+    Responsável pela ação do Update dentro do padrão CRUD.
+    """
+
     buy_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect, required=False)
     sell_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect, required=False)
-
-    """Form for creating or updating a trade."""
 
     class Meta:
         model = Trade
@@ -84,9 +87,12 @@ class EditTradeForm(forms.ModelForm):
 
 
 class SellTradeForm(forms.ModelForm):
-    sell_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect)
+    """
+    Form for updating a trade with sell details.
+    Responsável pela ação do Update dentro do padrão CRUD.
+    """
 
-    """Form for updating a trade with sell details."""
+    sell_price_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, initial='BRL', widget=forms.RadioSelect)
 
     class Meta:
         model = Trade
@@ -130,7 +136,10 @@ class InvestmentForm(forms.ModelForm):
         return obj
 
 class AddTradeForm(forms.Form):
-    """Form for adding multiple trades at once."""
+    """
+    Form for adding multiple trades at once.
+    Responsável pela ação do Create dentro do padrão CRUD.
+    """
     item_name = forms.CharField(max_length=100)
     quantity = forms.IntegerField(min_value=1, initial=1)
     buy_price = forms.DecimalField(max_digits=10, decimal_places=2)

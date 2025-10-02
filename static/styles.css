@@ -25,6 +25,33 @@ body{
 }
 .border-purple{ border-color: rgba(122,43,246,.45)!important; }
 
+/* --- Custom Nav Links --- */
+#main-nav {
+  gap: 0.5rem; /* Espaçamento entre os links */
+}
+
+.nav-link-custom {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  color: var(--fg-2);
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.nav-link-custom:hover {
+  background-color: rgba(122, 43, 246, 0.1);
+  color: var(--fg-1);
+}
+
+.nav-link-custom.active {
+  background-color: rgba(122, 43, 246, 0.25);
+  color: #fff;
+  border-color: rgba(122, 43, 246, 0.5);
+}
+
 /* Cards */
 .card{
   background:linear-gradient(180deg, var(--bg-1), var(--bg-2));
