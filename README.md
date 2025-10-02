@@ -56,3 +56,31 @@ internet, so the Django framework itself was not installed or tested
 here. Please ensure you install Django in your own environment before
 running the application. All business logic, templates and models
 should function as described once Django is available.
+
+
+## Divisão das aplicações
+
+A fins do trabalho 1 da disciplina de Programação Para a Web, 
+contemos três divisões fundamentais:
+
+1. **cs_trade_portfolio:** App responsável por conter os arquivos de 
+settings.py, onde realizamos a configuração geral da aplicação, 
+contendo informações sobre funcionamento e ambientação do Django, 
+integração com banco de dados, definição de outros aplicativos 
+dentro do projeto, e outras informações também relevantes.
+
+2. **trades:** App responsável pela definição das trades, objetivo 
+central da aplicação. Nele, temos o arquivo models.py, que define objetos 
+presentes dentro da página inicial, como perfil de usuário, trades e investments. 
+O arquivo views.py, é quem configura a vizualização da aplicação, e nela 
+configuramos as métricas para o nosso portfólio, a view index, no qual 
+serão derivadas as diferentes funcionalidades do site disponíveis para 
+o usuário, o modo observador para portfólios de terceiros, entre outras. 
+Temos também o forms.py, onde estão definidos todos os parâmetros necessários 
+para que possamoss preencher e completar os campos banco de dados através do 
+modelo CRUD, onde dividimos em cada classe uma ação responsável para o controle 
+da informação dos objetos do site.
+
+3. **templates** Pasta responsável pelo controle visual do site, onde 
+definimos os arquivos html para as diferentes páginas do site, divididos 
+nos apps respectivos. 

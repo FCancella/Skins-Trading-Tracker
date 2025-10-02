@@ -320,10 +320,10 @@ def index(request: HttpRequest) -> HttpResponse:
             return redirect("plans")   
 
     if request.method == "POST":
-        if is_read_only:
+        if is_read_only: #READ
             return redirect("index")
         action = request.POST.get("action")
-        if action == "add": # Adicionar um novo trade na base de dados
+        if action == "add": # Adicionar um novo trade na base de dados  #CREATE
             add_form = AddTradeForm(request.POST) # Re-populate
             if add_form.is_valid():
                 data = add_form.cleaned_data
@@ -338,7 +338,7 @@ def index(request: HttpRequest) -> HttpResponse:
                     trades_to_create = [Trade(owner=request.user, **data) for _ in range(quantity)]
                     Trade.objects.bulk_create(trades_to_create)
                     return redirect("index")
-        elif action == "sell":
+        elif action == "sell": #UPDATE
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
             form = SellTradeForm(request.POST, instance=trade)
@@ -357,7 +357,7 @@ def index(request: HttpRequest) -> HttpResponse:
             if form.is_valid():
                 form.save()
                 return redirect("index")
-        elif action == "edit":
+        elif action == "edit": #UPDATE
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
             post_data = request.POST.copy()
@@ -405,7 +405,7 @@ def index(request: HttpRequest) -> HttpResponse:
             investment = Investment.objects.get(pk=investment_id, owner=request.user)
             investment.delete()
             return redirect("index")
-        elif action == "delete":
+        elif action == "delete": #DELETE
             trade_id = request.POST.get("trade_id")
             trade = Trade.objects.get(pk=trade_id, owner=request.user)
             trade.delete()
@@ -519,3 +519,7 @@ def price_history(request, trade_id):
         })
 
     return JsonResponse({'profits': profit_data})
+
+def about(request: HttpRequest) -> HttpResponse:
+    """Renderiza a página 'Saiba Mais'."""
+    return render(request, "trades/about.html")

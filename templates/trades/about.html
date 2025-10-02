@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Saiba Mais - CS2 Skins Trading Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        Saiba Mais sobre o CS2 Skins Trading Tracker
+      </div>
+      <div class="card-body p-4">
+        <h2 class="card-title mb-4">Sua Ferramenta Completa para Trades de Skins</h2>
+        <p class="lead text-muted-2">
+          O CS2 Skins Trading Tracker foi criado para traders, por traders. Nosso objetivo é fornecer uma plataforma centralizada e poderosa para gerenciar seu portfólio, identificar oportunidades e maximizar seus lucros no mercado de skins de Counter-Strike.
+        </p>
+
+        <hr class="hr-soft my-4">
+
+        <h4 class="mb-3">Funcionalidades Principais</h4>
+        
+        <h5><i class="bi bi-wallet2 text-pink me-2"></i>Rastreamento de Portfólio</h5>
+        <p>
+          Registre todas as suas compras e vendas em um só lugar. Acompanhe métricas essenciais como:
+        </p>
+        <ul>
+          <li><strong>NAV (Net Asset Value):</strong> O valor total real do seu portfólio.</li>
+          <li><strong>ROI (Retorno sobre Investimento):</strong> Entenda a performance dos seus investimentos.</li>
+          <li><strong>Lucro Realizado (PnL):</strong> Veja o lucro total que você já obteve com suas vendas.</li>
+          <!--
+          <li><strong>Gráficos de Performance:</strong> Visualize o crescimento do seu lucro ao longo do tempo.</li>
+          -->
+        </ul>
+        <p> 
+          Controle os valores de compra e venda em múltiplas moedas (BRL, CNY, USD) e acompanhe as variações cambiais automaticamente, assim como seus aportes financeiros.
+        </p>
+        <!--
+        <h5 class="mt-4"><i class="bi bi-search text-pink me-2"></i>Scanner de Mercado</h5>
+        <p>
+          Nossa ferramenta de scanner monitora constantemente os mercados da DashSkins (Bot e P2P) e compara os preços com o Buff.163, o maior mercado de skins do mundo. Identifique rapidamente itens com grandes descontos e encontre as melhores oportunidades de compra antes de todo mundo.
+        </p>
+        -->
+        <h5 class="mt-4"><i class="bi bi-binoculars text-pink me-2"></i>Modo Observador</h5>
+        <p>
+          Aprenda com os melhores! Usuários com perfis públicos permitem que você visualize o portfólio e a performance deles. É uma excelente forma de descobrir novas estratégias de trade e entender como outros traders operam no mercado.
+        </p>
+        
+        <h5 class="mt-4"><i class="bi bi-file-earmark-spreadsheet text-pink me-2"></i>Exportação de Dados</h5>
+        <p>
+          Tenha controle total sobre seus dados. A qualquer momento, você pode exportar todo o seu histórico de trades para um arquivo CSV, facilitando análises personalizadas em planilhas ou outras ferramentas.
+        </p>
+        
+        <div class="text-center mt-5">
+          <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">Crie sua conta e inicie seus lucros</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
