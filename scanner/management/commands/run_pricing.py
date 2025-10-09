@@ -74,7 +74,7 @@ class Command(BaseCommand):
                 if buff_info:
                     buff_info['name'] = item_name
                     self.stdout.write(f"  {index + 1}/{len(items_to_update)}: Fetched '{item_name}' - Price: {buff_info['price']}")
-                    if abs(buff_info['price']-buff_info['price']) < 0.01:
+                    if abs(buff_info['price']) < 0.01:
                         continue
                     buff_prices_payload.append(buff_info)
                 else:
