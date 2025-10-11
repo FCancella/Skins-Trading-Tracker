@@ -19,8 +19,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 
-from django.db.models import F, Sum, Value
-from django.db.models import F, Sum, Value, Q
+from django.db.models import F, Sum, Value, Q, DecimalField
 from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
@@ -66,74 +65,56 @@ def _convert_currency_to_brl(amount_str: str, currency: str) -> Decimal | None:
 
 def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict:
     """
-    Calcula as métricas de portfólio para um determinado usuário.
-
-    Esta função centraliza a lógica de cálculo que é compartilhada
-    entre as views `index` e `observer`.
+    Calcula as métricas de portfólio para um determinado usuário de forma otimizada.
     """
-    trades = Trade.objects.filter(owner=user)
+    trades = Trade.objects.filter(owner=user).select_related('owner')
     investments = Investment.objects.filter(owner=user)
 
-    open_qs = trades.filter(sell_price__isnull=True)
-    
-    closed_qs_all = trades.filter(sell_price__isnull=False)
-    
-    more_trades = False
-    closed_qs_display = closed_qs_all
-    if len(closed_qs_all) <= 15 or show_history:
-        pass
-    else:
-        more_trades = True
-        recent_dates = list(trades.filter(sell_date__isnull=False).order_by('-sell_date').values_list('sell_date', flat=True).distinct()[:2])
-        if len(recent_dates) > 1:
-            closed_qs_display = closed_qs_all.filter(
-                Q(sell_date__gte=recent_dates[1]) | Q(sell_date__isnull=True)
-            )
-
-    # 1. Custo (Cost Basis)
-    cost_basis = open_qs.aggregate(total=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))))['total']
-
-    # 2. PnL Realizado (Realized PnL) - Use all closed trades for metrics
-    realized_pnl_value = closed_qs_all.aggregate(
-        pnl=Coalesce(Sum(F("sell_price") - F("buy_price")), Value(Decimal('0.0')))
-    )['pnl']
-
-    # 3. PnL Médio (para itens vendidos) - Use all closed trades for metrics
-    closed_aggregates = closed_qs_all.aggregate(
-        buy_sum=Coalesce(Sum("buy_price"), Value(Decimal('0.0'))),
-        sell_sum=Coalesce(Sum("sell_price"), Value(Decimal('0.0')))
+    # Agregações principais em uma única consulta
+    aggregates = trades.aggregate(
+        total_cost_basis=Coalesce(Sum('buy_price', filter=Q(sell_price__isnull=True)), Value(Decimal('0.0'))),
+        realized_pnl=Coalesce(Sum(F('sell_price') - F('buy_price'), filter=Q(sell_price__isnull=False)), Value(Decimal('0.0'))),
+        closed_buy_sum=Coalesce(Sum('buy_price', filter=Q(sell_price__isnull=False)), Value(Decimal('0.0'))),
+        closed_sell_sum=Coalesce(Sum('sell_price', filter=Q(sell_price__isnull=False)), Value(Decimal('0.0'))),
     )
-    closed_buy_sum = closed_aggregates['buy_sum']
-    closed_sell_sum = closed_aggregates['sell_sum']
+
+    cost_basis = aggregates['total_cost_basis']
+    realized_pnl_value = aggregates['realized_pnl']
+    closed_buy_sum = aggregates['closed_buy_sum']
+    closed_sell_sum = aggregates['closed_sell_sum']
 
     average_pnl_factor = (closed_sell_sum / closed_buy_sum) if closed_buy_sum > 0 else Decimal('1.0')
     average_pnl_percent = (average_pnl_factor - 1) * 100
 
-    # --- Grouping and Form Preparation ---
+    open_qs = trades.filter(sell_price__isnull=True)
+    closed_qs_all = trades.filter(sell_price__isnull=False)
     
-    # Buscar preços de mercado atuais para itens em aberto
+    # Lógica de paginação para trades fechados
+    more_trades = False
+    closed_qs_display = closed_qs_all
+    if not show_history and closed_qs_all.count() > 15:
+        more_trades = True
+        recent_dates = list(closed_qs_all.order_by('-sell_date').values_list('sell_date', flat=True).distinct()[:2])
+        if len(recent_dates) > 1:
+            closed_qs_display = closed_qs_all.filter(sell_date__gte=recent_dates[1])
+
+    # Otimização para buscar preços de mercado
     open_item_names = open_qs.values_list('item_name', flat=True).distinct()
     
     buff_prices_qs = ScannedItem.objects.filter(
         name__in=open_item_names,
         source='buff'
-    ).order_by('name', '-timestamp') # Ordena para que o mais recente venha primeiro para cada nome
+    ).order_by('name', '-timestamp').distinct('name')
+    
+    market_prices = {item.name: item.price for item in buff_prices_qs}
 
-    market_prices = {}
-    # Itera sobre os resultados; como está ordenado, o primeiro que encontrarmos
-    # para cada nome será o mais recente.
-    for item in buff_prices_qs:
-        if item.name not in market_prices:
-            market_prices[item.name] = item.price
-            
-    # 4. MTM (Mark to Market)
     mtm_value = Decimal('0.0')
     for trade in open_qs:
         market_price = market_prices.get(trade.item_name)
         if market_price:
             mtm_value += market_price
         else:
-            # Fallback to estimation if no market price is available
+            # Fallback para estimativa se nenhum preço de mercado estiver disponível
             mtm_value += trade.buy_price * (1 + (average_pnl_factor - 1) * Decimal('0.5'))
 
     # 5. Total Investment
