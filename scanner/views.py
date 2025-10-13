@@ -130,7 +130,7 @@ def update_buff_prices(request):
                 source='buff'
             )
             created_count += 1
-            if item.get('offers', 0) < 50:
+            if item.get('offers', 0) < 90:
                 BlackList.objects.update_or_create(
                     name=item['name'],
                     defaults={'offers': item['offers']}
