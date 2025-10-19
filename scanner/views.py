@@ -57,7 +57,7 @@ def get_items_to_price(request):
     recent_buff_items = ScannedItem.objects.filter(
         source='buff',
         name__in=open_portfolio_items,
-        timestamp__gte=timezone.now() - timedelta(hours=5)
+        timestamp__gte=timezone.now() - timedelta(hours=8) # 3 vezes por dia
     ).values_list('name', flat=True)
 
     # 3. Filtra a lista de itens do portfólio para encontrar aqueles que PRECISAM de um novo preço

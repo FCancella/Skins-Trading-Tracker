@@ -27,26 +27,12 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 from django.conf import settings
 
-
+from .utils import _get_exchange_rate
 from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
 from .models import Trade, Investment, SOURCE_CHOICES
 from scanner.models import ScannedItem
 from subscriptions.models import Subscription
-
-def _get_exchange_rate(currency: str) -> Decimal | None:
-    '''Obtém a taxa de câmbio atual para a moeda especificada em relação ao BRL (moeda exibida).'''
-    rate = cache.get(currency)
-    if rate:
-        return rate
-    try:
-        response = requests.get(f"https://open.er-api.com/v6/latest/{currency}")
-        response.raise_for_status()
-        data = response.json()
-        rate = Decimal(data["rates"]["BRL"]).quantize(Decimal("0.0001"))
-        cache.set(currency, rate)
-        return rate
-    except (requests.RequestException, KeyError, TypeError):
-        return None
+from scanner.services import buff
 
 def _convert_currency_to_brl(amount_str: str, currency: str) -> Decimal | None:
     """Converte um valor de uma moeda estrangeira para BRL."""
@@ -316,8 +302,28 @@ def index(request: HttpRequest) -> HttpResponse:
                     add_form.add_error(None, f"Não foi possível converter a taxa de {currency} para BRL.")
                 else:
                     data['buy_price'] = converted_price
+                    item_name = data.get('item_name')
                     trades_to_create = [Trade(owner=request.user, **data) for _ in range(quantity)]
                     Trade.objects.bulk_create(trades_to_create)
+
+                    # Verifica se existe um preço recente no buff
+                    if item_name:
+                        has_recent_price = ScannedItem.objects.filter(
+                            name=item_name,
+                            source='buff',
+                            timestamp__gte=timezone.now() - timedelta(hours=8)
+                        ).exists()
+
+                        if not has_recent_price:
+                            buff_info = buff.get_item_info(item_name)
+                            if buff_info and buff_info.get('price'):
+                                ScannedItem.objects.create(
+                                    name=item_name,
+                                    price=buff_info['price'],
+                                    offers=buff_info.get('offers'),
+                                    link=buff_info.get('link'),
+                                    source='buff'
+                                )
                     return redirect("index")
         elif action == "sell": #UPDATE
             trade_id = request.POST.get("trade_id")

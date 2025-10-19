@@ -1,7 +1,7 @@
 import requests
 import time
 from scanner.services import utils
-from trades.views import _get_exchange_rate
+from trades.utils import _get_exchange_rate
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.1 Safari/537.36",

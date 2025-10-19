@@ -57,9 +57,9 @@ services:
         while true; do
           echo 'SCHEDULER: Running pricing script...';
           python manage.py run_pricing;
-          
-          echo 'SCHEDULER: Cycle finished. Sleeping for 8 hours...';
-          sleep 28800;
+
+          echo 'SCHEDULER: Cycle finished. Sleeping for 4 hours and 5 minutes...';
+          sleep 14700;
         done
       "
     env_file:
