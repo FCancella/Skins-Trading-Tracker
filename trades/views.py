@@ -187,9 +187,11 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     for trade in closed_qs_all:
         cash_per_source[trade.get_sell_source_display()] += trade.sell_price
 
+    filtered_cash_per_source = {k: v for k, v in cash_per_source.items() if abs(v) > 5}
+
     cash_per_source_data = {
-        'labels': list(cash_per_source.keys()),
-        'values': [float(v) for v in cash_per_source.values() if abs(v) > 1],
+        'labels': list(filtered_cash_per_source.keys()),
+        'values': [float(v) for v in filtered_cash_per_source.values()],
     }
 
     return {
