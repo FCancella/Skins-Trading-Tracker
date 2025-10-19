@@ -189,7 +189,7 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
 
     cash_per_source_data = {
         'labels': list(cash_per_source.keys()),
-        'values': [float(v) for v in cash_per_source.values()],
+        'values': [float(v) for v in cash_per_source.values() if abs(v) > 1],
     }
 
     return {
