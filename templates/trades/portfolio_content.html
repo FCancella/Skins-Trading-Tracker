@@ -11,7 +11,7 @@
       <div class="notification-details">
         {% if item.tradable_count > 0 %}
         <div class="notification-item">
-          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 S0 0 1 10 0v4"></path></svg>
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
           <span class="count">{{ item.tradable_count }}</span>
           <span class="label">Trade Lock</span>
         </div>
@@ -230,15 +230,14 @@
               <td>—</td>
               <td>
                 <button type="button" class="badge status-open badge-button" 
-                  {% if not is_observer and not is_read_only %}data-bs-toggle="modal" data-bs-target="#sellModal-{{ group.trade.id }}"{% else %}disabled{% endif %}>
+                  {% if not is_observer and not is_read_only %}
+                  data-bs-toggle="modal" data-bs-target="#dynamicModal" 
+                  data-trade-id="{{ group.trade.id }}" data-form-type="sell"
+                  {% else %}disabled{% endif %}>
                   Open
                 </button>
               </td>
             </tr>
-            {% if not is_observer and not is_read_only %}
-              {% include 'trades/edit_modal.html' with trade=group.trade %}
-              {% include 'trades/sell_modal.html' with trade=group.trade %}
-            {% endif %}
             {% endfor %}
 
             {% for trade in trade_data.closed_trades %}
@@ -266,15 +265,14 @@
               </td>
               <td>
                 <button type="button" class="badge status-closed badge-button" 
-                  {% if not is_observer and not is_read_only %}data-bs-toggle="modal" data-bs-target="#editModal-{{ trade.id }}"{% else %}disabled{% endif %}>
+                  {% if not is_observer and not is_read_only %}
+                  data-bs-toggle="modal" data-bs-target="#dynamicModal"
+                  data-trade-id="{{ trade.id }}" data-form-type="edit"
+                  {% else %}disabled{% endif %}>
                   Closed
                 </button>
               </td>
             </tr>
-            {% if not is_observer and not is_read_only %}
-              {% include 'trades/edit_modal.html' with trade=trade %}
-              {% include 'trades/sell_modal.html' with trade=trade %}
-            {% endif %}
             {% endfor %}
 
             {% if not trade_data.grouped_open_trades and not trade_data.closed_trades %}
@@ -310,6 +308,8 @@
 </div>
 {% endif %}
 {% include 'trades/price_history_modal.html' %}
+
+<div id="modal-container"></div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -429,5 +429,69 @@
       tbody.innerHTML = '';
       sortedRows.forEach(row => tbody.appendChild(row));
     }
+
+    const modalContainer = document.getElementById('modal-container');
+
+    // Função para buscar e exibir um modal
+    function fetchAndShowModal(tradeId, formType) {
+        const url = `/get-trade-form/${tradeId}/?form_type=${formType}`;
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                modalContainer.innerHTML = html;
+                const modalElement = modalContainer.querySelector('.modal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                    modalElement.addEventListener('hidden.bs.modal', function () {
+                        // dispose() para limpar os dados do modal do Bootstrap
+                        modal.dispose();
+                        modalContainer.innerHTML = '';
+                    });
+                }
+            })
+            .catch(err => console.error('Failed to load modal content:', err));
+    }
+
+    document.body.addEventListener('click', function(event) {
+        const button = event.target.closest('button');
+        if (!button) return;
+
+        let tradeId = button.dataset.tradeId;
+        let formType = button.dataset.formType;
+        let isModalSwitch = false;
+
+        if (button.classList.contains('js-open-edit-modal')) {
+            formType = 'edit';
+            isModalSwitch = true;
+        } else if (button.classList.contains('js-open-sell-modal')) {
+            formType = 'sell';
+            isModalSwitch = true;
+        }
+
+        // Se o botão tem os dados necessários para abrir um modal
+        if (tradeId && formType) {
+            const currentModalElement = button.closest('.modal');
+            
+            // Se o botão foi clicado DENTRO de um modal (troca de modais)
+            if (isModalSwitch && currentModalElement) {
+                const modalInstance = bootstrap.Modal.getInstance(currentModalElement);
+                
+                // Adiciona um listener para o evento de "escondido" que só executa UMA VEZ
+                currentModalElement.addEventListener('hidden.bs.modal', () => {
+                    fetchAndShowModal(tradeId, formType);
+                }, { once: true });
+
+                // Manda o modal atual fechar
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            } 
+            // Se o botão foi clicado na tabela principal
+            else if (!isModalSwitch) {
+                fetchAndShowModal(tradeId, formType);
+            }
+        }
+    });
   });
 </script>

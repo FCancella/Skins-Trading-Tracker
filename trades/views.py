@@ -153,8 +153,6 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     grouped_open_trades = []
     for trades_in_group in grouped_open_trades_map.values():
         first_trade = trades_in_group[0]
-        first_trade.edit_form = EditTradeForm(instance=first_trade)
-        # Adicionar o preço de mercado ao objeto de trade para uso no template
         first_trade.market_price = market_prices.get(first_trade.item_name)
         
         grouped_open_trades.append({
@@ -164,8 +162,6 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
 
     # Prepare forms for closed trades to be displayed
     closed_trades = list(closed_qs_display)
-    for t in closed_trades:
-        t.edit_form = EditTradeForm(instance=t)
 
     for i in investments:
         i.form = InvestmentForm(instance=i)
@@ -231,6 +227,24 @@ def _calculate_update_notifications(user: User) -> dict:
             })
 
     return {"notifications": notifications}
+
+@login_required
+def get_trade_form(request, trade_id):
+    """
+    Retorna o corpo do modal (edit ou sell) como HTML para um trade específico.
+    """
+    trade = get_object_or_404(Trade, pk=trade_id, owner=request.user)
+    form_type = request.GET.get('form_type', 'edit') # 'edit' ou 'sell'
+
+    if form_type == 'sell':
+        # Para o modal de venda, ainda passamos o edit_form, pois ele contém todos os campos necessários
+        trade.edit_form = EditTradeForm(instance=trade)
+        template_name = 'trades/sell_modal.html'
+    else:
+        trade.edit_form = EditTradeForm(instance=trade)
+        template_name = 'trades/edit_modal.html'
+        
+    return render(request, template_name, {'trade': trade})
 
 def home(request: HttpRequest) -> HttpResponse:
     """Exibe a homepage com a possibilidade de ser tanto usuário como espectador."""

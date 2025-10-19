@@ -1,5 +1,5 @@
 {% load form_extras %}
-<div class="modal fade" id="editModal-{{ trade.id }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="dynamicModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content modal-dark">
       <div class="modal-header">
@@ -55,7 +55,7 @@
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this trade? This action cannot be undone.')">Delete</button>
                 </form>
                 {% if trade.sell_price is None %}
-                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#sellModal-{{ trade.id }}">Sell</button>
+                <button type="button" class="btn btn-outline-secondary js-open-sell-modal" data-trade-id="{{ trade.id }}">Sell</button>
                 {% else %}
                 <form method="post" action="{% url 'index' %}">
                     {% csrf_token %}
