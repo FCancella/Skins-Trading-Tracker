@@ -140,6 +140,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
     
-    {% block extra_scripts %}{% endblock %}
+    {% block extra_scripts %}
+    <script>
+      // Usa delegação de eventos para funcionar em inputs carregados dinamicamente (modals)
+      document.body.addEventListener('input', function(e) {
+        // Verifica se o evento veio de um elemento com a classe 'price-input'
+        if (e.target.classList.contains('price-input')) {
+          let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+          if (value) {
+            // Converte para número, divide por 100 e formata com 2 casas decimais
+            value = (parseInt(value, 10) / 100).toFixed(2);
+          }
+          e.target.value = value;
+        }
+      });
+    </script>
+    {% endblock %}
   </body>
 </html>

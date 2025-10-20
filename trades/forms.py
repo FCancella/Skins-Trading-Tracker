@@ -70,8 +70,11 @@ class EditTradeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
+        for name, field in self.fields.items():
             field.widget.attrs.setdefault('class', 'form-control')
+            if name in ['buy_price', 'sell_price']:
+                field.widget.attrs['class'] += ' price-input'
+                field.widget.attrs['inputmode'] = 'numeric'
 
     def save(self, commit=True, owner=None):
         obj = super().save(commit=False)
@@ -106,8 +109,11 @@ class SellTradeForm(forms.ModelForm):
         # Prefill the sell_date with today if it doesn't exist
         if not self.instance.sell_date:
             self.initial.setdefault('sell_date', timezone.now())
-        for field in self.fields.values():
+        for name, field in self.fields.items():
             field.widget.attrs.setdefault('class', 'form-control')
+            if name == 'sell_price':
+                field.widget.attrs['class'] += ' price-input'
+                field.widget.attrs['inputmode'] = 'numeric'
 
 class InvestmentForm(forms.ModelForm):
     """Form for creating a new investment."""
@@ -121,8 +127,11 @@ class InvestmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
+        for name, field in self.fields.items():
             field.widget.attrs.setdefault('class', 'form-control')
+            if name == 'amount':
+                field.widget.attrs['class'] += ' price-input'
+                field.widget.attrs['inputmode'] = 'numeric'
 
     def save(self, commit=True, owner=None):
         obj = super().save(commit=False)
@@ -154,3 +163,6 @@ class AddTradeForm(forms.Form):
             if name == 'buy_price_currency': continue
             css_class = 'form-select' if isinstance(field, forms.ChoiceField) else 'form-control'
             field.widget.attrs.setdefault('class', css_class)
+            if name == 'buy_price':
+                field.widget.attrs['class'] += ' price-input'
+                field.widget.attrs['inputmode'] = 'numeric'
