@@ -147,7 +147,7 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
     # Group open trades
     grouped_open_trades_map = defaultdict(list)
     for trade in open_qs:
-        key = (trade.item_name, trade.buy_price, trade.buy_source, trade.buy_date)
+        key = (trade.item_name, trade.buy_price, trade.buy_source, trade.buy_date.date())
         grouped_open_trades_map[key].append(trade)
 
     grouped_open_trades = []
