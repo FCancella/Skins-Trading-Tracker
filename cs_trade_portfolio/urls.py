@@ -40,6 +40,8 @@ urlpatterns = [
     path("scanner/api/update-buff-prices/", scanner_views.update_buff_prices, name="scanner_api_update_buff_prices"),
     path("scanner/api/calculate-differences/", scanner_views.calculate_differences, name="scanner_api_calculate_differences"),
     path("scanner/api/items-to-price/", scanner_views.get_items_to_price, name="scanner_api_get_items_to_price"),
+    path("scanner/api/get-item-batch/", scanner_views.get_items_for_pricing, name="scanner_api_get_item_batch"),
+    path("scanner/api/submit-item-batch/", scanner_views.submit_item_prices, name="scanner_api_submit_item_batch"),
 
     # Payment URLs
     path("subscription/", subscription_views.subscription_details, name="subscription_details"),

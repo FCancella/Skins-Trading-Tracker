@@ -1,5 +1,5 @@
 import json
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -8,8 +8,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.conf import settings
-from .models import ScannedItem, BlackList, SchedulerLogs
-from trades.models import Trade
+from django.db import transaction
+from .models import ScannedItem, BlackList, SchedulerLogs, Item
+from trades.utils import _get_exchange_rate
+from scanner.services.utils import load_id_dict, clear_item_name
 from django.core.paginator import Paginator
 
 # Decorator para autenticação da API
@@ -215,6 +217,128 @@ def scanner_view(request):
         'next_run_in': next_run_in,
     }
     return render(request, 'scanner/scanner_list.html', context)
+
+@api_key_required
+@require_http_methods(["GET"])
+@transaction.atomic
+def get_items_for_pricing(request):
+    """
+    Endpoint da API para trabalhadores (workers) obterem um lote de itens para precificar.
+
+    Busca 20 itens que ainda não têm preço, encontra seus IDs do Buff,
+    e os retorna junto com a taxa de câmbio.
+    """
+    try:
+        # 1. Carrega dependências (taxa de câmbio e dicionário de IDs)
+        cny_brl_rate = _get_exchange_rate("CNY")
+        if not cny_brl_rate:
+            return JsonResponse({"error": "Não foi possível obter a taxa de câmbio CNY/BRL."}, status=500)
+        
+        try:
+            id_dict = load_id_dict()
+        except Exception as e:
+            return JsonResponse({"error": f"Não foi possível carregar o dicionário de IDs: {e}"}, status=500)
+
+        # 2. Busca 50 itens que nunca foram precificados (ou com falha, price=0)
+        #    Bloqueia-os para esta transação.
+        items_to_process = Item.objects.filter(
+            price__isnull=True
+        ).select_for_update(skip_locked=True)[:50]
+
+        if not items_to_process:
+            return JsonResponse({"items_to_price": [], "cny_brl_rate": cny_brl_rate})
+
+        # 3. Prepara a lista de trabalho, encontrando o ID do Buff para cada item
+        work_batch = []
+        item_ids_to_lock = []
+        
+        for item in items_to_process:
+            cleared_name = clear_item_name(item.market_hash_name)
+            buff_item_id = id_dict.get(cleared_name)
+            
+            if buff_item_id:
+                work_batch.append({
+                    "id": item.id,
+                    "buff_item_id": buff_item_id
+                })
+                item_ids_to_lock.append(item.id)
+            else:
+                # Se não encontrar o ID, marca como "precificado" com 0 para não buscar de novo
+                item.price = Decimal("0.00")
+                item.offers = 0
+                item.price_time = timezone.now()
+                item.save() # Salva individualmente (raro)
+
+        # 4. "Bloqueia" os itens que foram enviados para o worker
+        if item_ids_to_lock:
+            Item.objects.filter(id__in=item_ids_to_lock).update(price_time=timezone.now())
+
+        # 5. Retorna a lista de trabalho e a taxa de câmbio
+        return JsonResponse({
+            "items_to_price": work_batch,
+            "cny_brl_rate": cny_brl_rate
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@api_key_required
+@require_POST
+def submit_item_prices(request):
+    """
+    Endpoint da API para trabalhadores (workers) enviarem os preços encontrados.
+    Espera um JSON no formato:
+    {
+        "prices": [
+            {"id": "skin-123", "price_cny": 10.50, "offers": 120},
+            {"id": "skin-456", "price_cny": 120.00, "offers": 50}
+        ],
+        "cny_brl_rate": "1.45" 
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        prices_data = data.get("prices")
+        cny_brl_rate_str = data.get("cny_brl_rate")
+
+        if not isinstance(prices_data, list) or not cny_brl_rate_str:
+            return JsonResponse({"error": "Formato de payload inválido."}, status=400)
+        
+        rate = Decimal(cny_brl_rate_str)
+        items_to_update = []
+        now = timezone.now()
+
+        for item_info in prices_data:
+            item_id = item_info.get("id")
+            price_cny = item_info.get("price_cny")
+            offers = item_info.get("offers")
+            
+            if item_id and price_cny is not None and offers is not None:
+                try:
+                    # Converte o preço para BRL aqui no servidor
+                    price_brl = (Decimal(price_cny) * rate).quantize(Decimal("0.01"))
+                    
+                    item = Item(
+                        id=item_id, 
+                        price=price_brl, 
+                        offers=int(offers),
+                        price_time=now
+                    )
+                    items_to_update.append(item)
+                except (ValueError, TypeError, InvalidOperation):
+                    continue # Pula dados inválidos
+
+        # 2. Atualiza todos os itens de uma só vez
+        if items_to_update:
+            Item.objects.bulk_update(items_to_update, ['price', 'offers', 'price_time'])
+
+        return JsonResponse({"status": "success", "updated_items": len(items_to_update)}, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 @login_required
 def scheduler_logs_view(request):
