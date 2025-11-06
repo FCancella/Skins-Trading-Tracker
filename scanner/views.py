@@ -242,7 +242,7 @@ def get_items_for_pricing(request):
             return JsonResponse({"error": f"Não foi possível carregar o dicionário de IDs: {e}"}, status=500)
 
         # Define um timeout para itens que provavelmente "ficaram presos"/falharam
-        timeout_period = timezone.now() - timedelta(hours=60)
+        timeout_period = timezone.now() - timedelta(minutes=30)
 
         # 2. Busca 50 itens que:
         #    - Ainda não têm preço (price__isnull=True)
