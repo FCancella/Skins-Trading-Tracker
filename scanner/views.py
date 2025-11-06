@@ -9,10 +9,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from .models import ScannedItem, BlackList, SchedulerLogs, Item
 from trades.utils import _get_exchange_rate
 from scanner.services.utils import load_id_dict, clear_item_name
 from django.core.paginator import Paginator
+from trades.models import Trade
 
 # Decorator para autenticação da API
 def api_key_required(view_func):
@@ -225,8 +227,8 @@ def get_items_for_pricing(request):
     """
     Endpoint da API para trabalhadores (workers) obterem um lote de itens para precificar.
 
-    Busca 20 itens que ainda não têm preço, encontra seus IDs do Buff,
-    e os retorna junto com a taxa de câmbio.
+    Busca 50 itens que (1) não têm preço (price=null) E (2) não estão "bloqueados" (price_time=null)
+    OU (3) o bloqueio expirou (ex: worker falhou).
     """
     try:
         # 1. Carrega dependências (taxa de câmbio e dicionário de IDs)
@@ -239,10 +241,17 @@ def get_items_for_pricing(request):
         except Exception as e:
             return JsonResponse({"error": f"Não foi possível carregar o dicionário de IDs: {e}"}, status=500)
 
-        # 2. Busca 50 itens que nunca foram precificados (ou com falha, price=0)
-        #    Bloqueia-os para esta transação.
+        # Define um timeout para itens que provavelmente "ficaram presos"/falharam
+        timeout_period = timezone.now() - timedelta(minutes=30)
+
+        # 2. Busca 50 itens que:
+        #    - Ainda não têm preço (price__isnull=True)
+        #    - E (OU estão "novos" (price_time__isnull=True)
+        #    - OU o "bloqueio" expirou (price_time__lte=timeout_period))
         items_to_process = Item.objects.filter(
             price__isnull=True
+        ).filter(
+            Q(price_time__isnull=True) | Q(price_time__lte=timeout_period)
         ).select_for_update(skip_locked=True)[:50]
 
         if not items_to_process:

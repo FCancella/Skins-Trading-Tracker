@@ -57,10 +57,10 @@ def call_buff_api(buff_item_id: int):
             data = response.json()
 
             items_list = data.get("data", {}).get("items", [])
-            offers_count = data.get("data", {}).get("total_count", 0)
+            offers_count = data.get("data", {}).get("total_count", None)
 
-            if items_list:
-                price_cny = items_list[0].get("price")
+            if offers_count != None:
+                price_cny = items_list[0].get("price") if items_list else 0.0
                 return {"price_cny": float(price_cny), "offers": int(offers_count)}
 
         except Exception as e:
