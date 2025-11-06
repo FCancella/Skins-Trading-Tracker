@@ -24,9 +24,9 @@ class SchedulerLogsAdmin(admin.ModelAdmin):
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     """Admin view for Items."""
-    list_display = ('name', 'price', 'offers', 'price_time', 'rarity', 'category', 'special')
+    list_display = ('name', 'price', 'offers', 'price_time', 'real_rarity', 'category', 'special')
     search_fields = ('name', 'market_hash_name')
-    list_filter = ('category', 'rarity', 'special', 'price_time')
+    list_filter = ('category', 'real_rarity', 'special', 'price_time')
     # Deixa os campos M2M como apenas leitura no admin para evitar erros
     readonly_fields = ('collections', 'crates') 
 
