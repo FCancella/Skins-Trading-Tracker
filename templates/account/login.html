@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n account socialaccount %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card card-dark">
+      <div class="card-body">
+        <h2 class="card-title text-center">Login</h2>
+        
+        <form class="login" method="POST" action="{% url 'account_login' %}">
+          {% csrf_token %}
+          
+          {{ form.as_p }}
+          
+          {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+          {% endif %}
+          
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary" type="submit">Entrar</button>
+          </div>
+        </form>
+        
+        <hr class="my-4">
+        
+        <h5 class="text-center text-muted-2">Ou entre com:</h5>
+        
+        <div class="d-grid gap-2">
+            {% providers_media_js %}
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-light">
+                <i class="bi bi-google"></i> Google
+            </a>
+            </div>
+        
+        <p class="mt-4 text-center small text-muted-2">
+          Não tem uma conta? <a href="{% url 'account_signup' %}">Cadastre-se</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

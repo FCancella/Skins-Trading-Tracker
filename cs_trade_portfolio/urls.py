@@ -16,7 +16,8 @@ def global_settings_context(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),
+    # path("accounts/", include("django.contrib.auth.urls")),
+    path('accounts/', include('allauth.urls')),
     # Já está incluido em "django.contrib.auth.urls"
     # path("accounts/password_change/", PasswordChangeView.as_view(template_name='registration/passwordChangeForm.html),
 
