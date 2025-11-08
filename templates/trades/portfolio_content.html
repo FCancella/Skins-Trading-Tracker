@@ -1,5 +1,6 @@
 {% load currency %}
 {% load form_extras %}
+{% load i18n %}
 
 {% if notifications %}
 <div class="notification-box mb-4">
@@ -129,7 +130,7 @@
 <div class="row g-3 mt-1">
   <div class="col-12">
     <div class="card">
-      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="true" aria-controls="collapseSummary">Summary</div>
+      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="true" aria-controls="collapseSummary">{% trans "Resumo" %}</div>
       <div class="collapse show" id="collapseSummary">
         <div class="card-body">
           <div class="row text-center">
@@ -137,27 +138,27 @@
               <div class="lbl">Total</div>
               {% comment %} <div class="lbl">NAV</div> {% endcomment %}
               <div class="val">{{ summary.nav|currency_brl }}</div>
-              <small class="text-muted-2">Caixa: {{ summary.cash|currency_brl }}</small>
+              <small class="text-muted-2">{% trans "Saldo:" %} {{ summary.cash|currency_brl }}</small>
               {% comment %} <small class="text-muted-2">Cash: {{ summary.cash|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
-              <div class="lbl">Inventário</div>
+              <div class="lbl">{% trans "Inventário" %}</div>
               {% comment %} <div class="lbl">MTM</div> {% endcomment %}
               <div class="val">{{ summary.mtm_value|currency_brl }}</div>
-              <small class="text-muted-2">Custo: {{ summary.cost_basis|currency_brl }}</small>
+              <small class="text-muted-2">{% trans "Custo:" %} {{ summary.cost_basis|currency_brl }}</small>
               {% comment %} <small class="text-muted-2">Cost: {{ summary.cost_basis|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">ROI</div>
               <div class="val">{{ summary.roi_percent|pct }}</div>
-              <small class="text-muted-2">Investido: {{ summary.invested|currency_brl }}</small>
+              <small class="text-muted-2">{% trans "Investido:" %} {{ summary.invested|currency_brl }}</small>
               {% comment %} <small class="text-muted-2">IC: {{ summary.invested|currency_brl }}</small> {% endcomment %}
             </div>
             <div class="col-6 col-md-3 kpi">
               <div class="lbl">Profit</div>
               {% comment %} <div class="lbl">PnL</div> {% endcomment %}
               <div class="val">{{ summary.realized_pnl_value|currency_brl }}</div>
-              <small class="text-muted-2">% médio: {{ summary.average_pnl_percent|pct }}</small>
+              <small class="text-muted-2">{% trans "Pct médio:" %} {{ summary.average_pnl_percent|pct }}</small>
               {% comment %} <small class="text-muted-2">Average PnL: {{ summary.average_pnl_percent|pct }}</small> {% endcomment %}
             </div>
           </div>
@@ -173,7 +174,7 @@
         <div class="card-body">
           <canvas id="pnlChart" style="height:200px; max-height:300px;"></canvas>
           <div id="pnlChartEmpty" style="display: none; text-align: center; padding: 20px;">
-            <p class="text-muted-2">Não há dados de performance para exibir.</p>
+            <p class="text-muted-2">{% trans "Não há dados de performance para exibir." %}</p>
           </div>
         </div>
       </div>
@@ -194,13 +195,13 @@
           <thead>
             <tr>
               <th class="sortable" data-sort-type="text">Item</th>
-              <th class="sortable" data-sort-type="currency">Buy Price</th>
-              <th class="sortable" data-sort-type="currency">Sell Price</th>
-              <th class="sortable" data-sort-type="text">Buy Source</th>
-              <th class="sortable" data-sort-type="text">Sell Source</th>
-              <th class="sortable" data-sort-type="date">Buy Date</th>
-              <th class="sortable" data-sort-type="date">Sell Date</th>
-              <th class="sortable" data-sort-type="currency">Profit</th>
+              <th class="sortable" data-sort-type="currency">{% trans "Compra" %}</th>
+              <th class="sortable" data-sort-type="currency">{% trans "Venda" %}</th>
+              <th class="sortable" data-sort-type="text">{% trans "Loja (C)" %}</th>
+              <th class="sortable" data-sort-type="text">{% trans "Loja (V)" %}</th>
+              <th class="sortable" data-sort-type="date">{% trans "Data (C)" %}</th>
+              <th class="sortable" data-sort-type="date">{% trans "Data (V)" %}</th>
+              <th class="sortable" data-sort-type="currency">{% trans "Lucro" %}</th>
               {% comment %} <th class="sortable" data-sort-type="currency">PnL</th> {% endcomment %}
               <th>Status</th>
             </tr>
@@ -285,7 +286,7 @@
             {% if not show_history and more_trades %}
             <tr>
               <td colspan="9" class="text-center py-2">
-                <a href="?{% if is_observer and selected_user %}user_id={{ selected_user.id }}&{% endif %}history=true" class="badge status-closed badge-button" style="text-decoration:none">Load all trades</a>
+                <a href="?{% if is_observer and selected_user %}user_id={{ selected_user.id }}&{% endif %}history=true" class="badge status-closed badge-button" style="text-decoration:none">{% trans "Mostrar todos os trades" %}</a>
               </td>
             </tr>
             {% endif %}
@@ -302,7 +303,7 @@
 </div>
 
 <div class="card mt-3">
-    <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseCashSource" aria-expanded="true" aria-controls="collapseCashSource">Cash per Source</div>
+    <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseCashSource" aria-expanded="true" aria-controls="collapseCashSource">{% trans "Saldo por Loja" %}</div>
     <div class="collapse show" id="collapseCashSource">
         <div class="card-body">
             <canvas id="cashSourceChart" style="height:200px; max-height:300px;"></canvas>
@@ -359,7 +360,7 @@
                       }
                       const profitValue = profitValues[context.dataIndex];
                       if (profitValue !== undefined && profitValue !== null) {
-                          label += ` (Daily return: ${formatCurrencyBRL(profitValue)})`;
+                          label += ` ({% trans "Retorno diário" %}: ${formatCurrencyBRL(profitValue)})`;
                       }
                       return label;
                   }

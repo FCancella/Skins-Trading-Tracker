@@ -1,9 +1,9 @@
-{% load form_extras %}
+{% load form_extras i18n %}
 <div class="modal fade" id="dynamicModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content modal-dark">
       <div class="modal-header">
-        <h5 class="modal-title">Sell: {{ trade.item_name }}</h5>
+        <h5 class="modal-title">{% trans "Vender:" %} {{ trade.item_name }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
         <form id="sellForm-{{ trade.id }}" method="post" action="{% url 'index' %}">
@@ -11,7 +11,7 @@
           <input type="hidden" name="action" value="sell">
           <input type="hidden" name="trade_id" value="{{ trade.id }}">
           <div class="modal-body">
-            <div class="mb-3"><label class="form-label">Sell Price</label>
+            <div class="mb-3"><label class="form-label">{% trans "Preço de Venda" %}</label>
               <div class="d-flex align-items-center">
                 {{ trade.edit_form.sell_price|add_class:"form-control"}}
                 <div class="btn-group ms-2" role="group">
@@ -22,8 +22,8 @@
               </div>
             </div>
             <div class="row mb-3">
-              <div class="col-6"><label class="form-label">Sell Source</label>{{ trade.edit_form.sell_source|add_class:"form-select"}}</div>
-              <div class="col-6"><label class="form-label">Sell Date</label>{{ trade.edit_form.sell_date|add_class:"form-control"}}</div>
+              <div class="col-6"><label class="form-label">{% trans "Loja (Venda)" %}</label>{{ trade.edit_form.sell_source|add_class:"form-select"}}</div>
+              <div class="col-6"><label class="form-label">{% trans "Data de Venda" %}</label>{{ trade.edit_form.sell_date|add_class:"form-control"}}</div>
             </div>
           </div>
         </form>
@@ -33,9 +33,9 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="trade_id" value="{{ trade.id }}">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Você tem certeza que deseja excluir este trade? Esta ação não pode ser desfeita.')">Delete</button>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Você tem certeza que deseja excluir este trade? Esta ação não pode ser desfeita.')">{% trans "Deletar" %}</button>
                 </form>
-                <button type="button" class="btn btn-outline-secondary js-open-edit-modal" data-trade-id="{{ trade.id }}">Update</button>
+                <button type="button" class="btn btn-outline-secondary js-open-edit-modal" data-trade-id="{{ trade.id }}">{% trans "Atualizar" %}</button>
                 {% if trade.sell_price is not None %}
                 <form method="post" action="{% url 'index' %}">
                     {% csrf_token %}
@@ -46,7 +46,7 @@
                 {% endif %}
                 
             </div>
-            <button type="submit" class="btn btn-primary" form="sellForm-{{ trade.id }}">Save</button>
+            <button type="submit" class="btn btn-primary" form="sellForm-{{ trade.id }}">{{ trans "Salvar" }}</button>
         </div>
     </div>
   </div>

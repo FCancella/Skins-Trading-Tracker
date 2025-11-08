@@ -80,6 +80,7 @@ MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -179,7 +180,18 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 SOCIALACCOUNT_ADAPTER = 'trades.adapters.CustomSocialAccountAdapter'
 
-LANGUAGE_CODE: str = 'en-us'
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+# Idioma padrão do site (source)
+LANGUAGE_CODE = 'pt-br'
+
+# Idiomas disponíveis
+LANGUAGES = [
+    ('pt-br', 'Português'),
+    ('en', 'English'),
+]
 
 TIME_ZONE: str = 'America/Sao_Paulo'
 

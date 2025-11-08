@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="pt-br" data-bs-theme="dark">
   <head>
@@ -49,37 +50,56 @@
               <a class="nav-link-custom {% if request.resolver_match.url_name == 'observer' %}active{% endif %}" href="{% url 'observer' %}">Observer</a>
           </div>
 
-          <div class="navbar-nav ms-lg-auto">
-            {% if user.is_authenticated %}
-              <div class="dropdown">
-                <a href="#" class="nav-link dropdown-toggle text-white" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  👤 {{ user.username }}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-                  {% if PAYMENT_ENABLED %}
-                  <li><a class="dropdown-item" href="{% url 'subscription_details' %}">Assinatura</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  {% endif %}
-                  <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">Settings</a></li>
-                  {% if user.is_superuser %}
-                  <li><a class="dropdown-item" href="{% url 'scheduler_logs' %}">Logs</a></li>
-                  {% endif %}
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <form action="{% url 'account_logout' %}" method="post" class="d-inline">
-                      {% csrf_token %}
-                      <button type="submit" class="dropdown-item">Logout</button>
-                    </form>
-                  </li>
-                </ul>
-              </div>
-            {% else %}
-              <div class="d-flex align-items-center" id="auth-buttons">
-                <a class="btn btn-outline-light btn-sm me-2" href="{% url 'account_login' %}">Login</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}">Sign up</a>
-              </div>
-            {% endif %}
-          </div>
+          <ul class="navbar-nav ms-lg-auto mb-2 mb-lg-0 align-items-center">
+            
+            <li class="nav-item">
+              {% if user.is_authenticated %}
+                <div class="dropdown">
+                  <a href="#" class="nav-link dropdown-toggle text-white" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    👤 {{ user.username }}
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                    {% if PAYMENT_ENABLED %}
+                    <li><a class="dropdown-item" href="{% url 'subscription_details' %}">{% trans "Assinatura" %}</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% endif %}
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileSettingsModal">{% trans "Configurações" %}</a></li>
+                    {% if user.is_superuser %}
+                    <li><a class="dropdown-item" href="{% url 'scheduler_logs' %}">Logs</a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form action="{% url 'account_logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item">{% trans "Sair" %}</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              {% else %}
+                <div class="d-flex align-items-center" id="auth-buttons">
+                  <a class="btn btn-outline-light btn-sm me-2" href="{% url 'account_login' %}">Login</a>
+                  <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}">Sign up</a>
+                </div>
+              {% endif %}
+            </li>
+            
+            <li class="nav-item ms-lg-2">
+                {% get_current_language as CURRENT_LANGUAGE_CODE %}
+                <form action="{% url 'set_language' %}" method="post" class="d-flex align-items-center" style="gap: 0.25rem;">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.get_full_path|default:'/' }}">
+                    
+                    {% if CURRENT_LANGUAGE_CODE == 'en' %}
+                        <button type="submit" name="language" value="pt-br" class="btn btn-link nav-link p-1" style="text-decoration: none;">PT-BR</button>
+                        <span class="nav-link p-1 fw-bold">EN</span>
+                    {% else %}
+                        <span class="nav-link p-1 fw-bold">PT-BR</span>
+                        <button type="submit" name="language" value="en" class="btn btn-link nav-link p-1" style="text-decoration: none;">EN</button>
+                    {% endif %}
+                </form>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
@@ -91,7 +111,7 @@
       <p class="small text-muted-2">
         CS2 Skins Trading Tracker &copy; {% now "Y" %}
         <span class="mx-2">|</span>
-        <a href="#" data-bs-toggle="modal" data-bs-target="#supportModal" class="text-muted-2">Contact us</a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#supportModal" class="text-muted-2">{% trans "Fale Conosco" %}</a>
       </p>
     </footer>
 
@@ -102,7 +122,7 @@
           <form action="{% url 'toggle_profile_public' %}" method="post">
             {% csrf_token %}
             <div class="modal-header">
-              <h5 class="modal-title" id="profileSettingsModalLabel">Profile Settings</h5>
+              <h5 class="modal-title" id="profileSettingsModalLabel">{% trans "Configurações do Perfil" %}</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -111,12 +131,12 @@
                        id="isPublicCheck" name="is_public" 
                        {% if user.profile.is_public %}checked{% endif %} 
                        onchange="this.form.submit()">
-                <label class="form-check-label" for="isPublicCheck">Tornar perfil visível no Observer</label>
+                <label class="form-check-label" for="isPublicCheck">{% trans "Tornar perfil visível no Observer" %}</label>
               </div>
               <hr>
               <div class="d-grid gap-2">
-                <a href="{% url 'export_portfolio' %}" class="btn btn-outline-light">Export Portfolio</a>
-                <a href="{% url 'change_username' %}" class="btn btn-outline-light">Change Username</a>
+                <a href="{% url 'export_portfolio' %}" class="btn btn-outline-light">{% trans "Exportar Portfólio" %}</a>
+                <a href="{% url 'change_username' %}" class="btn btn-outline-light">{% trans "Alterar Nome de Usuário" %}</a>
               </div>
             </div>
           </form>
@@ -129,11 +149,11 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content modal-dark">
           <div class="modal-header">
-            <h5 class="modal-title" id="supportModalLabel">Contact us</h5>
+            <h5 class="modal-title" id="supportModalLabel">{% trans "Fale Conosco" %}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body text-center">
-            <p class="text-muted-2">For questions, suggestions, or issues, please email us at:</p>
+            <p class="text-muted-2">{% trans "Para perguntas, sugestões ou problemas, entre em contato conosco pelo e-mail:" %}</p>
             <p class="h5" style="user-select: all; cursor: pointer;">contact@cstrack.online</p>
           </div>
         </div>

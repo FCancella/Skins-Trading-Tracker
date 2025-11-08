@@ -8,25 +8,25 @@
     <div class="card card-dark" style="background-color: #1a1a2e; border: 1px solid #4a4a7f; border-radius: 10px;">
       <div class="card-body p-4 p-md-5">
 
-        <h2 class="card-title text-center mb-4">Acessar Plataforma</h2>
+        <h2 class="card-title text-center mb-4">{% trans "Acessar Plataforma" %}</h2>
         {% providers_media_js %}
         <div class="d-grid gap-2 mb-4">
           <a href="{% provider_login_url 'google' %}" class="btn btn-outline-light btn-lg w-100">
-            <i class="bi bi-google me-2"></i> Entrar com Google
+            <i class="bi bi-google me-2"></i> {% trans "Entrar com Google" %}
           </a>
         </div>
 
-        <div class="text-center text-muted-2 small mb-3">OU CADASTRAR COM E-MAIL</div>
+        <div class="text-center text-muted-2 small mb-3">{% trans "OU CADASTRAR COM E-MAIL" %}</div>
 
         <ul class="nav nav-tabs nav-fill mb-4" id="authTabs" role="tablist">
           <li class="nav-item" role="presentation">
             <a href="{% url 'account_login' %}" class="nav-link" id="login-tab-link">
-              Entrar com E-mail
+              {% trans "Entrar com E-mail" %}
             </a>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link active" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane" type="button" role="tab" aria-controls="signup-pane" aria-selected="true">
-              Criar com E-mail
+              {% trans "Criar com E-mail" %}
             </button>
           </li>
         </ul>
@@ -50,7 +50,7 @@
               </div>
 
               <div class="mb-3">
-                  <label for="{{ form.password1.id_for_label }}" class="form-label">Senha</label>
+                  <label for="{{ form.password1.id_for_label }}" class="form-label">{% trans "Senha" %}</label>
                   {{ form.password1|add_class:"form-control" }}
                   {% if form.password1.errors %}
                   <div class="invalid-feedback d-block">{{ form.password1.errors|striptags }}</div>
@@ -58,7 +58,7 @@
               </div>
 
               <div class="mb-3">
-                  <label for="{{ form.password2.id_for_label }}" class="form-label">Confirmar Senha</label>
+                  <label for="{{ form.password2.id_for_label }}" class="form-label">{% trans "Confirmar Senha" %}</label>
                   {{ form.password2|add_class:"form-control" }}
                   {% if form.password2.errors %}
                   <div class="invalid-feedback d-block">{{ form.password2.errors|striptags }}</div>
@@ -66,7 +66,7 @@
               </div>
 
               <div class="d-grid gap-2">
-                <button class="btn btn-primary btn-lg" type="submit">Cadastrar</button>
+                <button class="btn btn-primary btn-lg" type="submit">{% trans "Cadastrar" %}</button>
               </div>
             </form>
 

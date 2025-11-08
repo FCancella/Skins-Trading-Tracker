@@ -21,6 +21,8 @@ urlpatterns = [
     # Já está incluido em "django.contrib.auth.urls"
     # path("accounts/password_change/", PasswordChangeView.as_view(template_name='registration/passwordChangeForm.html),
 
+    path('i18n/', include('django.conf.urls.i18n')),
+
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
     path("about/", trade_views.about, name="about"), 

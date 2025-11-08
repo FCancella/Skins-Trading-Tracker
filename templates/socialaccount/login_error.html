@@ -12,10 +12,10 @@
         
         <p class="text-danger">{% trans "An error occurred while attempting to login via your social network account." %}</p>
         
-        <p class="text-muted-2 mt-4">Você pode tentar novamente ou retornar à página de login.</p>
+        <p class="text-muted-2 mt-4">{% trans "Você pode tentar novamente ou retornar à página de login." %}</p>
 
         <div class="d-grid gap-2 mt-4">
-            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">Voltar ao Login</a>
+            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">{% trans "Voltar ao Login" %}</a>
         </div>
 
       </div>
