@@ -172,6 +172,9 @@
       <div class="collapse" id="collapseChart">
         <div class="card-body">
           <canvas id="pnlChart" style="height:200px; max-height:300px;"></canvas>
+          <div id="pnlChartEmpty" style="display: none; text-align: center; padding: 20px;">
+            <p class="text-muted-2">Não há dados de performance para exibir.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -317,10 +320,16 @@
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     const pnlData = {{ pnl_data|safe }};
+    const pnlChartCanvas = document.getElementById('pnlChart');
+    const pnlChartEmpty = document.getElementById('pnlChartEmpty');
+
     if (pnlData && pnlData.length > 0) {
+      pnlChartCanvas.style.display = '';
+      pnlChartEmpty.style.display = 'none';
+
       const labels = pnlData.map(item => item.date);
       const values = pnlData.map(item => item.profit_percent);
-      const ctx = document.getElementById('pnlChart').getContext('2d');
+      const ctx = pnlChartCanvas.getContext('2d');
       const profitValues = pnlData.map(item => item.profit_value);
       const formatCurrencyBRL = (value) => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -368,6 +377,9 @@
           }
         }
       });
+    } else {
+      pnlChartCanvas.style.display = 'none';
+      pnlChartEmpty.style.display = 'block';
     }
 
     const cashSourceData = {{ cash_per_source_data|safe }};
