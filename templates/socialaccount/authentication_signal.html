@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card card-dark" style="background-color: #1a1a2e; border: 1px solid #4a4a7f; border-radius: 10px;">
+      <div class="card-body p-4 p-md-5 text-center">
+        <h2 class="card-title text-center mb-4">{% trans "Social Network Login" %}</h2>
+        
+        <p class_="text-muted-2">{% blocktrans with provider.name as provider %}Redirecionando para {{ provider }}...{% endblocktrans %}</p>
+
+        <div class="spinner-border text-light mt-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

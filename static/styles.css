@@ -601,3 +601,27 @@ z-index: 2;
     color: #fff;
   }
 }
+
+/* Aumenta o tamanho do switch e do texto */
+.form-switch-lg {
+  font-size: 1.15rem; /* Aumenta o texto da label */
+  padding-left: 3.5rem; /* Dá espaço para o switch maior */
+  min-height: 2rem; /* Garante altura para o switch */
+  display: flex; /* Alinha o switch e o texto */
+  align-items: center;
+}
+
+/* Aumenta o tamanho do switch (o "botão" em si) */
+.form-switch-lg .form-check-input {
+  width: 3rem;  /* Largura do switch */
+  height: 1.5rem; /* Altura do switch */
+  margin-left: -3.5rem; /* Puxa para a posição correta */
+  cursor: pointer;
+}
+
+/* Ajusta o texto da label para ficar bem alinhado */
+.form-switch-lg .form-check-label {
+  padding-top: 0.1rem; /* Ajuste fino vertical */
+  cursor: pointer;
+  margin-left: 0.5rem;
+}

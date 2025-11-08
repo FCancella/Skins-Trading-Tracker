@@ -16,16 +16,19 @@ def global_settings_context(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),
+    # path("accounts/", include("django.contrib.auth.urls")),
+    path('accounts/', include('allauth.urls')),
     # Já está incluido em "django.contrib.auth.urls"
     # path("accounts/password_change/", PasswordChangeView.as_view(template_name='registration/passwordChangeForm.html),
+
+    path('i18n/', include('django.conf.urls.i18n')),
 
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
     path("about/", trade_views.about, name="about"), 
     path("observer/", trade_views.observer, name="observer"),
-    path("signup/", trade_views.signup, name="signup"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
+    path("profile/change-username/", trade_views.change_username, name="change_username"), # <-- ADICIONE ESTA LINHA
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
     path("price-history/<int:trade_id>/", trade_views.price_history, name="price_history"),
     path("get-trade-form/<int:trade_id>/", trade_views.get_trade_form, name="get_trade_form"),

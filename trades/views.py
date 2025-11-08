@@ -15,6 +15,7 @@ from collections import defaultdict
 from datetime import timedelta, datetime
 
 from django.core.cache import cache
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -29,7 +30,7 @@ from django.utils.timezone import make_aware
 from django.conf import settings
 
 from .utils import _get_exchange_rate
-from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
+from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm, UsernameChangeForm
 from .models import Trade, Investment, SOURCE_CHOICES
 from scanner.models import ScannedItem
 from subscriptions.models import Subscription
@@ -512,6 +513,19 @@ def signup(request: HttpRequest) -> HttpResponse:
         # E aqui também
         form = CustomUserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
+
+@login_required
+def change_username(request):
+    if request.method == 'POST':
+        form = UsernameChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nome de usuário atualizado com sucesso!')
+            return redirect('index') # Redireciona para o portfólio
+    else:
+        form = UsernameChangeForm(instance=request.user)
+    
+    return render(request, 'account/username_change.html', {'form': form})
 
 @login_required
 def export_portfolio(request: HttpRequest) -> HttpResponse:

@@ -166,3 +166,22 @@ class AddTradeForm(forms.Form):
             if name == 'buy_price':
                 field.widget.attrs['class'] += ' price-input'
                 field.widget.attrs['inputmode'] = 'numeric'
+
+class UsernameChangeForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username']
+        help_texts = {
+            'username': 'Obrigatório. 150 caracteres ou menos. Letras, dígitos e @/./+/-/_ apenas.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        # Verifica se outro usuário (excluindo o usuário atual) já tem esse nome
+        if User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Este nome de usuário já está em uso.")
+        return username
