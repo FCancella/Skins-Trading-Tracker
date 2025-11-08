@@ -194,7 +194,7 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
         df['profit_percent'] = (df['quota'] - 1) * 100
         
         # 3.5. Format for output
-        df_output = df[['profit_percent']].round(2).reset_index().rename(columns={'index': 'date'})
+        df_output = df[['profit_percent', 'pnl']].round(2).reset_index().rename(columns={'index': 'date', 'pnl': 'profit_value'})
         df_output['date'] = df_output['date'].dt.strftime('%Y-%m-%d')
         
         quota_data = df_output.to_dict('records')

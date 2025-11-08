@@ -321,6 +321,10 @@
       const labels = pnlData.map(item => item.date);
       const values = pnlData.map(item => item.profit_percent);
       const ctx = document.getElementById('pnlChart').getContext('2d');
+      const profitValues = pnlData.map(item => item.profit_value);
+      const formatCurrencyBRL = (value) => {
+        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      };
       new Chart(ctx, {
         type: 'line',
         data: { labels: labels, datasets: [{
@@ -343,6 +347,10 @@
                       }
                       if (context.parsed.y !== null) {
                           label += context.parsed.y.toFixed(2) + '%';
+                      }
+                      const profitValue = profitValues[context.dataIndex];
+                      if (profitValue !== undefined && profitValue !== null) {
+                          label += ` (Daily return: ${formatCurrencyBRL(profitValue)})`;
                       }
                       return label;
                   }
