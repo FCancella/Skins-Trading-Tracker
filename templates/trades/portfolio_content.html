@@ -168,7 +168,7 @@
 
   <div class="col-12">
     <div class="card">
-      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">Profit history</div>
+      <div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">Performance</div>
       <div class="collapse" id="collapseChart">
         <div class="card-body">
           <canvas id="pnlChart" style="height:200px; max-height:300px;"></canvas>
@@ -319,16 +319,46 @@
     const pnlData = {{ pnl_data|safe }};
     if (pnlData && pnlData.length > 0) {
       const labels = pnlData.map(item => item.date);
-      const values = pnlData.map(item => item.pnl);
+      const values = pnlData.map(item => item.profit_percent);
       const ctx = document.getElementById('pnlChart').getContext('2d');
       new Chart(ctx, {
         type: 'line',
         data: { labels: labels, datasets: [{
-          label: 'Accumulated PnL (R$)', data: values,
+          label: '', data: values,
           borderColor: 'rgba(122, 43, 246, 0.8)', backgroundColor: 'rgba(122, 43, 246, 0.2)',
           tension: 0.3, fill: true,
         }]},
-        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false }}}
+        options: { 
+          responsive: true, 
+          plugins: { 
+            legend: { display: false }, 
+            tooltip: { 
+              mode: 'index', 
+              intersect: false,
+              callbacks: {
+                  label: function(context) {
+                      let label = context.dataset.label || '';
+                      if (label) {
+                          label += ': ';
+                      }
+                      if (context.parsed.y !== null) {
+                          label += context.parsed.y.toFixed(2) + '%';
+                      }
+                      return label;
+                  }
+              }
+            }
+          },
+          scales: {
+              y: {
+                  ticks: {
+                      callback: function(value, index, ticks) {
+                          return value + '%';
+                      }
+                  }
+              }
+          }
+        }
       });
     }
 
