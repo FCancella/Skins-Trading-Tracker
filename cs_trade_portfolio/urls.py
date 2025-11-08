@@ -26,6 +26,7 @@ urlpatterns = [
     path("about/", trade_views.about, name="about"), 
     path("observer/", trade_views.observer, name="observer"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
+    path("profile/change-username/", trade_views.change_username, name="change_username"), # <-- ADICIONE ESTA LINHA
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
     path("price-history/<int:trade_id>/", trade_views.price_history, name="price_history"),
     path("get-trade-form/<int:trade_id>/", trade_views.get_trade_form, name="get_trade_form"),

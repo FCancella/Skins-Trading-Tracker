@@ -58,21 +58,23 @@ INSTALLED_APPS: list[str] = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'subscriptions',
     'django.contrib.sites',  # Required by allauth
+
+    # Apps
+    'trades',
+    'scanner',
+    'subscriptions',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', 
     # 'allauth.socialaccount.providers.github',
     # 'allauth.socialaccount.providers.facebook',
-
-    # Apps
-    'trades',
-    'scanner',
 ]
 
 SITE_ID = 1 # Required by django.contrib.sites
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
@@ -175,6 +177,7 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
+SOCIALACCOUNT_ADAPTER = 'trades.adapters.CustomSocialAccountAdapter'
 
 LANGUAGE_CODE: str = 'en-us'
 

@@ -1,68 +1,78 @@
 {% extends "base.html" %}
 {% load i18n account socialaccount %}
-
-{% block title %}{% trans "Sign In" %}{% endblock %}
+{% load form_extras %} {% block title %}{% trans "Acessar" %}{% endblock %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-6 offset-md-3">
     <div class="card card-dark" style="background-color: #1a1a2e; border: 1px solid #4a4a7f; border-radius: 10px;">
       <div class="card-body p-4 p-md-5">
-        <h2 class="card-title text-center mb-4">{% trans "Sign In" %}</h2>
-        
+
+        <h2 class="card-title text-center mb-4">Acessar Plataforma</h2>
         {% providers_media_js %}
         <div class="d-grid gap-2 mb-4">
           <a href="{% provider_login_url 'google' %}" class="btn btn-outline-light btn-lg">
             <i class="bi bi-google me-2"></i> Entrar com Google
           </a>
-          </div>
+        </div>
 
-        <div class="text-center text-muted-2 small mb-4">OU ENTRE COM E-MAIL</div>
+        <div class="text-center text-muted-2 small mb-3">OU ACESSAR COM E-MAIL</div>
 
-        <form class
-="login" method="POST" action="{% url 'account_login' %}">
-          {% csrf_token %}
-          
-          <div class="mb-3">
-            <label for="id_login" class="form-label">E-mail</label>
-            {{ form.login }}
-          </div>
-          <div class="mb-3">
-            <label for="id_password" class="form-label">Senha</label>
-            {{ form.password }}
-          </div>
-          
-          {% if form.errors %}
-            <div class="alert alert-danger">
-              {% for field, errors in form.errors.items %}
-                {% for error in errors %}
-                  {{ error }}
-                {% endfor %}
-              {% endfor %}
-            </div>
-          {% endif %}
+        <ul class="nav nav-tabs nav-fill mb-4" id="authTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab" aria-controls="login-pane" aria-selected="true">
+              Entrar com E-mail
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="{% url 'account_signup' %}" class="nav-link" id="signup-tab-link">
+              Criar com E-mail
+            </a>
+          </li>
+        </ul>
 
-          <div class="mb-3 form-check">
-            {{ form.remember }}
-            <label class="form-check-label" for="id_remember">Lembrar-me</label>
-          </div>
+        <div class="tab-content" id="authTabsContent">
+          <div class="tab-pane fade show active" id="login-pane" role="tabpanel" aria-labelledby="login-tab">
+            
+            <form class="login" method="POST" action="{% url 'account_login' %}">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label for="id_login" class="form-label">E-mail</label>
+                {{ form.login|add_class:"form-control" }}
+              </div>
+              <div class="mb-3">
+                <label for="id_password" class="form-label">Senha</label>
+                {{ form.password|add_class:"form-control" }}
+              </div>
+              
+              {% if form.errors %}
+                <div class="alert alert-danger">
+                  {% for field, errors in form.errors.items %}{% for error in errors %}{{ error }}{% endfor %}{% endfor %}
+                </div>
+              {% endif %}
 
-          {% if redirect_field_value %}
-            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-          {% endif %}
-          
-          <div class="d-grid gap-2">
-            <button class="btn btn-primary btn-lg" type="submit">Entrar</button>
-          </div>
-          
-          <p class="mt-4 text-center">
-            <a href="{% url 'account_reset_password' %}" class="text-muted-2 small">Esqueceu a senha?</a>
-          </p>
-        </form>
+              <div class="mb-3 form-check">
+                {{ form.remember|add_class:"form-check-input" }}
+                <label class="form-check-label" for="id_remember">Lembrar-me</label>
+              </div>
 
-        <p class="mt-4 text-center text-muted-2">
-          Não tem uma conta? <a href="{% url 'account_signup' %}">Cadastre-se</a>
-        </p>
+              {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+              {% endif %}
+              
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-lg" type="submit">Entrar</button>
+              </div>
+              
+              <p class="mt-4 text-center">
+                <a href="{% url 'account_reset_password' %}" class="text-muted-2 small">Esqueceu a senha?</a>
+              </p>
+            </form>
+
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

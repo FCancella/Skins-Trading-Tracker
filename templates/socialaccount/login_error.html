@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Social Network Login Failure" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card card-dark" style="background-color: #1a1a2e; border: 1px solid #4a4a7f; border-radius: 10px;">
+      <div class="card-body p-4 p-md-5 text-center">
+        <h2 class="card-title text-center mb-4 text-danger">{% trans "Falha no Login" %}</h2>
+        
+        <p class="text-danger">{% trans "An error occurred while attempting to login via your social network account." %}</p>
+        
+        <p class="text-muted-2 mt-4">Você pode tentar novamente ou retornar à página de login.</p>
+
+        <div class="d-grid gap-2 mt-4">
+            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg">Voltar ao Login</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
