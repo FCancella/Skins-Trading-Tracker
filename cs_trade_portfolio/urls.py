@@ -25,7 +25,6 @@ urlpatterns = [
     path("portfolio/", trade_views.index, name="index"),
     path("about/", trade_views.about, name="about"), 
     path("observer/", trade_views.observer, name="observer"),
-    path("signup/", trade_views.signup, name="signup"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
     path("price-history/<int:trade_id>/", trade_views.price_history, name="price_history"),
