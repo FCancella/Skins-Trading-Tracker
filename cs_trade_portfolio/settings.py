@@ -75,6 +75,8 @@ INSTALLED_APPS: list[str] = [
 
 SITE_ID = 1 # Required by django.contrib.sites
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
