@@ -96,6 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
                   label += context.parsed.y.toFixed(2) + '%';
                 }
                 return label;
+              },
+              footer: function(tooltipItems) {
+                const tooltipItem = tooltipItems[0];
+                const price = tooltipItem.raw.price;
+                if (price !== undefined) {
+                  return 'Price: ' + new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+                }
+                return '';
               }
             }
           }

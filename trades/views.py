@@ -507,10 +507,12 @@ def price_history(request, trade_id):
 
     # Calculate profit percentage for each intermediate scanned price.
     for item in scanned_prices:
-        profit = ((float(item['price']) / buy_price) - 1) * 100
+        price = float(item['price'])
+        profit = ((price / buy_price) - 1) * 100
         profit_data.append({
             'x': item['timestamp'].isoformat(),
-            'y': profit
+            'y': profit,
+            'price': price
         })
 
     # If the item was sold, the last point is the final profit percentage.
@@ -518,7 +520,8 @@ def price_history(request, trade_id):
         final_profit = ((float(trade.sell_price) / buy_price) - 1) * 100
         profit_data.append({
             'x': end_datetime.isoformat(),
-            'y': final_profit
+            'y': final_profit,
+            'price': float(trade.sell_price)
         })
 
     return JsonResponse({'profits': profit_data})
