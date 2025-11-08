@@ -78,28 +78,48 @@
                 </div>
               {% else %}
                 <div class="d-flex align-items-center" id="auth-buttons">
-                  <a class="btn btn-outline-light btn-sm me-2" href="{% url 'account_login' %}">Login</a>
-                  <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}">Sign up</a>
+                  <a class="btn btn-outline-light btn-sm me-2" href="{% url 'account_login' %}">{% trans "Entrar" %}</a>
+                  <a class="btn btn-primary btn-sm" href="{% url 'account_signup' %}">{% trans "Cadastrar" %}</a>
                 </div>
               {% endif %}
             </li>
             
-            <li class="nav-item ms-lg-2">
+            <li class="nav-item ms-lg-2 dropdown">
                 {% get_current_language as CURRENT_LANGUAGE_CODE %}
-                <form action="{% url 'set_language' %}" method="post" class="d-flex align-items-center" style="gap: 0.25rem;">
-                    {% csrf_token %}
-                    <input name="next" type="hidden" value="{{ request.get_full_path|default:'/' }}">
-                    
+                
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding-top: 0.6rem; padding-bottom: 0.6rem;">
                     {% if CURRENT_LANGUAGE_CODE == 'en' %}
-                        <button type="submit" name="language" value="pt-br" class="btn btn-link nav-link p-1" style="text-decoration: none;">PT-BR</button>
-                        <span class="nav-link p-1 fw-bold">EN</span>
+                        <img src="https://flagcdn.com/w20/us.png" width="20" alt="EN">
                     {% else %}
-                        <span class="nav-link p-1 fw-bold">PT-BR</span>
-                        <button type="submit" name="language" value="en" class="btn btn-link nav-link p-1" style="text-decoration: none;">EN</button>
+                        <img src="https://flagcdn.com/w20/br.png" width="20" alt="PT-BR">
                     {% endif %}
-                </form>
+                </a>
+                
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" style="min-width: auto;">
+                    {% get_available_languages as LANGUAGES %}
+                    {% for lang_code, lang_name in LANGUAGES %}
+                        {% if lang_code != CURRENT_LANGUAGE_CODE %}
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post" class="dropdown-item p-0">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.get_full_path|default:'/' }}">
+                                    <button type="submit" name="language" value="{{ lang_code }}" class="dropdown-item">
+                                        {% if lang_code == 'en' %}
+                                            <img src="https://flagcdn.com/w20/us.png" width="20" alt="EN">
+                                        {% elif lang_code == 'pt-br' %}
+                                            <img src="https://flagcdn.com/w20/br.png" width="20" alt="PT-BR">
+                                        {% else %}
+                                            {{ lang_name }}
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
             </li>
-          </ul>
+            </ul>
+          
         </div>
       </div>
     </nav>
