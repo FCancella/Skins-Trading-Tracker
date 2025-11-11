@@ -37,7 +37,7 @@ DEBUG: bool = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Carregue os hosts permitidos de uma variável de ambiente.
 ALLOWED_HOSTS_str: str = os.environ.get('DJANGO_ALLOWED_HOSTS')
-ALLOWED_HOSTS: list[str] = ALLOWED_HOSTS_str.split(',') if ALLOWED_HOSTS_str else []
+ALLOWED_HOSTS: list[str] = ALLOWED_HOSTS_str.split(',') if ALLOWED_HOSTS_str else ['127.0.0.1', 'localhost']
 
 # Carregue as origens confiáveis para CSRF (essencial para proxy reverso com Nginx)
 CSRF_TRUSTED_ORIGINS_str = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
@@ -164,13 +164,10 @@ AUTHENTICATION_BACKENDS: list[str] = [
 # allauth will respect your existing LOGIN_REDIRECT_URL = "index"
 
 # Email settings
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = ['username', 'email']
+ACCOUNT_SIGNUP_FIELDS = ['username']
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_LOGIN_METHODS = ['email']
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_EMAIL_VERIFICATION = 'optional' # Can be 'mandatory' or 'none'
 
 # Provider-specific settings (e.g., for Google)
 SOCIALACCOUNT_PROVIDERS = {
@@ -184,7 +181,6 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
-SOCIALACCOUNT_ADAPTER = 'trades.adapters.CustomSocialAccountAdapter'
 
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
