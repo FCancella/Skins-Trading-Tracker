@@ -1,9 +1,9 @@
-{% load form_extras %}
+{% load form_extras i18n %}
 <div class="modal fade" id="editInvestmentModal-{{ investment.id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content modal-dark">
       <div class="modal-header">
-        <h5 class="modal-title">Edit Investment</h5>
+        <h5 class="modal-title">{% trans "Editar Investimento" %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="editInvestmentForm-{{ investment.id }}" method="post" action="{% url 'index' %}">
@@ -12,19 +12,19 @@
         <input type="hidden" name="investment_id" value="{{ investment.id }}">
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Amount</label>
+            <label class="form-label">{% trans "Valor" %}</label>
             {{ investment.form.amount }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Description</label>
+            <label class="form-label">{% trans "Descrição" %}</label>
             {{ investment.form.description }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Source</label>
+            <label class="form-label">{% trans "Fonte" %}</label>
             {{ investment.form.source }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Date</label>
+            <label class="form-label">{% trans "Data" %}</label>
             {{ investment.form.date }}
           </div>
         </div>
@@ -34,9 +34,9 @@
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_investment">
               <input type="hidden" name="investment_id" value="{{ investment.id }}">
-              <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this investment?')">Delete</button>
+              <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this investment?')">{% trans "Deletar" %}</button>
           </form>
-          <button type="submit" class="btn btn-primary" form="editInvestmentForm-{{ investment.id }}">Save</button>
+          <button type="submit" class="btn btn-primary" form="editInvestmentForm-{{ investment.id }}">{% trans "Salvar" %}</button>
       </div>
     </div>
   </div>

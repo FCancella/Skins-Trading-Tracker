@@ -21,6 +21,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 SOURCE_CHOICES: list[tuple[str, str]] = [
+    ('brskins', 'BR Skins'),
     ('buff', 'BUFF'),
     ('floatdb', 'CSFloat'),
     ('csmoney', 'CS.Money'),

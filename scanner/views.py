@@ -82,7 +82,7 @@ def scanner_api_add_items(request):
         if not isinstance(items, list):
             return JsonResponse({"error": "Invalid payload format"}, status=400)
 
-        ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).delete()
+        ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p', 'brskins']).delete()
         items_to_create = [
             ScannedItem(name=item['name'], price=item['price'], source=item['source'], link=item['link'])
             for item in items
@@ -100,7 +100,7 @@ def get_items_to_update(request):
     """
     Endpoint que retorna uma lista de itens que precisam ter o preço do Buff atualizado.
     """
-    dash_items_to_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p'])
+    dash_items_to_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p', 'brskins'])
     buff_items_in_db = ScannedItem.objects.filter(source='buff', timestamp__gte=timezone.now() - timedelta(hours=3))
     blacklist_items = BlackList.objects.all().values_list('name', flat=True)
 
@@ -149,7 +149,7 @@ def calculate_differences(request):
     """
     Endpoint para acionar o cálculo da diferença de preços entre Dash e Buff.
     """
-    dash_items_to_compare = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p'])
+    dash_items_to_compare = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p', 'brskins'])
 
     dash_items_to_compare = dash_items_to_compare.exclude(name__in=BlackList.objects.all().values_list('name', flat=True))
 
@@ -180,7 +180,7 @@ def scanner_view(request):
     além de calcular estatísticas do scanner.
     """
     dash_items = ScannedItem.objects.filter(
-        source__in=['dash_bot', 'dash_p2p']
+        source__in=['dash_bot', 'dash_p2p', 'brskins']
     ).exclude(diff__isnull=True).order_by('-diff')
     
     item_names = dash_items.values_list('name', flat=True)
@@ -204,7 +204,7 @@ def scanner_view(request):
         'buff_link': buff_data_map.get(item.name, {}).get('link')
     } for item in dash_items]
 
-    last_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p']).order_by('-timestamp').first()
+    last_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p', 'brskins']).order_by('-timestamp').first()
     last_check_time = last_check.timestamp if last_check else None
     next_run_in = None
     if last_check_time:

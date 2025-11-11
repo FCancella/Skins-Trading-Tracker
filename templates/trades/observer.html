@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load currency %}
 {% load static %}
+{% load i18n %}
 
 {% block content %}
 <div class="row g-3">
   <div class="col-12 text-center">
     <h4 class="mb-1">Observer Mode</h4>
-    <p class="text-muted-2">Select a public profile from the list to view their portfolio and performance.</p>
+    <p class="text-muted-2">{% trans "Selecione um perfil público da lista para analisar o portfólio e desempenho." %}</p>
   </div>
   <div class="col-12 col-md-8 col-lg-4 mx-auto">
     <div class="card">
@@ -14,7 +15,7 @@
         <form method="get" action="{% url 'observer' %}">
           <div class="input-group">
             <select class="form-select" name="user_id" onchange="this.form.submit()">
-              <option value="">Select a user</option>
+              <option value="">{% trans "Selecione um usuário" %}</option>
               {% for user in public_users %}
                 <option value="{{ user.id }}" {% if selected_user and selected_user.id == user.id %}selected{% endif %}>{{ user.username|title }}</option>
               {% endfor %}
@@ -32,7 +33,7 @@
   
   {% elif request.GET.user_id %}
     <div class="col-12 mt-3">
-        <div class="alert alert-warning">Usuário não encontrado ou o perfil não é público.</div>
+        <div class="alert alert-warning">{% trans "Usuário não encontrado ou o perfil não é público." %}</div>
     </div>
   {% endif %}
 </div>

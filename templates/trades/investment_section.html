@@ -1,23 +1,22 @@
-{% load currency %}
+{% load currency i18n %}
 
-<div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseInvestments" aria-expanded="false" aria-controls="collapseInvestments">Investments</div>
+<div class="card-header collapsible" data-bs-toggle="collapse" data-bs-target="#collapseInvestments" aria-expanded="false" aria-controls="collapseInvestments">{% trans "Investimentos" %}</div>
 <div class="collapse" id="collapseInvestments">
   <div class="card-body">
-    <h5 class="mb-3">Add Investment</h5>
     <form method="post" action="{% url 'index' %}" class="row g-3">
       {% csrf_token %}
       <input type="hidden" name="action" value="invest">
-      <div class="col-md-3"><label class="form-label">Amount</label>{{ investment_form.amount }}</div>
-      <div class="col-md-3"><label class="form-label">Description</label>{{ investment_form.description }}</div>
-      <div class="col-md-3"><label class="form-label">Source</label>{{ investment_form.source }}</div>
-      <div class="col-md-3"><label class="form-label">Date</label>{{ investment_form.date }}</div>
-      <div class="col-12"><button type="submit" class="btn btn-primary w-100">Add Investment</button></div>
+      <div class="col-md-2"><label class="form-label">{% trans "Valor" %}</label>{{ investment_form.amount }}</div>
+      <div class="col-md-4"><label class="form-label">{% trans "Descrição" %}</label>{{ investment_form.description }}</div>
+      <div class="col-md-3"><label class="form-label">{% trans "Fonte" %}</label>{{ investment_form.source }}</div>
+      <div class="col-md-3"><label class="form-label">{% trans "Data" %}</label>{{ investment_form.date }}</div>
+      <div class="col-12"><button type="submit" class="btn btn-primary w-100">{% trans "Adicionar Investimento" %}</button></div>
     </form>
     <hr class="hr-soft my-4">
-    <h5 class="mb-3">History</h5>
+    <h5 class="mb-3">{% trans "Histórico" %}</h5>
     <div class="table-responsive">
       <table class="table table-sm align-middle">
-        <thead><tr><th>Date</th><th>Amount</th><th>Description</th><th>Source</th><th></th></tr></thead>
+        <thead><tr><th>{% trans "Data" %}</th><th>{% trans "Valor" %}</th><th>{% trans "Descrição" %}</th><th>{% trans "Fonte" %}</th><th></th></tr></thead>
         <tbody>
           {% for investment in investments %}
           <tr>
@@ -33,7 +32,7 @@
           </tr>
           {% include 'trades/edit_investment_modal.html' with investment=investment %}
           {% empty %}
-          <tr><td colspan="5" class="text-center text-muted-2">No investments yet.</td></tr>
+          <tr><td colspan="5" class="text-center text-muted-2">{% trans "Nenhum investimento registrado." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

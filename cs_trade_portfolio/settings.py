@@ -57,20 +57,39 @@ INSTALLED_APPS: list[str] = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'django.contrib.sites',  # Required by allauth
+
+    # Apps
     'trades',
     'scanner',
-    'subscriptions'
+    'subscriptions',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google', 
+    # 'allauth.socialaccount.providers.github',
+    # 'allauth.socialaccount.providers.facebook',
 ]
+
+SITE_ID = 1 # Required by django.contrib.sites
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF: str = 'cs_trade_portfolio.urls'
@@ -134,7 +153,51 @@ AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = [
     # },
 ]
 
-LANGUAGE_CODE: str = 'en-us'
+AUTHENTICATION_BACKENDS: list[str] = [
+    # Needed to login by username in Django admin, regardless of allauth
+    'django.contrib.auth.backends.ModelBackend',
+
+    # allauth specific authentication methods, e.g. login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# allauth will respect your existing LOGIN_REDIRECT_URL = "index"
+
+# Email settings
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = ['email']
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+
+# Provider-specific settings (e.g., for Google)
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+SOCIALACCOUNT_ADAPTER = 'trades.adapters.CustomSocialAccountAdapter'
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+# Idioma padrão do site (source)
+LANGUAGE_CODE = 'pt-br'
+
+# Idiomas disponíveis
+LANGUAGES = [
+    ('pt-br', 'Português'),
+    ('en', 'English'),
+]
 
 TIME_ZONE: str = 'America/Sao_Paulo'
 

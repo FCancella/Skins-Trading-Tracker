@@ -10,10 +10,12 @@ from __future__ import annotations
 from decimal import Decimal
 import requests
 import pandas as pd
+import numpy as np
 from collections import defaultdict
 from datetime import timedelta, datetime
 
 from django.core.cache import cache
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -28,7 +30,7 @@ from django.utils.timezone import make_aware
 from django.conf import settings
 
 from .utils import _get_exchange_rate
-from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm
+from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm, UsernameChangeForm
 from .models import Trade, Investment, SOURCE_CHOICES
 from scanner.models import ScannedItem
 from subscriptions.models import Subscription
@@ -126,23 +128,77 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
         "nav": float(nav),
     }
 
-    # --- Chart Data ---
-    daily_pnl = list(
+    # --- Chart Data (Cálculo de Rentabilidade/Cota) ---
+    
+    # 1. Get daily PnL
+    daily_pnl_list = list(
         closed_qs_all
-        .values(date=F('sell_date'))
+        .filter(sell_date__isnull=False)
+        .values(date=F('sell_date__date')) # Agrupa pela data
         .annotate(daily_pnl=Sum(F('sell_price') - F('buy_price')))
         .order_by('date')
     )
-    accumulated_pnl = 0.0
-    pnl_data = []
-    for pnl in daily_pnl:
-        if pnl['date'] is None: continue
-        pnl['daily_pnl'] = float(pnl['daily_pnl'])
-        accumulated_pnl += pnl['daily_pnl']
-        pnl_data.append({
-            'date': pnl['date'].strftime("%Y-%m-%d"),
-            'pnl': accumulated_pnl,
-        })
+
+    # 2. Get daily Investments
+    daily_investments_list = list(
+        investments.values('date')
+        .annotate(daily_investment=Sum('amount'))
+        .order_by('date')
+    )
+
+    quota_data = []
+
+    # 3. Process with Pandas if there is data
+    if daily_pnl_list or daily_investments_list:
+        # 3.1. Convert to DataFrames
+        df_pnl = pd.DataFrame(daily_pnl_list)
+        if not df_pnl.empty:
+            df_pnl = df_pnl.rename(columns={'daily_pnl': 'pnl'}).set_index(pd.to_datetime(df_pnl['date'])).drop('date', axis=1)
+            df_pnl['pnl'] = df_pnl['pnl'].astype(float)
+        else:
+            df_pnl = pd.DataFrame(columns=['pnl'])
+
+        df_invest = pd.DataFrame(daily_investments_list)
+        if not df_invest.empty:
+            df_invest = df_invest.rename(columns={'daily_investment': 'investment'}).set_index(pd.to_datetime(df_invest['date'])).drop('date', axis=1)
+            df_invest['investment'] = df_invest['investment'].astype(float)
+        else:
+            df_invest = pd.DataFrame(columns=['investment'])
+
+        # 3.2. Combine and create a full date range
+        df = pd.concat([df_pnl, df_invest], axis=1).fillna(0)
+        
+        start_date = df[df['pnl']!=0].index.min()
+        end_date = max(df.index.max(), pd.Timestamp(timezone.localdate()))
+        
+        # 3.3. Reindex to fill all gaps between start and end date
+        all_days_index = pd.date_range(start=start_date, end=end_date, freq='D')
+        df = df.reindex(all_days_index).fillna(0)
+
+        # 3.4. Vectorized calculation
+        # NAV at the *start* of the day (NAV_d-1)
+        # We shift(1) to get the previous day's value, then cumsum()
+        df['nav_d_minus_1'] = (df['investment'] + df['pnl']).shift(1).cumsum().fillna(0)
+        
+        # Base for RoR calculation (NAV_d-1 + Invest_d0)
+        df['nav_for_ror'] = df['nav_d_minus_1'] + df['investment']
+        
+        # Daily Rate of Return (RoR)
+        # Use np.where to avoid division by zero
+        df['daily_ror'] = np.where(df['nav_for_ror'] > 0, df['pnl'] / df['nav_for_ror'], 0.0)
+        
+        # Quota (cumulative performance)
+        # cumprod() calculates the cumulative product of (1 + daily_ror)
+        df['quota'] = (1 + df['daily_ror']).cumprod()
+        
+        # Profit as a percentage
+        df['profit_percent'] = (df['quota'] - 1) * 100
+        
+        # 3.5. Format for output
+        df_output = df[['profit_percent', 'pnl']].round(2).reset_index().rename(columns={'index': 'date', 'pnl': 'profit_value'})
+        df_output['date'] = df_output['date'].dt.strftime('%Y-%m-%d')
+        
+        quota_data = df_output.to_dict('records')
     
     # Group open trades
     grouped_open_trades_map = defaultdict(list)
@@ -194,7 +250,7 @@ def _calculate_portfolio_metrics(user: User, show_history: bool = False) -> dict
         "trade_data": trade_data,
         "investments": investments,
         "summary": summary,
-        "pnl_data": pnl_data,
+        "pnl_data": quota_data, # Retorna os dados da cota com a chave 'pnl_data'
         "cash_per_source_data": cash_per_source_data,
         "show_history": show_history,
         "more_trades": more_trades
@@ -459,6 +515,19 @@ def signup(request: HttpRequest) -> HttpResponse:
     return render(request, "registration/signup.html", {"form": form})
 
 @login_required
+def change_username(request):
+    if request.method == 'POST':
+        form = UsernameChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nome de usuário atualizado com sucesso!')
+            return redirect('index') # Redireciona para o portfólio
+    else:
+        form = UsernameChangeForm(instance=request.user)
+    
+    return render(request, 'account/username_change.html', {'form': form})
+
+@login_required
 def export_portfolio(request: HttpRequest) -> HttpResponse:
     """Gera e retorna um arquivo CSV com todos os trades do usuário usando pandas."""
     response = HttpResponse(content_type='text/csv')
@@ -507,10 +576,12 @@ def price_history(request, trade_id):
 
     # Calculate profit percentage for each intermediate scanned price.
     for item in scanned_prices:
-        profit = ((float(item['price']) / buy_price) - 1) * 100
+        price = float(item['price'])
+        profit = ((price / buy_price) - 1) * 100
         profit_data.append({
             'x': item['timestamp'].isoformat(),
-            'y': profit
+            'y': profit,
+            'price': price
         })
 
     # If the item was sold, the last point is the final profit percentage.
@@ -518,7 +589,8 @@ def price_history(request, trade_id):
         final_profit = ((float(trade.sell_price) / buy_price) - 1) * 100
         profit_data.append({
             'x': end_datetime.isoformat(),
-            'y': final_profit
+            'y': final_profit,
+            'price': float(trade.sell_price)
         })
 
     return JsonResponse({'profits': profit_data})
