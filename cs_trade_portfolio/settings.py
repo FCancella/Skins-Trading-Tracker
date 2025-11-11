@@ -165,9 +165,13 @@ AUTHENTICATION_BACKENDS: list[str] = [
 
 # Email settings
 ACCOUNT_LOGIN_METHODS = ['username', 'email']
-ACCOUNT_SIGNUP_FIELDS = ['username']
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1']
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional' # Can be 'mandatory' or 'none'
+ACCOUNT_FORMS = {
+    'login': 'trades.forms.CustomLoginForm',
+    'signup': 'trades.forms.CustomSignupForm',
+}
 
 # Provider-specific settings (e.g., for Google)
 SOCIALACCOUNT_PROVIDERS = {

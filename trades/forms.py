@@ -15,12 +15,33 @@ validation. Choice fields are rendered as select controls in templates.
 """
 from __future__ import annotations
 
+from allauth.account.forms import LoginForm, SignupForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.utils import timezone
 
 from .models import Trade, Investment, SOURCE_CHOICES
+
+
+class CustomLoginForm(LoginForm):
+
+    def __init__(self, *args, **kwargs):
+        super(CustomLoginForm, self).__init__(*args, **kwargs)
+        for fieldname, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'form-control'
+            })
+
+
+class CustomSignupForm(SignupForm):
+
+    def __init__(self, *args, **kwargs):
+        super(CustomSignupForm, self).__init__(*args, **kwargs)
+        for fieldname, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'form-control'
+            })
 
 CURRENCY_CHOICES = [
     ('BRL', 'BRL'),
