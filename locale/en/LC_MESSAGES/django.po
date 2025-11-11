@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 15:57-0300\n"
+"POT-Creation-Date: 2025-11-11 16:07-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -273,7 +273,7 @@ msgid "Deletar"
 msgstr "Delete"
 
 #: .\templates\trades\edit_investment_modal.html:39
-#: .\templates\trades\edit_modal.html:69
+#: .\templates\trades\edit_modal.html:69 .\templates\trades\sell_modal.html:49
 msgid "Salvar"
 msgstr "Save"
 
