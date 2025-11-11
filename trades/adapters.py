@@ -1,5 +1,6 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.utils import get_adapter
+from django.contrib.auth import get_user_model
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
 
@@ -21,9 +22,8 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         # Pega o email vindo do Google
         email = sociallogin.email_addresses[0].email.lower()
         
-        # Usa o get_adapter() importado de allauth.account.utils
-        account_adapter = get_adapter() 
-        User = account_adapter.get_user_model()
+        # --- 2. SUBSTITUA ESTE BLOCO ---
+        User = get_user_model()
 
         try:
             # Tenta encontrar um usuário local com este email

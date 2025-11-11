@@ -51,8 +51,8 @@ class Command(BaseCommand):
         self.stdout.write('Step 1: Fetching items from Dash and sending to API...')
         products = {}
         products = dash_p2p.get_items(products, 25, 500, 20)
-        products = dash_bot.get_items(products, 25, 500, 80)
-        products = br_skins.get_items(products, 20, 350, 150)
+        products = dash_bot.get_items(products, 25, 300, 80)
+        products = br_skins.get_items(products, 25, 350, 80)
         
         if not products:
             self.stdout.write(self.style.WARNING('No products found on Dash. Exiting.'))

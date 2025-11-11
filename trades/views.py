@@ -30,7 +30,7 @@ from django.utils.timezone import make_aware
 from django.conf import settings
 
 from .utils import _get_exchange_rate
-from .forms import SellTradeForm, EditTradeForm, InvestmentForm, CustomUserCreationForm, AddTradeForm, UsernameChangeForm
+from .forms import SellTradeForm, EditTradeForm, InvestmentForm, AddTradeForm, UsernameChangeForm
 from .models import Trade, Investment, SOURCE_CHOICES
 from scanner.models import ScannedItem
 from subscriptions.models import Subscription
@@ -499,20 +499,6 @@ def toggle_profile_public(request: HttpRequest) -> HttpResponse:
         profile.is_public = request.POST.get('is_public') == 'on'
         profile.save()
     return redirect(request.META.get('HTTP_REFERER', 'index'))
-
-def signup(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("index")
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("index")
-    else:
-        # E aqui também
-        form = CustomUserCreationForm()
-    return render(request, "registration/signup.html", {"form": form})
 
 @login_required
 def change_username(request):
