@@ -235,7 +235,6 @@
               <td>
                 <button type="button" class="badge status-open badge-button" 
                   {% if not is_observer and not is_read_only %}
-                  data-bs-toggle="modal" data-bs-target="#dynamicModal" 
                   data-trade-id="{{ group.trade.id }}" data-form-type="sell"
                   {% else %}disabled{% endif %}>
                   Open
@@ -270,7 +269,6 @@
               <td>
                 <button type="button" class="badge status-closed badge-button" 
                   {% if not is_observer and not is_read_only %}
-                  data-bs-toggle="modal" data-bs-target="#dynamicModal"
                   data-trade-id="{{ trade.id }}" data-form-type="edit"
                   {% else %}disabled{% endif %}>
                   Closed

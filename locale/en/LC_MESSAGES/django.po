@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-08 18:22-0300\n"
+"POT-Creation-Date: 2025-11-11 15:57-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,7 +50,8 @@ msgstr "Password"
 msgid "Lembrar-me"
 msgstr "Remember me"
 
-#: .\templates\account\login.html:65 .\templates\trades\home.html:10
+#: .\templates\account\login.html:65 .\templates\base.html:81
+#: .\templates\trades\home.html:10
 msgid "Entrar"
 msgstr "Login"
 
@@ -136,7 +137,7 @@ msgstr "OR SIGN UP WITH E-MAIL"
 msgid "Confirmar Senha"
 msgstr "Confirm Password"
 
-#: .\templates\account\signup.html:69
+#: .\templates\account\signup.html:69 .\templates\base.html:82
 msgid "Cadastrar"
 msgstr "Sign up"
 
@@ -160,27 +161,27 @@ msgstr "Settings"
 msgid "Sair"
 msgstr "Logout"
 
-#: .\templates\base.html:115 .\templates\base.html:153
+#: .\templates\base.html:134 .\templates\base.html:172
 msgid "Fale Conosco"
 msgstr "Contact us"
 
-#: .\templates\base.html:126
+#: .\templates\base.html:145
 msgid "Configurações do Perfil"
 msgstr "Profile Settings"
 
-#: .\templates\base.html:135
+#: .\templates\base.html:154
 msgid "Tornar perfil visível no Observer"
 msgstr "Make profile visible in Observer"
 
-#: .\templates\base.html:139
+#: .\templates\base.html:158
 msgid "Exportar Portfólio"
 msgstr "Export Portfolio"
 
-#: .\templates\base.html:140
+#: .\templates\base.html:159
 msgid "Alterar Nome de Usuário"
 msgstr "Change Username"
 
-#: .\templates\base.html:157
+#: .\templates\base.html:176
 msgid ""
 "Para perguntas, sugestões ou problemas, entre em contato conosco pelo e-mail:"
 msgstr "For questions, suggestions, or issues, please email us at:"
@@ -217,7 +218,6 @@ msgid "Você pode tentar novamente ou retornar à página de login."
 msgstr "You can try again or return to the login page."
 
 #: .\templates\trades\add_trade_form.html:4
-#| msgid "Add Trade"
 msgid "Adicionar itens"
 msgstr "Add Items"
 
@@ -238,12 +238,10 @@ msgid "Quantidade"
 msgstr "Quantity"
 
 #: .\templates\trades\add_trade_form.html:33
-#| msgid "Preço de Compra (por item)"
 msgid "Preço (por item)"
 msgstr "Buy Price (per item)"
 
 #: .\templates\trades\add_trade_form.html:46
-#| msgid "Add Trade"
 msgid "Adicionar Trade"
 msgstr "Add Trade"
 
@@ -382,22 +380,18 @@ msgid "Venda"
 msgstr "Sell"
 
 #: .\templates\trades\portfolio_content.html:207
-#| msgid "Loja (Compra)"
 msgid "Loja (C)"
 msgstr "Buy Source"
 
 #: .\templates\trades\portfolio_content.html:208
-#| msgid "Loja (Venda)"
 msgid "Loja (V)"
 msgstr "Sell Source"
 
 #: .\templates\trades\portfolio_content.html:209
-#| msgid "Data"
 msgid "Data (C)"
 msgstr "Buy Date"
 
 #: .\templates\trades\portfolio_content.html:210
-#| msgid "Data"
 msgid "Data (V)"
 msgstr "Sell Date"
 
@@ -405,16 +399,15 @@ msgstr "Sell Date"
 msgid "Lucro"
 msgstr "Profit"
 
-#: .\templates\trades\portfolio_content.html:297
+#: .\templates\trades\portfolio_content.html:295
 msgid "Mostrar todos os trades"
 msgstr "Load all trades"
 
-#: .\templates\trades\portfolio_content.html:314
-#| msgid "Caixa por Loja"
+#: .\templates\trades\portfolio_content.html:312
 msgid "Saldo por Loja"
 msgstr "Balance per Source"
 
-#: .\templates\trades\portfolio_content.html:371
+#: .\templates\trades\portfolio_content.html:369
 msgid "Retorno diário"
 msgstr "Daily return"
 
@@ -433,6 +426,10 @@ msgstr "Source (Sell)"
 #: .\templates\trades\sell_modal.html:38
 msgid "Atualizar"
 msgstr "Update"
+
+#: .\templates\trades\sell_modal.html:44
+msgid "Unsell"
+msgstr ""
 
 #~ msgid "Caixa:"
 #~ msgstr "Cash:"

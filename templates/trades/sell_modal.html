@@ -33,7 +33,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="trade_id" value="{{ trade.id }}">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Você tem certeza que deseja excluir este trade? Esta ação não pode ser desfeita.')">{% trans "Deletar" %}</button>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir este trade? Esta ação não pode ser desfeita.')">{% trans "Deletar" %}</button>
                 </form>
                 <button type="button" class="btn btn-outline-secondary js-open-edit-modal" data-trade-id="{{ trade.id }}">{% trans "Atualizar" %}</button>
                 {% if trade.sell_price is not None %}
@@ -41,12 +41,12 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="unsell">
                     <input type="hidden" name="trade_id" value="{{ trade.id }}">
-                    <button type="submit" class="btn btn-outline-secondary" onclick="return confirm('Are you sure you want to remove the selling information?')">Unsell</button>
+                    <button type="submit" class="btn btn-outline-secondary" onclick="return confirm('Tem certeza que deseja remover as informações de venda?')">{% trans "Unsell" %}</button>
                 </form>
                 {% endif %}
                 
             </div>
-            <button type="submit" class="btn btn-primary" form="sellForm-{{ trade.id }}">{{ trans "Salvar" }}</button>
+            <button type="submit" class="btn btn-primary" form="sellForm-{{ trade.id }}">{ trans "Salvar" }</button>
         </div>
     </div>
   </div>
