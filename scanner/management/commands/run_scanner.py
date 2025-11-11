@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from scanner.services import dash_bot, dash_p2p, buff
+from scanner.services import dash_bot, dash_p2p, br_skins, buff
 
 # Classe auxiliar para serializar objetos Decimal para JSON
 class DecimalEncoder(json.JSONEncoder):
@@ -52,6 +52,7 @@ class Command(BaseCommand):
         products = {}
         products = dash_p2p.get_items(products, 25, 500, 20)
         products = dash_bot.get_items(products, 25, 500, 80)
+        products = br_skins.get_items(products, 20, 350, 150)
         
         if not products:
             self.stdout.write(self.style.WARNING('No products found on Dash. Exiting.'))
