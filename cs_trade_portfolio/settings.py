@@ -43,6 +43,9 @@ ALLOWED_HOSTS: list[str] = ALLOWED_HOSTS_str.split(',') if ALLOWED_HOSTS_str els
 CSRF_TRUSTED_ORIGINS_str = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS: list[str] = CSRF_TRUSTED_ORIGINS_str.split(',') if CSRF_TRUSTED_ORIGINS_str else []
 
+# Configuração de Cookie para Domínio Único
+SESSION_COOKIE_DOMAIN = os.environ.get('DJANGO_SESSION_COOKIE_DOMAIN')
+CSRF_COOKIE_DOMAIN = os.environ.get('DJANGO_SESSION_COOKIE_DOMAIN')
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "index"
