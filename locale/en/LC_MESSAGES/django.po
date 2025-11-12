@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 22:52-0300\n"
+"POT-Creation-Date: 2025-11-11 23:13-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,52 +19,64 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: .\templates\account\email_confirm.html:3
-#| msgid "Confirmar Senha"
 msgid "Confirmar E-mail"
 msgstr "Confirm E-mail"
 
-#: .\templates\account\email_confirm.html:16
-#| msgid "Confirmar Senha"
+#: .\templates\account\email_confirm.html:15
 msgid "Confirmar seu E-mail"
 msgstr "Confirm your E-mail"
 
-#: .\templates\account\email_confirm.html:21
+#: .\templates\account\email_confirm.html:20
 #, python-format
+#| msgid ""
+#| "\n"
+#| "                    Por favor, confirme que <strong class=\"text-"
+#| "white\">%(email)s</strong> é o seu endereço de e-mail.\n"
+#| "                    "
 msgid ""
 "\n"
-"                    Por favor, confirme que <strong class=\"text-"
-"white\">%(email)s</strong> é o seu endereço de e-mail.\n"
-"                    "
+"            Por favor, confirme que <strong class=\"text-white\">%(email)s</"
+"strong> é o seu endereço de e-mail.\n"
+"            "
 msgstr ""
 "\n"
 "                    Please confirm that <strong class=\"text-"
 "white\">%(email)s</strong> is your e-mail address.\n"
 "                    "
 
-#: .\templates\account\email_confirm.html:29
-#| msgid "Confirmar Senha"
+#: .\templates\account\email_confirm.html:28
 msgid "Confirmar"
 msgstr "Confirm"
 
-#: .\templates\account\email_confirm.html:41
-#| msgid "Link Enviado"
+#: .\templates\account\email_confirm.html:38
 msgid "Link Inválido"
 msgstr "Invalid Link"
 
-#: .\templates\account\email_confirm.html:46
+#: .\templates\account\email_confirm.html:43
 #, python-format
+#| msgid ""
+#| "\n"
+#| "                    O link de confirmação que você usou está expirado, é "
+#| "inválido ou já foi utilizado. Por favor, <a "
+#| "href=\"%(email_url)s\">solicite uma nova confirmação</a>.\n"
+#| "                    "
 msgid ""
 "\n"
-"                    O link de confirmação que você usou está expirado, é "
-"inválido ou já foi utilizado. Por favor, <a href=\"%(email_url)s\">solicite "
-"uma nova confirmação</a>.\n"
-"                    "
+"            O link de confirmação que você usou está expirado, é inválido ou "
+"já foi utilizado. Por favor, <a href=\"%(email_url)s\" class=\"text-"
+"white\">solicite uma nova confirmação</a>.\n"
+"            "
 msgstr ""
 "\n"
-"                    The confirmation link you used is expired, invalid, "
-"or has already been used. Please <a href=\"%(email_url)s\">request "
-"a new confirmation</a>.\n"
+"                    The confirmation link you used is expired, invalid, or "
+"has already been used. Please <a href=\"%(email_url)s\">request a new "
+"confirmation</a>.\n"
 "                    "
+
+#: .\templates\account\email_confirm.html:49
+#: .\templates\account\verification_sent.html:29
+msgid "Voltar para o Login"
+msgstr "Back to Login"
 
 #: .\templates\account\login.html:3
 msgid "Acessar"
@@ -210,17 +222,12 @@ msgid ""
 "Enviamos um e-mail de verificação para você. Por favor, clique no link "
 "dentro do e-mail para ativar sua conta."
 msgstr ""
-"We have sent a verification e-mail to you. Please click the link "
-"inside it to activate your account."
+"We have sent a verification e-mail to you. Please click the link inside it "
+"to activate your account."
 
 #: .\templates\account\verification_sent.html:25
 msgid "Se não o encontrar em alguns minutos, verifique sua pasta de spam."
 msgstr "If you do not find it in a few minutes, check your spam folder."
-
-#: .\templates\account\verification_sent.html:29
-#| msgid "Voltar ao Login"
-msgid "Voltar para o Login"
-msgstr "Back to Login"
 
 #: .\templates\base.html:63
 msgid "Assinatura"

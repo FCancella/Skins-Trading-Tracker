@@ -3,54 +3,56 @@
 {% load allauth %} {% block title %}{% trans "Confirmar E-mail" %}{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card card-dark" style="background-color: #1a1a2e; border: 1px solid #4a4a7f; border-radius: 10px;">
+      <div class="card-body p-4 p-md-5">
 
         {% if confirmation %}
-            {% user_display confirmation.email_address.user as user_display %}
-            
-            <div class="auth-header">
-                <div class="auth-icon-wrapper">
-                    <i class="bi bi-envelope-check-fill auth-icon"></i>
-                </div>
-                <h2 class="auth-title">{% trans "Confirmar seu E-mail" %}</h2>
+          <div class="text-center mb-4">
+              <i class="bi bi-envelope-check-fill" style="font-size: 3.5rem; color: #a0a1b7;"></i>
+              <h2 class="card-title text-center mt-3 mb-3">
+                  {% trans "Confirmar seu E-mail" %}
+              </h2>
+          </div>
+          
+          <p class="text-center text-muted-2 mb-4">
+            {% blocktrans with confirmation.email_address.email as email %}
+            Por favor, confirme que <strong class="text-white">{{ email }}</strong> é o seu endereço de e-mail.
+            {% endblocktrans %}
+          </p>
+          
+          <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+            {% csrf_token %}
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg">{% trans "Confirmar" %}</button>
             </div>
-            
-            <div class="auth-body">
-                <p class="text-center text-muted-2 mb-4">
-                    {% blocktrans with confirmation.email_address.email as email %}
-                    Por favor, confirme que <strong class="text-white">{{ email }}</strong> é o seu endereço de e-mail.
-                    {% endblocktrans %}
-                </p>
-                
-                <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
-                    {% csrf_token %}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">{% trans "Confirmar" %}</button>
-                    </div>
-                </form>
-            </div>
+          </form>
 
         {% else %}
-            {% url 'account_email' as email_url %}
-            
-            <div class="auth-header">
-                <div class="auth-icon-wrapper">
-                    <i class="bi bi-x-octagon-fill auth-icon text-danger"></i>
-                </div>
-                <h2 class="auth-title">{% trans "Link Inválido" %}</h2>
-            </div>
+          {% url 'account_email' as email_url %}
+          
+          <div class="text-center mb-4">
+              <i class="bi bi-x-octagon-fill" style="font-size: 3.5rem; color: #dc3545;"></i>
+              <h2 class="card-title text-center mt-3 mb-3">
+                  {% trans "Link Inválido" %}
+              </h2>
+          </div>
 
-            <div class="auth-body">
-                <p class="text-center text-muted-2">
-                    {% blocktrans %}
-                    O link de confirmação que você usou está expirado, é inválido ou já foi utilizado. Por favor, <a href="{{ email_url }}">solicite uma nova confirmação</a>.
-                    {% endblocktrans %}
-                </p>
-            </div>
+          <p class="text-center text-muted-2">
+            {% blocktrans %}
+            O link de confirmação que você usou está expirado, é inválido ou já foi utilizado. Por favor, <a href="{{ email_url }}" class="text-white">solicite uma nova confirmação</a>.
+            {% endblocktrans %}
+          </p>
+          
+          <div class="d-grid gap-2 mt-4">
+            <a href="{% url 'account_login' %}" class="btn btn-outline-light">{% trans "Voltar para o Login" %}</a>
+          </div>
 
         {% endif %}
         
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
