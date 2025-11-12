@@ -26,3 +26,17 @@ def pct(value):
     except Exception:
         return value
     return f"{val:.2f}".replace(".", ",") + "%"
+
+@register.filter
+def currency_cny(value):
+    """
+    Formata um valor como moeda CNY (¥).
+    """
+    if value is None or value == '':
+        return "—"
+    try:
+        val = float(value)
+        # Formata como ¥, com 2 casas decimais e separador de milhar
+        return f"¥ {val:,.2f}"
+    except (ValueError, TypeError):
+        return value

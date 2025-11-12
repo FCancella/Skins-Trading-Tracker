@@ -193,16 +193,33 @@ def scanner_view(request):
     
     buff_data_map = {item.name: {'price': item.price, 'offers': item.offers, 'link': item.link} for item in buff_prices_qs}
     
-    processed_items = [{
-        'name': item.name,
-        'buff_price': buff_data_map.get(item.name, {}).get('price'),
-        'buff_offers': buff_data_map.get(item.name, {}).get('offers'),
-        'dash_price': item.price,
-        'diff': item.diff,
-        'source': item.source,
-        'link': item.link,
-        'buff_link': buff_data_map.get(item.name, {}).get('link')
-    } for item in dash_items]
+    try:
+        cny_brl_rate = _get_exchange_rate("CNY")
+    except Exception:
+        cny_brl_rate = None
+
+    processed_items = []
+    for item in dash_items:
+        dash_price_cny = None
+        # Se tivermos a taxa e o preço, calcula o valor em CNY
+        if cny_brl_rate and item.price:
+            try:
+                # Converte BRL para CNY (preço_brl / taxa_cny_brl)
+                dash_price_cny = (Decimal(item.price) / cny_brl_rate).quantize(Decimal("0.01"))
+            except (InvalidOperation, TypeError):
+                dash_price_cny = None
+
+        processed_items.append({
+            'name': item.name,
+            'buff_price': buff_data_map.get(item.name, {}).get('price'),
+            'buff_offers': buff_data_map.get(item.name, {}).get('offers'),
+            'dash_price': item.price,
+            'dash_price_cny': dash_price_cny,
+            'diff': item.diff,
+            'source': item.source,
+            'link': item.link,
+            'buff_link': buff_data_map.get(item.name, {}).get('link')
+        })
 
     last_check = ScannedItem.objects.filter(source__in=['dash_bot', 'dash_p2p', 'brskins']).order_by('-timestamp').first()
     last_check_time = last_check.timestamp if last_check else None

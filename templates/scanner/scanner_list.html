@@ -48,7 +48,12 @@
                 <small class="text-muted-2 fs-7">{{ item.buff_offers }}</small>
             {% endif %}
             </td>
-            <td>{{ item.dash_price|currency_brl|default:"-" }}</td>
+            <td>
+              {{ item.dash_price|currency_brl|default:"-" }}
+              {% if item.dash_price_cny is not None %}
+                <small class="text-muted-2 fs-7">{{ item.dash_price_cny|currency_cny }}</small>
+              {% endif %}
+            </td>
             <td>{{ item.diff }}%</td>
             <td>
               <a href="{{ item.link }}" target="_blank" class="text-decoration-none">
