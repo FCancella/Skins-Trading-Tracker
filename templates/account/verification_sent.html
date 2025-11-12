@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Verificação Enviada" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card card-dark" style="background-color: #1a1a2e; border: 1px solid #4a4a7f; border-radius: 10px;">
+      <div class="card-body p-4 p-md-5">
+
+        <div class="text-center mb-4">
+            <i class="bi bi-send-check-fill" style="font-size: 3.5rem; color: #a0a1b7;"></i>
+            
+            <h2 class="card-title text-center mt-3 mb-3">
+                {% trans "Verifique seu E-mail" %}
+            </h2>
+        </div>
+
+        <p class="text-center text-muted-2 mb-4">
+            {% trans "Enviamos um e-mail de verificação para você. Por favor, clique no link dentro do e-mail para ativar sua conta." %}
+        </p>
+        
+        <p class="text-center text-muted-2 small">
+            {% trans "Se não o encontrar em alguns minutos, verifique sua pasta de spam." %}
+        </p>
+        
+        <div class="d-grid gap-2 mt-4">
+            <a href="{% url 'account_login' %}" class="btn btn-outline-light">{% trans "Voltar para o Login" %}</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
