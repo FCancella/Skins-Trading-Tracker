@@ -490,6 +490,22 @@
                 modalContainer.innerHTML = html;
                 const modalElement = modalContainer.querySelector('.modal');
                 if (modalElement) {
+                    
+                    // Verifica se é o modal de venda e preenche a data
+                    if (formType === 'sell') {
+                        const sellDateInput = modalElement.querySelector('input[name="sell_date"]');
+                        // Verifica se o campo existe e não tem um valor
+                        if (sellDateInput && !sellDateInput.value) { 
+                            const now = new Date();
+                            // Ajusta para o fuso horário local
+                            const offset = now.getTimezoneOffset();
+                            const localNow = new Date(now.getTime() - (offset * 60 * 1000));
+                            // Formata para YYYY-MM-DDTHH:MM (formato esperado pelo datetime-local)
+                            const formattedNow = localNow.toISOString().slice(0, 16);
+                            
+                            sellDateInput.value = formattedNow;
+                        }
+                    }
                     const modal = new bootstrap.Modal(modalElement);
                     modal.show();
                     modalElement.addEventListener('hidden.bs.modal', function () {
