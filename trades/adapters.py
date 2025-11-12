@@ -15,21 +15,27 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         if sociallogin.is_existing:
             return
 
-        # Se não veio email (raro para Google), deixa o allauth pedir.
+        # Se não veio nenhum email, deixa o allauth pedir.
         if not sociallogin.email_addresses:
             return
 
-        # Pega o email vindo do Google
-        email = sociallogin.email_addresses[0].email.lower()
+        # 1. Pega TODOS os e-mails verificados vindos do Google
+        verified_emails = []
+        for email_address in sociallogin.email_addresses:
+            if email_address.verified: # Confia apenas nos e-mails que o Google diz que são verificados
+                verified_emails.append(email_address.email.lower())
         
-        # --- 2. SUBSTITUA ESTE BLOCO ---
+        if not verified_emails:
+            # Se não houver e-mails verificados, não podemos fazer nada.
+            return
+
         User = get_user_model()
 
         try:
-            # Tenta encontrar um usuário local com este email
-            user = User.objects.get(email__iexact=email)
+            # 2. Tenta encontrar um usuário local que tenha QUALQUER um desses e-mails
+            user = User.objects.get(email__iexact__in=verified_emails)
 
-            # Email existe! O usuário já tem uma conta local.
+            # 3. Email existe! O usuário já tem uma conta local.
             # Vamos linkar esta conta social (Google) ao usuário existente.
             sociallogin.connect(request, user)
         
@@ -37,6 +43,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             # Email não existe. Este é um usuário 100% novo.
             # O allauth vai criar a conta automaticamente
             # graças a SOCIALACCOUNT_AUTO_SIGNUP = True em settings.py
+            pass
+        
+        except User.MultipleObjectsReturned:
+            # Cenário raro: Múltiplas contas locais com os e-mails da lista.
+            # Não podemos fazer nada automático, então deixamos o allauth falhar.
             pass
 
     def populate_user(self, request, sociallogin, data):
