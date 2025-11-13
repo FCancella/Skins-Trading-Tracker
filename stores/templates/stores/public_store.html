@@ -1,42 +1,41 @@
 {% extends 'base.html' %}
 
-{% block title %}Loja de {{ store_owner.username }}{% endblock %}
+{% block title %}{{ store.name }} - {{ store_owner.username }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
-            <h1 class="text-white display-5">Loja de {{ store_owner.username }}</h1>
-            <p class="text-muted">Confira as skins disponíveis para troca/venda.</p>
-        </div>
-        <div class="col-md-4 text-md-end">
-            {% if store.whatsapp %}
-            <a href="https://wa.me/{{ store.whatsapp }}?text=Olá, vi sua loja no CS2 Tracker e tenho interesse em alguns itens." target="_blank" class="btn btn-success btn-lg">
-                <i class="bi bi-whatsapp"></i> Negociar no WhatsApp
-            </a>
-            {% endif %}
+<div class="container pb-5">
+    <div class="row mb-4 align-items-center">   
+        <div class="col-12 text-center text-md-start">
+            <h1 class="text-white display-5">{{ store.name }}</h1>
+            <p class="text-muted">Vendedor: {{ store_owner.username }}</p>
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         {% for item in items %}
         <div class="col">
-            <div class="card h-100 bg-dark border-secondary text-white shadow-sm">
-                <div class="card-img-top p-3 text-center" style="background: radial-gradient(circle, #2c3034 0%, #212529 100%);">
+            <div class="card h-100 bg-dark border-secondary text-white shadow-sm item-card" id="card-{{ item.id }}">
+                <div class="card-img-top p-3 text-center position-relative" style="background: radial-gradient(circle, #2c3034 0%, #212529 100%);">
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.name }}" class="img-fluid" style="max-height: 150px;">
                     {% else %}
                     <div class="d-flex align-items-center justify-content-center" style="height: 150px;">Sem Imagem</div>
                     {% endif %}
+                    
+                    <div class="position-absolute top-0 end-0 p-2 d-none check-badge">
+                        <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                    </div>
                 </div>
                 <div class="card-body d-flex flex-column">
                     <h6 class="card-title text-truncate" title="{{ item.name }}">{{ item.name }}</h6>
                     <div class="mt-auto pt-3 d-flex justify-content-between align-items-center border-top border-secondary">
-                        <span class="badge bg-success fs-6">R$ {{ item.price }}</span>
+                        <span class="badge bg-success fs-6">R$ <span class="item-price" data-price="{{ item.price|stringformat:'.2f' }}">{{ item.price }}</span></span>
+                        
                         {% if store.whatsapp %}
-                        <a href="https://wa.me/{{ store.whatsapp }}?text=Tenho interesse na skin: {{ item.name }} (R$ {{ item.price }})" target="_blank" class="btn btn-sm btn-outline-light">
-                            Comprar
-                        </a>
+                        <button class="btn btn-sm btn-outline-light btn-add-cart" 
+                                onclick="toggleCart({{ item.id }}, '{{ item.name|escapejs }}', {{ item.price|stringformat:'.2f' }})">
+                            <i class="bi bi-cart-plus"></i> Adicionar
+                        </button>
                         {% endif %}
                     </div>
                 </div>
@@ -45,10 +44,108 @@
         {% empty %}
         <div class="col-12">
             <div class="alert alert-warning text-center">
-                Esta loja ainda não possui itens listados ou os itens disponíveis estão abaixo do preço mínimo (R$ 10,00).
+                Esta loja ainda não possui itens listados.
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+{% if store.whatsapp %}
+<div id="cart-bar" class="fixed-bottom bg-dark border-top border-success p-3 shadow-lg d-none" style="z-index: 1050;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-white mb-2 mb-md-0">
+                <h5 class="m-0">
+                    <i class="bi bi-cart-fill me-2"></i>
+                    <span id="cart-count">0</span> itens selecionados
+                </h5>
+                <small class="text-muted">Total: <span class="text-success fw-bold fs-5">R$ <span id="cart-total">0.00</span></span></small>
+            </div>
+            <div class="col-md-6 text-end">
+                <button onclick="sendToWhatsapp()" class="btn btn-success btn-lg w-100 w-md-auto">
+                    <i class="bi bi-whatsapp me-2"></i> Finalizar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    const whatsappNumber = "{{ store.whatsapp }}";
+
+    function toggleCart(id, name, price) {
+        const index = cart.findIndex(item => item.id === id);
+        const btn = document.querySelector(`#card-${id} .btn-add-cart`);
+        const badge = document.querySelector(`#card-${id} .check-badge`);
+        const card = document.getElementById(`card-${id}`);
+
+        if (index === -1) {
+            // Adicionar ao carrinho
+            cart.push({ id, name, price });
+            
+            // Atualiza UI
+            btn.classList.replace('btn-outline-light', 'btn-success');
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Removido'; // Texto temporário ou ícone
+            btn.innerHTML = '<i class="bi bi-cart-dash"></i> Remover';
+            badge.classList.remove('d-none');
+            card.classList.add('border-success');
+        } else {
+            // Remover do carrinho
+            cart.splice(index, 1);
+            
+            // Atualiza UI
+            btn.classList.replace('btn-success', 'btn-outline-light');
+            btn.innerHTML = '<i class="bi bi-cart-plus"></i> Adicionar';
+            badge.classList.add('d-none');
+            card.classList.remove('border-success');
+        }
+
+        updateCartBar();
+    }
+
+    function updateCartBar() {
+        const cartBar = document.getElementById('cart-bar');
+        const countSpan = document.getElementById('cart-count');
+        const totalSpan = document.getElementById('cart-total');
+
+        if (cart.length > 0) {
+            cartBar.classList.remove('d-none');
+            
+            // Calcula total
+            let total = cart.reduce((sum, item) => sum + item.price, 0);
+            
+            countSpan.innerText = cart.length;
+            totalSpan.innerText = total.toFixed(2);
+        } else {
+            cartBar.classList.add('d-none');
+        }
+    }
+
+    function sendToWhatsapp() {
+        if (cart.length === 0) return;
+
+        let message = "Olá! Gostaria de comprar os seguintes itens da sua loja:\n\n";
+        let total = 0;
+
+        cart.forEach(item => {
+            message += `${item.name} - R$ ${item.price.toFixed(2)}\n`;
+            total += item.price;
+        });
+
+        message += `\n*Total: R$ ${total.toFixed(2)}*`;
+        message += "\n\nPodemos fechar negócio?";
+
+        const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    }
+</script>
+{% endif %}
+
+<style>
+    /* Efeito suave ao selecionar */
+    .item-card { transition: transform 0.2s, border-color 0.2s; }
+    .item-card.border-success { transform: translateY(-5px); }
+</style>
 {% endblock %}

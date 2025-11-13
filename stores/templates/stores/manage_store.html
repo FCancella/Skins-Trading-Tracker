@@ -5,26 +5,30 @@
 
 {% block content %}
 <div class="container">
-    <h2 class="mb-4 text-white">Minha Loja</h2>
+    <h2 class="mb-4 text-white">Gerenciar Loja: {{ store.name }}</h2>
 
     <div class="card bg-dark border-secondary mb-4">
-        <div class="card-header border-secondary text-white fw-bold">Configurações</div>
+        <div class="card-header border-secondary text-white fw-bold">Configurações Gerais</div>
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="update_settings" value="1">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.whatsapp.label_tag }}
+                        {{ form.whatsapp }}
+                    </div>
+                    <div class="col-md-6 mb-3">
                         {{ form.steam_id.label_tag }}
                         {{ form.steam_id }}
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
                         {{ form.fee_percentage.label_tag }}
                         {{ form.fee_percentage }}
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        {{ form.whatsapp.label_tag }}
-                        {{ form.whatsapp }}
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Salvar Configurações</button>
@@ -63,7 +67,7 @@
                         <th scope="col" style="width: 50px;">Visível</th>
                         <th scope="col">Item</th>
                         <th scope="col" class="text-end">Preço Base & Taxa</th>
-                        <th scope="col" class="text-end">Preço Final (Arredondado)</th>
+                        <th scope="col" class="text-end">Preço Final</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,7 +87,7 @@
                             </div>
                         </td>
                         <td class="text-end text-muted">
-                           {{ item.base_price }} <small class="text-success">(R$ {{ item.tax_amount }})</small>
+                           {{ item.base_price }} <small class="text-success">(+ R$ {{ item.tax_amount }})</small>
                         </td>
                         <td class="text-end fw-bold text-success">
                             R$ {{ item.price }}
@@ -94,7 +98,7 @@
             </table>
         </div>
         
-        <div class="fixed-bottom bg-dark border-top border-secondary p-3 text-end">
+        <div class="fixed-bottom bg-dark border-top border-secondary p-3 text-end" style="z-index: 10;">
             <div class="container">
                 <button type="submit" class="btn btn-success btn-lg">Salvar Alterações de Visibilidade</button>
             </div>
