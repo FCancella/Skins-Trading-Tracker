@@ -267,7 +267,7 @@ def _calculate_update_notifications(user: User) -> dict:
         current_day = today + timedelta(days=i)
         
         tradable_count = Trade.objects.filter(
-            owner=user, sell_date__isnull=True, buy_date=current_day - timedelta(days=7)
+            owner=user, sell_date__isnull=True, buy_date=current_day - timedelta(days=8)
         ).count()
 
         payment_count = Trade.objects.filter(

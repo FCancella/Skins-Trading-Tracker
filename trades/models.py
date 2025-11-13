@@ -92,7 +92,7 @@ class Trade(models.Model):
     def days_until_tradable(self) -> bool:
         if self.sell_date:
             return False
-        total_days = 7 - (timezone.now() - self.buy_date).days
+        total_days = 8 - (timezone.now() - self.buy_date).days
         return total_days if total_days > 0 else None
 
     @property
