@@ -11,30 +11,36 @@
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4 mb-5">
         {% for item in items %}
         <div class="col">
             <div class="card h-100 bg-dark border-secondary text-white shadow-sm item-card" id="card-{{ item.id }}">
-                <div class="card-img-top p-3 text-center position-relative" style="background: radial-gradient(circle, #2c3034 0%, #212529 100%);">
+                <div class="card-img-top p-2 p-md-3 text-center position-relative" style="background: radial-gradient(circle, #2c3034 0%, #212529 100%);">
                     {% if item.image_url %}
-                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="img-fluid" style="max-height: 150px;">
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="img-fluid" style="max-height: 120px;">
                     {% else %}
-                    <div class="d-flex align-items-center justify-content-center" style="height: 150px;">Sem Imagem</div>
+                    <div class="d-flex align-items-center justify-content-center small text-muted" style="height: 100px;">Sem Imagem</div>
                     {% endif %}
                     
-                    <div class="position-absolute top-0 end-0 p-2 d-none check-badge">
-                        <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                    <div class="position-absolute top-0 end-0 p-1 d-none check-badge">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
                     </div>
                 </div>
-                <div class="card-body d-flex flex-column">
-                    <h6 class="card-title text-truncate" title="{{ item.name }}">{{ item.name }}</h6>
-                    <div class="mt-auto pt-3 d-flex justify-content-between align-items-center border-top border-secondary">
-                        <span class="badge bg-success fs-6">R$ <span class="item-price" data-price="{{ item.price|stringformat:'.2f' }}">{{ item.price }}</span></span>
+
+                <div class="card-body d-flex flex-column p-2 p-md-3">
+                    <h6 class="card-title item-name-clamp mb-2" title="{{ item.name }}">
+                        {{ item.name }}
+                    </h6>
+                    
+                    <div class="mt-auto d-flex flex-column flex-xl-row justify-content-between align-items-center gap-2">
+                        <span class="badge bg-success w-100 w-xl-auto text-truncate price-badge">
+                            R$ <span class="item-price" data-price="{{ item.price|stringformat:'.2f' }}">{{ item.price }}</span>
+                        </span>
                         
                         {% if store.whatsapp %}
-                        <button class="btn btn-sm btn-outline-light btn-add-cart" 
+                        <button class="btn btn-sm btn-outline-light w-100 w-xl-auto btn-add-cart" 
                                 onclick="toggleCart({{ item.id }}, '{{ item.name|escapejs }}', {{ item.price|stringformat:'.2f' }})">
-                            <i class="bi bi-cart-plus"></i> Adicionar
+                            <i class="bi bi-cart-plus"></i> <span class="d-none d-sm-inline">Add</span>
                         </button>
                         {% endif %}
                     </div>
@@ -55,16 +61,16 @@
 <div id="cart-bar" class="fixed-bottom bg-dark border-top border-success p-3 shadow-lg d-none" style="z-index: 1050;">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-md-6 text-white mb-2 mb-md-0">
-                <h5 class="m-0">
-                    <i class="bi bi-cart-fill me-2"></i>
-                    <span id="cart-count">0</span> itens selecionados
-                </h5>
-                <small class="text-muted">Total: <span class="text-success fw-bold fs-5">R$ <span id="cart-total">0.00</span></span></small>
+            <div class="col-6 col-md-6 text-white">
+                <h6 class="m-0">
+                    <i class="bi bi-cart-fill me-1"></i>
+                    <span id="cart-count">0</span> <span class="d-none d-sm-inline">itens</span>
+                </h6>
+                <small class="text-muted" style="font-size: 0.8rem;">Total: <span class="text-success fw-bold">R$ <span id="cart-total">0.00</span></span></small>
             </div>
-            <div class="col-md-6 text-end">
-                <button onclick="sendToWhatsapp()" class="btn btn-success btn-lg w-100 w-md-auto">
-                    <i class="bi bi-whatsapp me-2"></i> Finalizar Pedido
+            <div class="col-6 col-md-6 text-end">
+                <button onclick="sendToWhatsapp()" class="btn btn-success btn-sm btn-md-lg w-100 w-md-auto">
+                    <i class="bi bi-whatsapp"></i> <span class="d-none d-sm-inline">Finalizar</span>
                 </button>
             </div>
         </div>
@@ -82,26 +88,18 @@
         const card = document.getElementById(`card-${id}`);
 
         if (index === -1) {
-            // Adicionar ao carrinho
             cart.push({ id, name, price });
-            
-            // Atualiza UI
             btn.classList.replace('btn-outline-light', 'btn-success');
-            btn.innerHTML = '<i class="bi bi-check-lg"></i> Removido'; // Texto temporário ou ícone
-            btn.innerHTML = '<i class="bi bi-cart-dash"></i> Remover';
+            btn.innerHTML = '<i class="bi bi-check"></i>';
             badge.classList.remove('d-none');
             card.classList.add('border-success');
         } else {
-            // Remover do carrinho
             cart.splice(index, 1);
-            
-            // Atualiza UI
             btn.classList.replace('btn-success', 'btn-outline-light');
-            btn.innerHTML = '<i class="bi bi-cart-plus"></i> Adicionar';
+            btn.innerHTML = '<i class="bi bi-cart-plus"></i> <span class="d-none d-sm-inline">Add</span>';
             badge.classList.add('d-none');
             card.classList.remove('border-success');
         }
-
         updateCartBar();
     }
 
@@ -112,10 +110,7 @@
 
         if (cart.length > 0) {
             cartBar.classList.remove('d-none');
-            
-            // Calcula total
             let total = cart.reduce((sum, item) => sum + item.price, 0);
-            
             countSpan.innerText = cart.length;
             totalSpan.innerText = total.toFixed(2);
         } else {
@@ -125,10 +120,8 @@
 
     function sendToWhatsapp() {
         if (cart.length === 0) return;
-
         let message = "Olá! Gostaria de comprar os seguintes itens da sua loja:\n\n";
         let total = 0;
-
         cart.forEach(item => {
             message += `${item.name} - R$ ${item.price.toFixed(2)}\n`;
             total += item.price;
@@ -144,8 +137,34 @@
 {% endif %}
 
 <style>
-    /* Efeito suave ao selecionar */
+    /* Estilo para limitar o nome a 2 linhas com ... no final */
+    .item-name-clamp {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;   /* Número máximo de linhas */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;     /* Permite quebra de linha */
+        line-height: 1.2;        /* Espaçamento entre linhas */
+        height: 2.4em;           /* Altura fixa = 2 linhas * 1.2 */
+        font-size: 0.9rem;
+    }
+
+    /* Ajustes Específicos para Mobile */
+    @media (max-width: 576px) {
+        .item-name-clamp {
+            font-size: 0.8rem;   /* Fonte um pouco menor */
+            height: 2.4em;       /* Mantém a altura proporcional */
+        }
+        
+        .price-badge { font-size: 0.8rem; padding: 0.35em 0.5em; }
+        .btn-add-cart { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+        .card-img-top img { max-height: 100px !important; }
+        .g-3 { --bs-gutter-y: 0.5rem; --bs-gutter-x: 0.5rem; }
+    }
+
+    /* Efeito de seleção */
     .item-card { transition: transform 0.2s, border-color 0.2s; }
-    .item-card.border-success { transform: translateY(-5px); }
+    .item-card.border-success { border-width: 2px; }
 </style>
 {% endblock %}
