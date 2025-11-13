@@ -1,9 +1,12 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from decimal import Decimal
-from .models import Store, StoreItem
+from .models import Store, StoreItem, StoreLog
 from .forms import StoreSettingsForm
 from .utils import get_steam_inventory, get_item_base_price
 
@@ -12,13 +15,22 @@ def manage_store(request):
     store, created = Store.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
+        # 1. Atualizar Configurações
         if 'update_settings' in request.POST:
             form = StoreSettingsForm(request.POST, instance=store)
             if form.is_valid():
                 form.save()
+                # LOG
+                StoreLog.objects.create(
+                    store=store,
+                    user=request.user,
+                    action="Salvar Configurações",
+                    details=f"Nome: {store.name}, Taxa: {store.fee_percentage}%"
+                )
                 messages.success(request, 'Configurações da loja atualizadas!')
                 return redirect('manage_store')
         
+        # 2. Recarregar Inventário
         elif 'refresh_inventory' in request.POST:
             if not store.steam_id:
                 messages.error(request, 'Configure seu Steam ID primeiro.')
@@ -52,13 +64,24 @@ def manage_store(request):
                     
                     count = len(new_items)
                     ignored = len(inventory_data) - count
+                    
+                    # LOG
+                    StoreLog.objects.create(
+                        store=store,
+                        user=request.user,
+                        action="Carregar/Reset Inventário",
+                        details=f"Importados: {count}, Ignorados: {ignored}"
+                    )
+
                     messages.success(request, f'{count} itens importados. ({ignored} ignorados por preço baixo).')
                 else:
                     messages.error(request, 'Não foi possível buscar o inventário. Verifique o Steam ID ou se o inventário é público.')
             return redirect('manage_store')
 
+        # 3. Salvar Alterações Manuais (Itens)
         elif 'update_items' in request.POST:
             items = store.items.all()
+            count_updated = 0
             for item in items:
                 # 1. Atualiza Visibilidade
                 is_visible = request.POST.get(f'visible_{item.id}') == 'on'
@@ -75,6 +98,15 @@ def manage_store(request):
                         pass # Mantém o valor antigo se o input for inválido
 
                 item.save()
+                count_updated += 1
+            
+            # LOG
+            StoreLog.objects.create(
+                store=store,
+                user=request.user,
+                action="Salvar Itens Manuais",
+                details=f"Atualizou visibilidade/preço de {count_updated} itens."
+            )
                 
             messages.success(request, 'Itens atualizados com sucesso!')
             return redirect('manage_store')
@@ -82,7 +114,6 @@ def manage_store(request):
     else:
         form = StoreSettingsForm(instance=store)
 
-    # Ordenação por base_price, pois price agora é calculado
     items = store.items.all().order_by('-base_price')
     
     return render(request, 'stores/manage_store.html', {
@@ -102,3 +133,32 @@ def public_store(request, username):
         'store': store,
         'items': items
     })
+
+@require_POST
+def log_cart_checkout(request):
+    """Recebe os dados do carrinho via JS e salva o log."""
+    try:
+        data = json.loads(request.body)
+        store_id = data.get('store_id')
+        items = data.get('items', [])
+        total = data.get('total', 0)
+
+        store = get_object_or_404(Store, id=store_id)
+        
+        # Formata a lista de itens para salvar no texto
+        items_str = ", ".join([f"{i['name']} (R$ {i['price']})" for i in items])
+        details_text = f"Total: R$ {total}\nItens: {items_str}"
+
+        # Identifica usuário se estiver logado
+        user = request.user if request.user.is_authenticated else None
+
+        StoreLog.objects.create(
+            store=store,
+            user=user,
+            action="Finalizar Pedido (WhatsApp)",
+            details=details_text
+        )
+        
+        return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

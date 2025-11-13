@@ -48,3 +48,17 @@ class StoreItem(models.Model):
 
     def __str__(self):
         return f"{self.name} - R$ {self.price}"
+
+class StoreLog(models.Model):
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='logs', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, help_text="Quem realizou a ação")
+    action = models.CharField(max_length=100)
+    details = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        user_name = self.user.username if self.user else "Visitante"
+        return f"[{self.timestamp.strftime('%d/%m %H:%M')}] {user_name} - {self.action}"
