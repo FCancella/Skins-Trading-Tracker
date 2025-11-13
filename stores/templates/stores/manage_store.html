@@ -66,8 +66,8 @@
                     <tr>
                         <th scope="col" style="width: 50px;">Visível</th>
                         <th scope="col">Item</th>
-                        <th scope="col" class="text-end">Preço Base & Taxa</th>
-                        <th scope="col" class="text-end">Preço Final</th>
+                        <th scope="col" class="text-end" style="min-width: 180px;">Preço Base (Editável)</th>
+                        <th scope="col" class="text-end">Preço Final (Automático)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,8 +86,16 @@
                                 <span>{{ item.name }}</span>
                             </div>
                         </td>
-                        <td class="text-end text-muted">
-                           {{ item.base_price }} <small class="text-success">(+ R$ {{ item.tax_amount }})</small>
+                        <td class="text-end">
+                           <div class="input-group input-group-sm justify-content-end">
+                                <span class="input-group-text bg-dark border-secondary text-muted">R$</span>
+                                <input type="text" 
+                                       class="form-control bg-dark text-white border-secondary text-end price-input" 
+                                       name="base_price_{{ item.id }}" 
+                                       value="{{ item.base_price|stringformat:'.2f' }}"
+                                       style="max-width: 100px;">
+                           </div>
+                           <small class="text-muted d-block mt-1">Taxa da loja: + R$ {{ item.tax_amount }}</small>
                         </td>
                         <td class="text-end fw-bold text-success">
                             R$ {{ item.price }}
@@ -100,7 +108,7 @@
         
         <div class="fixed-bottom bg-dark border-top border-secondary p-3 text-end" style="z-index: 10;">
             <div class="container">
-                <button type="submit" class="btn btn-success btn-lg">Salvar Alterações de Visibilidade</button>
+                <button type="submit" class="btn btn-success btn-lg">Salvar Alterações</button>
             </div>
         </div>
     </form>

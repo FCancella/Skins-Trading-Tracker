@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from decimal import Decimal
 from .models import Store, StoreItem
 from .forms import StoreSettingsForm
 from .utils import get_steam_inventory, get_item_base_price
@@ -43,7 +44,7 @@ def manage_store(request):
                                 store=store,
                                 name=name,
                                 image_url=image,
-                                base_price=base_price, # Apenas base
+                                base_price=base_price,
                                 is_visible=not is_auto_hidden
                             ))
                     
@@ -59,11 +60,23 @@ def manage_store(request):
         elif 'update_items' in request.POST:
             items = store.items.all()
             for item in items:
+                # 1. Atualiza Visibilidade
                 is_visible = request.POST.get(f'visible_{item.id}') == 'on'
-                if item.is_visible != is_visible:
-                    item.is_visible = is_visible
-                    item.save()
-            messages.success(request, 'Visibilidade dos itens atualizada.')
+                item.is_visible = is_visible
+
+                # 2. Atualiza Preço Base (Editável)
+                new_price_str = request.POST.get(f'base_price_{item.id}')
+                if new_price_str:
+                    try:
+                        # Remove R$ e espaços, troca vírgula por ponto se necessário
+                        clean_price = new_price_str.replace('R$', '').replace(' ', '').replace(',', '.')
+                        item.base_price = Decimal(clean_price)
+                    except Exception:
+                        pass # Mantém o valor antigo se o input for inválido
+
+                item.save()
+                
+            messages.success(request, 'Itens atualizados com sucesso!')
             return redirect('manage_store')
 
     else:
