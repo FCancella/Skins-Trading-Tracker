@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Loja de {{ store_owner.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h1 class="text-white display-5">Loja de {{ store_owner.username }}</h1>
+            <p class="text-muted">Confira as skins disponíveis para troca/venda.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if store.whatsapp %}
+            <a href="https://wa.me/{{ store.whatsapp }}?text=Olá, vi sua loja no CS2 Tracker e tenho interesse em alguns itens." target="_blank" class="btn btn-success btn-lg">
+                <i class="bi bi-whatsapp"></i> Negociar no WhatsApp
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for item in items %}
+        <div class="col">
+            <div class="card h-100 bg-dark border-secondary text-white shadow-sm">
+                <div class="card-img-top p-3 text-center" style="background: radial-gradient(circle, #2c3034 0%, #212529 100%);">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="img-fluid" style="max-height: 150px;">
+                    {% else %}
+                    <div class="d-flex align-items-center justify-content-center" style="height: 150px;">Sem Imagem</div>
+                    {% endif %}
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title text-truncate" title="{{ item.name }}">{{ item.name }}</h6>
+                    <div class="mt-auto pt-3 d-flex justify-content-between align-items-center border-top border-secondary">
+                        <span class="badge bg-success fs-6">R$ {{ item.price }}</span>
+                        {% if store.whatsapp %}
+                        <a href="https://wa.me/{{ store.whatsapp }}?text=Tenho interesse na skin: {{ item.name }} (R$ {{ item.price }})" target="_blank" class="btn btn-sm btn-outline-light">
+                            Comprar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                Esta loja ainda não possui itens listados ou os itens disponíveis estão abaixo do preço mínimo (R$ 10,00).
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

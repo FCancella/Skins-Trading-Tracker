@@ -67,6 +67,7 @@ INSTALLED_APPS: list[str] = [
     'trades',
     'scanner',
     'subscriptions',
+    'stores',
 
     'allauth',
     'allauth.account',
