@@ -14,9 +14,13 @@
                 {% csrf_token %}
                 <input type="hidden" name="update_settings" value="1">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         {{ form.name.label_tag }}
                         {{ form.name }}
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        {{ form.color.label_tag }}
+                        {{ form.color }}
                     </div>
                     <div class="col-md-6 mb-3">
                         {{ form.whatsapp.label_tag }}
@@ -95,7 +99,7 @@
                                        value="{{ item.base_price|stringformat:'.2f' }}"
                                        style="max-width: 100px;">
                            </div>
-                           <small class="text-muted d-block mt-1">Taxa da loja: + R$ {{ item.tax_amount }}</small>
+                           <small class="text-muted d-block mt-1">Taxa: + R$ {{ item.tax_amount }}</small>
                         </td>
                         <td class="text-end fw-bold text-success">
                             R$ {{ item.price }}

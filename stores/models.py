@@ -6,6 +6,9 @@ import math
 class Store(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='store')
     name = models.CharField(max_length=100, default="Minha Loja", verbose_name="Nome da Loja")
+    
+    color = models.CharField(max_length=7, default="#0d6efd", verbose_name="Cor do Tema", help_text="Cor principal da sua loja (Hex)")
+    
     steam_id = models.CharField(max_length=64, help_text="Steam ID64 do vendedor")
     fee_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=10.0, verbose_name="Taxa (%)")
     whatsapp = models.CharField(max_length=20, help_text="Número com DDD para contato", blank=True, null=True)
