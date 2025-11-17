@@ -1,13 +1,198 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Counter-Strike Trading Tracker" %}{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center align-items-center" style="height: 70vh;">
-  <div class="col-12 col-md-8 text-center">
-    <h1 class="display-4 fw-bold mb-4">{% blocktrans %}Bem-vindo ao<br>CS2 Skins Trading Tracker{% endblocktrans %}</h1>
-    <p class="lead text-muted-2 mb-5">{% trans "Acompanhe seus trades de skins de Counter-Strike com facilidade." %}</p>
-    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-      <a href="{% url 'about' %}" class="btn btn-primary btn-lg px-4">{% trans "Saiba mais" %}</a>
-      <a href="{% url 'account_login' %}" class="btn btn-outline-light btn-lg px-4">{% trans "Entrar" %}</a>
+<div class="container px-4 py-5">
+  <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+    <div class="col-10 col-sm-8 col-lg-6">
+      <img src="{% static 'CSTT logo.png' %}" class="d-block mx-lg-auto img-fluid" alt="Logo" width="500" height="500" loading="lazy" style="filter: drop-shadow(0 0 2rem rgba(122, 43, 246, 0.4));">
+    </div>
+    <div class="col-lg-6">
+      <h1 class="display-3 fw-bold lh-1 mb-3">{% trans "Counter-Strike Trading Tracker" %}</h1>
+      <h2 class="display-5 fw-bold mb-4" style="color: var(--pink);">{% trans "Domine Seus Trades" %}</h2>
+      <p class="lead text-muted-2 mb-5">{% blocktrans %}Chega de planilhas confusas. A plataforma definitiva para rastrear seu portfólio, analisar lucros e tomar decisões mais inteligentes.{% endblocktrans %}</p>
+      <div class="d-grid gap-3 d-md-flex justify-content-md-start">
+        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg px-4 me-md-2">{% trans "Comece Agora" %}</a>
+        <a href="{% url 'account_login' %}" class="btn btn-outline-light btn-lg px-4">{% trans "Fazer Login" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container px-4 py-5" id="features">
+  <h2 class="pb-2 border-bottom border-purple">{% trans "Tudo que você precisa em um só lugar" %}</h2>
+  <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+    
+    <div class="col d-flex align-items-start">
+      <div class="icon-square text-bg-dark d-inline-flex align-items-center justify-content-center fs-2 flex-shrink-0 me-2 p-3" style="background: linear-gradient(135deg, var(--purple), var(--pink)); border-radius: .75rem;">
+        <i class="bi bi-bar-chart-line-fill"></i>
+      </div>
+      <div>
+        <h3 class="fs-4">{% trans "Dashboard de Performance" %}</h3>
+        <p class="text-muted-2">{% blocktrans %}Veja exatamente quanto você lucrou, quanto gastou, o valor do seu inventário e seu patrimônio total em tempo real.{% endblocktrans %}</p>
+      </div>
+    </div>
+    
+    <div class="col d-flex align-items-start">
+      <div class="icon-square text-bg-dark d-inline-flex align-items-center justify-content-center fs-2 flex-shrink-0 me-2 p-3" style="background: linear-gradient(135deg, var(--purple), var(--pink)); border-radius: .75rem;">
+        <i class="bi bi-journal-plus"></i>
+      </div>
+      <div>
+        <h3 class="fs-4">{% trans "Registro Rápido de Trades" %}</h3>
+        <p class="text-muted-2">{% blocktrans %}Adicione compras e vendas em segundos. Registre o item, preço, data e fonte (Youpin, Skinport, etc.) facilmente.{% endblocktrans %}</p>
+      </div>
+    </div>
+    
+    <div class="col d-flex align-items-start">
+      <div class="icon-square text-bg-dark d-inline-flex align-items-center justify-content-center fs-2 flex-shrink-0 me-2 p-3" style="background: linear-gradient(135deg, var(--purple), var(--pink)); border-radius: .75rem;">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+      <div>
+        <h3 class="fs-4">{% trans "Gráfico de Rentabilidade" %}</h3>
+        <p class="text-muted-2">{% blocktrans %}Veja seu patrimônio crescer. Acompanhe sua rentabilidade total em um gráfico claro que mostra sua performance desde o primeiro trade.{% endblocktrans %}</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="container px-4 py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 text-center">
+      <h2 class="display-4 fw-bold mb-4">{% trans "Sua Planilha Nunca Fez Isso" %}</h2>
+      <p class="lead text-muted-2 mb-5">{% blocktrans %}Veja como é fácil visualizar seu Resumo, Performance e Portfolio de forma automática, sem fórmulas ou abas confusas. (Exemplo estático).{% endblocktrans %}</p>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-12">
+      
+      <div class="card mb-3">
+        <div class="card-header h5">
+          {% trans "Resumo" %}
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col kpi">
+              <div class="lbl">{% trans "NAV (Patrimônio)" %}</div>
+              <div class="val text-white">R$ 15.204,50</div>
+            </div>
+            <div class="col kpi">
+              <div class="lbl">{% trans "Lucro Realizado" %}</div>
+              <div class="val text-success">+ R$ 2.850,10</div>
+            </div>
+            <div class="col kpi">
+              <div class="lbl">{% trans "Custo Base (Aberto)" %}</div>
+              <div class="val text-white">R$ 8.130,00</div>
+            </div>
+            <div class="col kpi">
+              <div class="lbl">{% trans "ROI (Realizado)" %}</div>
+              <div class="val text-success">+ 22.7%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header h5">
+          {% trans "Performance" %}
+        </div>
+        <div class="card-body" style="padding: 0; height: 200px; position: relative; overflow: hidden;">
+            <svg viewBox="0 0 500 100" preserveAspectRatio="none" style="width: 100%; height: 100%; position: absolute; left: 0; top: 0;">
+              <defs>
+                <linearGradient id="positiveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color: var(--purple); stop-opacity: 0.4;"/>
+                  <stop offset="100%" style="stop-color: var(--bg-1); stop-opacity: 0.1;"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,80 C80,75 150,50 250,40 S380,10 500,10" 
+                    stroke="var(--purple)" 
+                    stroke-width="2.5" 
+                    fill="none"/>
+              <path d="M0,80 C80,75 150,50 250,40 S380,10 500,10 V100 H0 Z" 
+                    fill="url(#positiveGradient)"/>
+            </svg>
+        </div>
+      </div>
+      <div class="card mb-4">
+        <div class="card-header h5">
+          {% trans "Portfolio" %}
+        </div>
+        <div class="card-body">
+          <div class="table-responsive mb-0">
+            <table class="table table-hover align-middle" id="portfolioTable">
+              <thead>
+                <tr>
+                  <th class="sortable" data-sort-type="text">{% trans "Item" %}</th>
+                  <th class="sortable" data-sort-type="currency">{% trans "Compra" %}</th>
+                  <th class="sortable" data-sort-type="currency">{% trans "Venda" %}</th>
+                  <th class="sortable" data-sort-type="text">{% trans "Loja (C)" %}</th>
+                  <th class="sortable" data-sort-type="text">{% trans "Loja (V)" %}</th>
+                  <th class="sortable" data-sort-type="date">{% trans "Data (C)" %}</th>
+                  <th class="sortable" data-sort-type="date">{% trans "Data (V)" %}</th>
+                  <th class="sortable" data-sort-type="currency">{% trans "Lucro" %}</th>
+                  <th>{% trans "Status" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-white">AK-47 | Redline (Field-Tested)</td>
+                  <td>R$ 150,00</td>
+                  <td><span class="text-muted-2" title="{% trans "Preço de mercado" %}">R$ 185,50</span></td>
+                  <td>Dash P2P</td>
+                  <td>—</td>
+                  <td>10/11/25</td>
+                  <td>—</td>
+                  <td><span class="text-success" style="font-style: italic;">+R$ 35,50</span></td>
+                  <td><span class="badge status-open">Open</span></td>
+                </tr>
+                <tr>
+                  <td class="text-white">AWP | Fade (Factory New)</td>
+                  <td>R$ 5.500,00</td>
+                  <td><span class="text-muted-2" title="{% trans "Preço de mercado" %}">R$ 6.200,00</span></td>
+                  <td>Skinport</td>
+                  <td>—</td>
+                  <td>01/11/25</td>
+                  <td>—</td>
+                  <td><span class="text-success" style="font-style: italic;">+R$ 700,00</span></td>
+                  <td><span class="badge status-open">Open</span></td>
+                </tr>
+                <tr>
+                  <td class="text-white">M4A1-S | Printstream (Field-Tested)</td>
+                  <td>R$ 1.400,00</td>
+                  <td>R$ 1.610,00</td>
+                  <td>Youpin</td>
+                  <td>Dash</td>
+                  <td>15/10/25</td>
+                  <td>05/11/25</td>
+                  <td><span class="text-success" style="font-style: italic;">+R$ 210,00</span></td>
+                  <td><span class="badge status-closed">Closed</span></td>
+                </tr>
+                 <tr>
+                  <td class="text-white">Glove Case</td>
+                  <td>R$ 48,00</td>
+                  <td><span class="text-muted-2" title="{% trans "Preço de mercado" %}">R$ 45,00</span></td>
+                  <td>Youpin</td>
+                  <td>—</td>
+                  <td>05/10/25</td>
+                  <td>—</td>
+                  <td><span class="text-danger" style="font-style: italic;">-R$ 3,00</span></td>
+                  <td><span class="badge status-open">Open</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+  </div>
+</div>
+<div class="container py-5">
+  <div class="p-5 text-center rounded-3" style="background: linear-gradient(135deg, var(--bg-1), var(--bg-2)); border: 1px solid var(--border);">
+    <h2 class="display-4 fw-bold mb-4">{% trans "Diga adeus às planilhas." %}</h2>
+    <p class="lead text-muted-2 mb-5">{% trans "Centralize seus trades, acompanhe seu NAV e descubra seu lucro real. A ferramenta que sua planilha sonha em ser." %}</p>
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+      <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg px-4 gap-3">{% trans "Criar minha conta" %}</a>
     </div>
   </div>
 </div>

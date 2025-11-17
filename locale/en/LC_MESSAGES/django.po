@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 23:13-0300\n"
+"POT-Creation-Date: 2025-11-17 02:02-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,11 +28,6 @@ msgstr "Confirm your E-mail"
 
 #: .\templates\account\email_confirm.html:20
 #, python-format
-#| msgid ""
-#| "\n"
-#| "                    Por favor, confirme que <strong class=\"text-"
-#| "white\">%(email)s</strong> é o seu endereço de e-mail.\n"
-#| "                    "
 msgid ""
 "\n"
 "            Por favor, confirme que <strong class=\"text-white\">%(email)s</"
@@ -54,12 +49,6 @@ msgstr "Invalid Link"
 
 #: .\templates\account\email_confirm.html:43
 #, python-format
-#| msgid ""
-#| "\n"
-#| "                    O link de confirmação que você usou está expirado, é "
-#| "inválido ou já foi utilizado. Por favor, <a "
-#| "href=\"%(email_url)s\">solicite uma nova confirmação</a>.\n"
-#| "                    "
 msgid ""
 "\n"
 "            O link de confirmação que você usou está expirado, é inválido ou "
@@ -111,7 +100,6 @@ msgid "Lembrar-me"
 msgstr "Remember me"
 
 #: .\templates\account\login.html:65 .\templates\base.html:81
-#: .\templates\trades\home.html:10
 msgid "Entrar"
 msgstr "Login"
 
@@ -297,6 +285,30 @@ msgstr ""
 msgid "Você pode tentar novamente ou retornar à página de login."
 msgstr "You can try again or return to the login page."
 
+#: .\templates\socialaccount\signup.html:3
+#: .\templates\socialaccount\signup.html:9
+#: .\templates\socialaccount\signup.html:23
+#| msgid "Sign In"
+msgid "Sign Up"
+msgstr "Sign Up"
+
+#: .\templates\socialaccount\signup.html:12
+#, python-format
+msgid ""
+"\n"
+"                Você está prestes a usar sua conta %(provider_name)s para se "
+"conectar ao\n"
+"                %(site.name)s. Por favor, complete o formulário abaixo para "
+"finalizar seu cadastro.\n"
+"                "
+msgstr ""
+"\n"
+"                You are about to use your %(provider_name)s account to "
+"connect to\n"
+"                %(site.name)s. Please complete the form below to "
+"finish signing up.\n"
+"                "
+
 #: .\templates\trades\add_trade_form.html:4
 msgid "Adicionar itens"
 msgstr "Add Items"
@@ -381,17 +393,176 @@ msgstr "Sell"
 msgid "Remover Venda"
 msgstr "Remove Sell"
 
-#: .\templates\trades\home.html:6
-msgid "Bem-vindo ao<br>CS2 Skins Trading Tracker"
-msgstr "Welcome to<br>CS2 Skins Trading Tracker"
+#: .\templates\trades\home.html:5 .\templates\trades\home.html:14
+msgid "Counter-Strike Trading Tracker"
+msgstr "Counter-Strike Trading Tracker"
 
-#: .\templates\trades\home.html:7
-msgid "Acompanhe seus trades de skins de Counter-Strike com facilidade."
-msgstr "Track your Counter-Strike skin trades with ease."
+#: .\templates\trades\home.html:15
+msgid "Domine Seus Trades"
+msgstr "Master Your Trades"
 
-#: .\templates\trades\home.html:9
-msgid "Saiba mais"
-msgstr "Learn more"
+#: .\templates\trades\home.html:16
+msgid ""
+"Chega de planilhas confusas. A plataforma definitiva para rastrear seu "
+"portfólio, analisar lucros e tomar decisões mais inteligentes."
+msgstr ""
+"No more confusing spreadsheets. The definitive platform to track your "
+"portfolio, analyze profits, and make smarter decisions."
+
+#: .\templates\trades\home.html:18
+msgid "Comece Agora"
+msgstr "Start Now"
+
+#: .\templates\trades\home.html:19
+msgid "Fazer Login"
+msgstr "Log In"
+
+#: .\templates\trades\home.html:25
+msgid "Tudo que você precisa em um só lugar"
+msgstr "Everything you need in one place"
+
+#: .\templates\trades\home.html:33
+msgid "Dashboard de Performance"
+msgstr "Performance Dashboard"
+
+#: .\templates\trades\home.html:34
+msgid ""
+"Veja exatamente quanto você lucrou, quanto gastou, o valor do seu inventário "
+"e seu patrimônio total em tempo real."
+msgstr ""
+"See exactly how much you've profited, how much you've spent, your "
+"inventory's value, and your total equity in real time."
+
+#: .\templates\trades\home.html:43
+msgid "Registro Rápido de Trades"
+msgstr "Quick Trade Entry"
+
+#: .\templates\trades\home.html:44
+msgid ""
+"Adicione compras e vendas em segundos. Registre o item, preço, data e fonte "
+"(Youpin, Skinport, etc.) facilmente."
+msgstr ""
+"Add your buys and sells in seconds. Easily log the item, price, date, and "
+"source (Youpin, Skinport, etc.)."
+
+#: .\templates\trades\home.html:53
+msgid "Gráfico de Rentabilidade"
+msgstr "Profitability Chart"
+
+#: .\templates\trades\home.html:54
+msgid ""
+"Veja seu patrimônio crescer. Acompanhe sua rentabilidade total em um gráfico "
+"claro que mostra sua performance desde o primeiro trade."
+msgstr ""
+"Watch your equity grow. Track your total profitability on a clear chart that "
+"shows your performance since the first trade."
+
+#: .\templates\trades\home.html:63
+msgid "Sua Planilha Nunca Fez Isso"
+msgstr "Your Spreadsheet Never Did This"
+
+#: .\templates\trades\home.html:64
+msgid ""
+"Veja como é fácil visualizar seu Resumo, Performance e Portfolio de forma "
+"automática, sem fórmulas ou abas confusas. (Exemplo estático)."
+msgstr ""
+"See how easy it is to automatically view your Summary, Performance, and "
+"Portfolio, with no formulas or confusing tabs. (Static example)."
+
+#: .\templates\trades\home.html:73
+#: .\templates\trades\portfolio_content.html:133
+msgid "Resumo"
+msgstr "Summary"
+
+#: .\templates\trades\home.html:78
+msgid "NAV (Patrimônio)"
+msgstr "NAV (Equity)"
+
+#: .\templates\trades\home.html:82
+msgid "Lucro Realizado"
+msgstr "Realized Profit"
+
+#: .\templates\trades\home.html:86
+msgid "Custo Base (Aberto)"
+msgstr "Cost Basis (Open)"
+
+#: .\templates\trades\home.html:90
+msgid "ROI (Realizado)"
+msgstr "ROI (Realized)"
+
+#: .\templates\trades\home.html:98
+msgid "Performance"
+msgstr "Performance"
+
+#: .\templates\trades\home.html:119
+msgid "Portfolio"
+msgstr "Portfolio"
+
+#: .\templates\trades\home.html:126
+msgid "Item"
+msgstr "Item"
+
+#: .\templates\trades\home.html:127
+#: .\templates\trades\portfolio_content.html:205
+msgid "Compra"
+msgstr "Buy"
+
+#: .\templates\trades\home.html:128
+#: .\templates\trades\portfolio_content.html:206
+msgid "Venda"
+msgstr "Sell"
+
+#: .\templates\trades\home.html:129
+#: .\templates\trades\portfolio_content.html:207
+msgid "Loja (C)"
+msgstr "Buy Source"
+
+#: .\templates\trades\home.html:130
+#: .\templates\trades\portfolio_content.html:208
+msgid "Loja (V)"
+msgstr "Sell Source"
+
+#: .\templates\trades\home.html:131
+#: .\templates\trades\portfolio_content.html:209
+msgid "Data (C)"
+msgstr "Buy Date"
+
+#: .\templates\trades\home.html:132
+#: .\templates\trades\portfolio_content.html:210
+msgid "Data (V)"
+msgstr "Sell Date"
+
+#: .\templates\trades\home.html:133
+#: .\templates\trades\portfolio_content.html:211
+msgid "Lucro"
+msgstr "Profit"
+
+#: .\templates\trades\home.html:134
+msgid "Status"
+msgstr "Status"
+
+#: .\templates\trades\home.html:141 .\templates\trades\home.html:152
+#: .\templates\trades\home.html:174
+#| msgid "Preço de Compra"
+msgid "Preço de mercado"
+msgstr "Market Price"
+
+#: .\templates\trades\home.html:192
+msgid "Diga adeus às planilhas."
+msgstr "Say goodbye to spreadsheets."
+
+#: .\templates\trades\home.html:193
+msgid ""
+"Centralize seus trades, acompanhe seu NAV e descubra seu lucro real. A "
+"ferramenta que sua planilha sonha em ser."
+msgstr ""
+"Centralize your trades, track your NAV, and discover your real profit. The "
+"tool your spreadsheet dreams of being. Create your free account."
+
+#: .\templates\trades\home.html:195
+#| msgid "Criar Conta"
+msgid "Criar minha conta"
+msgstr "Create Account"
 
 #: .\templates\trades\investment_section.html:3
 msgid "Investimentos"
@@ -423,10 +594,6 @@ msgstr "Select a user"
 msgid "Usuário não encontrado ou o perfil não é público."
 msgstr "User not found or the profile is not public."
 
-#: .\templates\trades\portfolio_content.html:133
-msgid "Resumo"
-msgstr "Summary"
-
 #: .\templates\trades\portfolio_content.html:142
 msgid "Saldo:"
 msgstr "Balance:"
@@ -450,34 +617,6 @@ msgstr "Avg pct:"
 #: .\templates\trades\portfolio_content.html:184
 msgid "Não há dados de performance para exibir."
 msgstr "No performance data to display."
-
-#: .\templates\trades\portfolio_content.html:205
-msgid "Compra"
-msgstr "Buy"
-
-#: .\templates\trades\portfolio_content.html:206
-msgid "Venda"
-msgstr "Sell"
-
-#: .\templates\trades\portfolio_content.html:207
-msgid "Loja (C)"
-msgstr "Buy Source"
-
-#: .\templates\trades\portfolio_content.html:208
-msgid "Loja (V)"
-msgstr "Sell Source"
-
-#: .\templates\trades\portfolio_content.html:209
-msgid "Data (C)"
-msgstr "Buy Date"
-
-#: .\templates\trades\portfolio_content.html:210
-msgid "Data (V)"
-msgstr "Sell Date"
-
-#: .\templates\trades\portfolio_content.html:211
-msgid "Lucro"
-msgstr "Profit"
 
 #: .\templates\trades\portfolio_content.html:295
 msgid "Mostrar todos os trades"
@@ -510,6 +649,15 @@ msgstr "Update"
 #: .\templates\trades\sell_modal.html:44
 msgid "Unsell"
 msgstr ""
+
+#~ msgid "Bem-vindo ao<br>CS2 Skins Trading Tracker"
+#~ msgstr "Welcome to<br>CS2 Skins Trading Tracker"
+
+#~ msgid "Acompanhe seus trades de skins de Counter-Strike com facilidade."
+#~ msgstr "Track your Counter-Strike skin trades with ease."
+
+#~ msgid "Saiba mais"
+#~ msgstr "Learn more"
 
 #~ msgid "Caixa:"
 #~ msgstr "Cash:"

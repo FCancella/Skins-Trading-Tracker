@@ -580,7 +580,3 @@ def price_history(request, trade_id):
         })
 
     return JsonResponse({'profits': profit_data})
-
-def about(request: HttpRequest) -> HttpResponse:
-    """Renderiza a página 'Saiba Mais'."""
-    return render(request, "trades/about.html")
