@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 from scanner.models import ScannedItem
 from scanner.services import buff
+import time
 
 def get_steam_inventory(steam_id):
     """
@@ -50,7 +51,9 @@ def get_item_base_price(item_name):
         timestamp__gte=month_ago
     ).order_by('-timestamp').first()
 
-    if recent_history and recent_history.price < 10:
+    ignore = ['Sticker', 'Case', 'Container', 'Graffiti', 'Souvenir', 'Charm']
+
+    if (recent_history and recent_history.price < 10) or any(ignore in item_name for ignore in ignore):
         return Decimal(0)  # Ignora item barato baseado no histórico
 
     # 2. Busca preço base recente (últimas 72h)
@@ -66,7 +69,11 @@ def get_item_base_price(item_name):
         base_price = float(scanned.price)
     else:
         # 3. Fallback para Buff API
+        
+        time.sleep(5)
+
         buff_data = buff.get_item_info(item_name)
+        print(f"Buff data para {item_name}: {buff_data}")
         
         if buff_data and 'price' in buff_data:
             base_price = buff_data['price']

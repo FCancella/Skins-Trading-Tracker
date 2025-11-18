@@ -47,16 +47,15 @@
         </div>
         <div>
             {% if store.steam_id %}
-            <form method="post" class="d-inline" onsubmit="return confirm('Isso apagará os itens atuais e recarregará do Steam. Confirmar?');">
-                {% csrf_token %}
-                <input type="hidden" name="refresh_inventory" value="1">
-                <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-arrow-clockwise"></i> Carregar/Resetar Inventário
-                </button>
-            </form>
+            <button type="button" class="btn btn-warning" id="btn-refresh-inventory">
+                <i class="bi bi-arrow-clockwise"></i> Carregar/Resetar Inventário
+            </button>
             {% endif %}
             <a href="{% url 'public_store' user.username %}" class="btn btn-outline-info ms-2" target="_blank">Ver Loja Pública</a>
         </div>
+    </div>
+
+    <div id="refresh-feedback" style="display: none;" role="alert">
     </div>
 
     {% if items %}
@@ -122,3 +121,61 @@
 </div>
 <br><br><br>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshBtn = document.getElementById('btn-refresh-inventory');
+    const feedbackDiv = document.getElementById('refresh-feedback');
+    
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            
+            if (!confirm('Isso apagará os itens atuais e recarregará do Steam em segundo plano. Confirmar?')) {
+                return;
+            }
+
+            // Desabilita botão e mostra loading
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...';
+            feedbackDiv.style.display = 'none';
+
+            fetch("{% url 'start_refresh_inventory' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('form[method="post"] input[name="csrfmiddlewaretoken"]').value,
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.message || 'Erro desconhecido ao iniciar.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'ok') {
+                    // [ALTERAÇÃO] Sucesso: Recarrega a página para mostrar a lista sendo construída
+                    // Opcional: Dar um alerta rápido antes
+                    // alert('Processo iniciado! A página irá recarregar.');
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                feedbackDiv.className = 'alert alert-danger mt-3';
+                feedbackDiv.innerHTML = `❌ Erro: ${error.message}`;
+                feedbackDiv.style.display = 'block';
+                
+                // Reabilita botão em caso de erro
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Carregar/Resetar Inventário';
+            });
+        });
+    }
+});
+</script>
+{% endblock extra_scripts %}

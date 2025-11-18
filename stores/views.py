@@ -1,4 +1,5 @@
 import json
+import threading
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,6 +10,65 @@ from decimal import Decimal
 from .models import Store, StoreItem, StoreLog
 from .forms import StoreSettingsForm
 from .utils import get_steam_inventory, get_item_base_price
+
+
+def _perform_inventory_refresh(store, user, inventory_data):
+    """
+    Executa a importação em background, salvando item por item
+    para permitir que o usuário veja o progresso ao atualizar a página.
+    """
+    try:
+        # 1. Limpa o inventário antigo imediatamente
+        store.items.all().delete()
+        
+        count = 0
+        ignored = 0
+        total_items = len(inventory_data)
+        
+        # 2. Processa e SALVA um por um
+        for item_data in inventory_data:
+            name = item_data['name']
+            image = item_data['image']
+            item_type = item_data.get('type', '')
+            
+            # Busca preço (pode demorar um pouco, simulando o delay)
+            base_price = get_item_base_price(name)
+            
+            if base_price > 0:
+                is_auto_hidden = any(keyword in item_type for keyword in ['Sticker', 'Container', 'Case'])
+                
+                # [ALTERAÇÃO] Cria e salva imediatamente no DB
+                StoreItem.objects.create(
+                    store=store,
+                    name=name,
+                    image_url=image,
+                    base_price=base_price,
+                    is_visible=not is_auto_hidden
+                )
+                count += 1
+            else:
+                ignored += 1
+        
+        # LOG de SUCESSO ao finalizar tudo
+        StoreLog.objects.create(
+            store=store,
+            user=user,
+            action="Carregar/Reset Inventário (BG)",
+            details=f"Finalizado. Importados: {count}, Ignorados: {ignored}"
+        )
+
+    except Exception as e:
+        # LOG de ERRO
+        try:
+            StoreLog.objects.create(
+                store=store,
+                user=user,
+                action="Carregar/Reset Inventário (BG)",
+                details=f"Erro na thread: {str(e)}"
+            )
+        except:
+            pass
+
 
 @login_required
 def manage_store(request):
@@ -29,54 +89,6 @@ def manage_store(request):
                 )
                 messages.success(request, 'Configurações da loja atualizadas!')
                 return redirect('manage_store')
-        
-        # 2. Recarregar Inventário
-        elif 'refresh_inventory' in request.POST:
-            if not store.steam_id:
-                messages.error(request, 'Configure seu Steam ID primeiro.')
-            else:
-                inventory_data = get_steam_inventory(store.steam_id)
-                
-                if inventory_data:
-                    store.items.all().delete()
-                    
-                    new_items = []
-                    for item_data in inventory_data:
-                        name = item_data['name']
-                        image = item_data['image']
-                        item_type = item_data.get('type', '')
-                        
-                        # Busca apenas o preço base
-                        base_price = get_item_base_price(name)
-                        
-                        if base_price > 0:
-                            is_auto_hidden = any(keyword in item_type for keyword in ['Sticker', 'Container', 'Case'])
-                            
-                            new_items.append(StoreItem(
-                                store=store,
-                                name=name,
-                                image_url=image,
-                                base_price=base_price,
-                                is_visible=not is_auto_hidden
-                            ))
-                    
-                    StoreItem.objects.bulk_create(new_items)
-                    
-                    count = len(new_items)
-                    ignored = len(inventory_data) - count
-                    
-                    # LOG
-                    StoreLog.objects.create(
-                        store=store,
-                        user=request.user,
-                        action="Carregar/Reset Inventário",
-                        details=f"Importados: {count}, Ignorados: {ignored}"
-                    )
-
-                    messages.success(request, f'{count} itens importados. ({ignored} ignorados por preço baixo).')
-                else:
-                    messages.error(request, 'Não foi possível buscar o inventário. Verifique o Steam ID ou se o inventário é público.')
-            return redirect('manage_store')
 
         # 3. Salvar Alterações Manuais (Itens)
         elif 'update_items' in request.POST:
@@ -121,6 +133,55 @@ def manage_store(request):
         'items': items,
         'store': store
     })
+
+# [+] NOVA VIEW PARA O REFRESH ASSÍNCRONO
+@login_required
+@require_POST
+def start_refresh_inventory(request):
+    store = get_object_or_404(Store, user=request.user)
+
+    if not store.steam_id:
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Configure seu Steam ID primeiro.'
+        }, status=400)
+    
+    # 1. Busca os dados do inventário primeiro
+    inventory_data = get_steam_inventory(store.steam_id)
+    
+    if inventory_data:
+        item_count = len(inventory_data)
+        # 2. Calcula a estimativa
+        estimated_time_seconds = round(item_count * 2.5, 1)
+
+        # 3. Inicia a thread para fazer o trabalho pesado em background
+        thread = threading.Thread(
+            target=_perform_inventory_refresh, 
+            args=(store, request.user, inventory_data)
+        )
+        thread.start()
+
+        # LOG de INÍCIO
+        StoreLog.objects.create(
+            store=store,
+            user=request.user,
+            action="Início Carregar Inventário",
+            details=f"Iniciando {item_count} itens. Estimativa: {estimated_time_seconds}s"
+        )
+
+        # 4. Retorna imediatamente o JSON com a estimativa
+        return JsonResponse({
+            'status': 'ok',
+            'item_count': item_count,
+            'estimated_time': estimated_time_seconds
+        })
+    else:
+        # Erro ao buscar inventário
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Não foi possível buscar o inventário. Verifique o Steam ID ou se o inventário é público.'
+        }, status=400)
+
 
 def public_store(request, username):
     user = get_object_or_404(User, username=username)
