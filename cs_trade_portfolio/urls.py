@@ -25,7 +25,6 @@ urlpatterns = [
 
     path("", trade_views.home, name="home"),
     path("portfolio/", trade_views.index, name="index"),
-    path("about/", trade_views.about, name="about"), 
     path("observer/", trade_views.observer, name="observer"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
     path("profile/change-username/", trade_views.change_username, name="change_username"), # <-- ADICIONE ESTA LINHA
