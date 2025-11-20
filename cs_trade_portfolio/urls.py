@@ -45,6 +45,8 @@ urlpatterns = [
     path("scanner/api/get-item-batch/", scanner_views.get_items_for_pricing, name="scanner_api_get_item_batch"),
     path("scanner/api/submit-item-batch/", scanner_views.submit_item_prices, name="scanner_api_submit_item_batch"),
 
+    path('store/', include('stores.urls')),
+
     # Payment URLs
     path("subscription/", subscription_views.subscription_details, name="subscription_details"),
     path("plans/", subscription_views.plans, name="plans"),

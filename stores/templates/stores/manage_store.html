@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Loja{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4 text-white">Gerenciar Loja: {{ store.name }}</h2>
+
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header border-secondary text-white fw-bold">Configurações Gerais</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="update_settings" value="1">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        {{ form.color.label_tag }}
+                        {{ form.color }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.whatsapp.label_tag }}
+                        {{ form.whatsapp }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.steam_id.label_tag }}
+                        {{ form.steam_id }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.fee_percentage.label_tag }}
+                        {{ form.fee_percentage }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="text-white m-0 d-inline">Itens na Loja ({{ items.count }})</h4>
+            <small class="text-muted ms-2">* Itens abaixo de R$ 10,00 são ignorados.</small>
+        </div>
+        <div>
+            {% if store.steam_id %}
+            <button type="button" class="btn btn-warning" id="btn-refresh-inventory">
+                <i class="bi bi-arrow-clockwise"></i> Carregar/Resetar Inventário
+            </button>
+            {% endif %}
+            <a href="{% url 'public_store' user.username %}" class="btn btn-outline-info ms-2" target="_blank">Ver Loja Pública</a>
+        </div>
+    </div>
+
+    <div id="refresh-feedback" style="display: none;" role="alert">
+    </div>
+
+    {% if items %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="update_items" value="1">
+        
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 50px;">Visível</th>
+                        <th scope="col">Item</th>
+                        <th scope="col" class="text-end" style="min-width: 180px;">Preço Base (Editável)</th>
+                        <th scope="col" class="text-end">Preço Final (Automático)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" name="visible_{{ item.id }}" {% if item.is_visible %}checked{% endif %}>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if item.image_url %}
+                                <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 64px; height: auto;" class="me-3">
+                                {% endif %}
+                                <span>{{ item.name }}</span>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                           <div class="input-group input-group-sm justify-content-end">
+                                <span class="input-group-text bg-dark border-secondary text-muted">R$</span>
+                                <input type="text" 
+                                       class="form-control bg-dark text-white border-secondary text-end price-input" 
+                                       name="base_price_{{ item.id }}" 
+                                       value="{{ item.base_price|stringformat:'.2f' }}"
+                                       style="max-width: 100px;">
+                           </div>
+                           <small class="text-muted d-block mt-1">Taxa: + R$ {{ item.tax_amount }}</small>
+                        </td>
+                        <td class="text-end fw-bold text-success">
+                            R$ {{ item.price }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="fixed-bottom bg-dark border-top border-secondary p-3 text-end" style="z-index: 10;">
+            <div class="container">
+                <button type="submit" class="btn btn-success btn-lg">Salvar Alterações</button>
+            </div>
+        </div>
+    </form>
+    {% else %}
+        <div class="alert alert-info">Nenhum item na loja. Configure seu Steam ID e clique em Carregar Inventário.</div>
+    {% endif %}
+</div>
+<br><br><br>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshBtn = document.getElementById('btn-refresh-inventory');
+    const feedbackDiv = document.getElementById('refresh-feedback');
+    
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            
+            if (!confirm('Isso apagará os itens atuais e recarregará do Steam em segundo plano. Confirmar?')) {
+                return;
+            }
+
+            // Desabilita botão e mostra loading
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando...';
+            feedbackDiv.style.display = 'none';
+
+            fetch("{% url 'start_refresh_inventory' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('form[method="post"] input[name="csrfmiddlewaretoken"]').value,
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.message || 'Erro desconhecido ao iniciar.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'ok') {
+                    // [ALTERAÇÃO] Sucesso: Recarrega a página para mostrar a lista sendo construída
+                    // Opcional: Dar um alerta rápido antes
+                    // alert('Processo iniciado! A página irá recarregar.');
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                feedbackDiv.className = 'alert alert-danger mt-3';
+                feedbackDiv.innerHTML = `❌ Erro: ${error.message}`;
+                feedbackDiv.style.display = 'block';
+                
+                // Reabilita botão em caso de erro
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Carregar/Resetar Inventário';
+            });
+        });
+    }
+});
+</script>
+{% endblock extra_scripts %}
