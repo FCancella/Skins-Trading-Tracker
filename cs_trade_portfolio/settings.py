@@ -72,9 +72,21 @@ INSTALLED_APPS: list[str] = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', 
-    # 'allauth.socialaccount.providers.github',
-    # 'allauth.socialaccount.providers.facebook',
+
+    # API
+    'rest_framework',
+    'drf_yasg',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 SITE_ID = 1 # Required by django.contrib.sites
 SOCIALACCOUNT_LOGIN_ON_GET = True
