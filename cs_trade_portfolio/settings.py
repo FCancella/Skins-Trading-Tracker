@@ -72,9 +72,22 @@ INSTALLED_APPS: list[str] = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', 
-    # 'allauth.socialaccount.providers.github',
-    # 'allauth.socialaccount.providers.facebook',
+
+    # API
+    "corsheaders",
+    'rest_framework',
+    'drf_yasg',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 SITE_ID = 1 # Required by django.contrib.sites
 SOCIALACCOUNT_LOGIN_ON_GET = True
@@ -83,6 +96,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -94,6 +108,12 @@ MIDDLEWARE: list[str] = [
 
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "https://your-frontend-domain.com",
+# ]
 
 ROOT_URLCONF: str = 'cs_trade_portfolio.urls'
 

@@ -4,11 +4,32 @@ URL configuration for the Counter‑Strike skin trade management project.
 from __future__ import annotations
 
 from trades import views as trade_views
+from trades.api import views as trade_api_views
 from scanner import views as scanner_views
 from subscriptions import views as subscription_views
 from django.urls import include, path
 from django.contrib import admin
 from django.conf import settings
+
+from rest_framework import routers
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+# 1. Router Setup
+router = routers.DefaultRouter()
+router.register(r'trades', trade_api_views.TradeViewSet, basename='trade')
+
+# 2. Swagger Schema Setup
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Skins Trading API",
+      default_version='v1',
+      description="Simple API to manage CS Skins trades",
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
 
 def global_settings_context(request):
     """Expõe a configuração PAYMENT para todos os templates."""
@@ -44,6 +65,12 @@ urlpatterns = [
     path("scanner/api/items-to-price/", scanner_views.get_items_to_price, name="scanner_api_get_items_to_price"),
     path("scanner/api/get-item-batch/", scanner_views.get_items_for_pricing, name="scanner_api_get_item_batch"),
     path("scanner/api/submit-item-batch/", scanner_views.submit_item_prices, name="scanner_api_submit_item_batch"),
+
+    # API Endpoints
+    path('api/', include(router.urls)),
+
+    # Swagger Documentation
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 
     # Payment URLs
     path("subscription/", subscription_views.subscription_details, name="subscription_details"),
