@@ -10,6 +10,8 @@ cryptography==46.0.3
 dj-database-url==3.0.1
 Django==5.2.5
 django-allauth==65.13.0
+django-cors-headers==4.9.0
+django-widget-tweaks==1.5.0
 djangorestframework==3.16.1
 drf-yasg==1.21.11
 gunicorn==23.0.0

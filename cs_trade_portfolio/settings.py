@@ -74,6 +74,7 @@ INSTALLED_APPS: list[str] = [
     'allauth.socialaccount.providers.google', 
 
     # API
+    "corsheaders",
     'rest_framework',
     'drf_yasg',
 ]
@@ -95,6 +96,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 MIDDLEWARE: list[str] = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -106,6 +108,12 @@ MIDDLEWARE: list[str] = [
 
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "https://your-frontend-domain.com",
+# ]
 
 ROOT_URLCONF: str = 'cs_trade_portfolio.urls'
 
