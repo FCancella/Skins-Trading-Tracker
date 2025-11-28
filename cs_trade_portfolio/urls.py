@@ -68,6 +68,8 @@ urlpatterns = [
 
     # API Endpoints
     path('api/', include(router.urls)),
+    path('api/profile/', trade_api_views.user_profile, name='user-profile'),
+    path('api/change-password/', trade_api_views.change_password, name='change-password'),
 
     # Swagger Documentation
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
