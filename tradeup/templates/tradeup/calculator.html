@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Grid 5x5 Layout */
+    .tradeup-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    /* Slot Card */
+    .trade-slot {
+        background: #2b2b2b;
+        border: 2px solid #444;
+        border-radius: 6px;
+        height: 210px;
+        position: relative;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: border-color 0.2s;
+    }
+
+    .trade-slot:hover {
+        border-color: #777;
+    }
+
+    /* Botões de Ação (Topo Direita) */
+    .slot-actions {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+        display: none; /* Só mostra quando preenchido */
+    }
+
+    .btn-action {
+        background: none;
+        border: none;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        transition: transform 0.2s;
+    }
+    
+    .btn-action:hover { transform: scale(1.2); }
+    
+    .btn-remove { 
+        color: #ff5555; 
+        font-size: 1.2rem; 
+        font-weight: bold;
+    }
+    
+    .btn-replicate { 
+        color: #4facfe; 
+        font-size: 1rem; 
+        margin-top: 2px; /* Pequeno ajuste visual */
+    }
+
+    /* Estado Vazio */
+    .slot-empty {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .slot-empty input {
+        width: 100%;
+        text-align: center;
+        background: #1e1e1e;
+        border: 1px solid #555;
+        color: white;
+        padding: 6px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+
+    /* Estado Preenchido */
+    .slot-filled {
+        display: none;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .item-img {
+        width: 90%;
+        height: 70px;
+        object-fit: contain;
+        margin-top: 20px;
+    }
+    
+    .item-name {
+        font-size: 0.7rem;
+        text-align: center;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 5px 0;
+        font-weight: 600;
+        padding: 0 4px;
+    }
+
+    /* Estilo StatTrak */
+    .stattrak-text {
+        color: #cf6a32 !important;
+    }
+
+    /* Controles de Float */
+    .float-controls {
+        width: 100%;
+        text-align: center;
+    }
+
+    .float-input {
+        background: #111;
+        border: 1px solid #444;
+        color: #ddd;
+        font-size: 0.8rem;
+        width: 100%;
+        text-align: center;
+        padding: 4px;
+        border-radius: 3px;
+    }
+
+    .btn-reroll {
+        font-size: 0.65rem;
+        color: #aaa;
+        cursor: pointer;
+        text-decoration: underline;
+        display: block;
+        margin-top: 4px;
+    }
+    .btn-reroll:hover { color: #fff; }
+
+    /* Dropdown de Busca */
+    .search-results {
+        position: absolute;
+        top: 65%;
+        left: 0;
+        width: 100%;
+        max-height: 180px;
+        overflow-y: auto;
+        background: #333;
+        z-index: 1000;
+        border: 1px solid #555;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        display: none;
+    }
+    
+    .search-item {
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid #444;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+    .search-item:hover { background: #444; }
+    .search-item img { margin-right: 8px; }
+</style>
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Calculadora de Trade Up</h2>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <select id="global-rarity" class="form-control text-center bg-dark text-white border-secondary">
+                <option value="" disabled selected>-- Selecione a Raridade de Entrada --</option>
+                {% for r in rarities %}
+                <option value="{{ r }}">{{ r }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <form method="post" id="tradeup-form">
+        {% csrf_token %}
+        
+        <div class="tradeup-grid">
+            {% for i in range_10 %}
+            <div class="trade-slot" id="slot-{{ i }}">
+                <input type="hidden" name="item_id_{{ i }}" class="hidden-id">
+                <input type="hidden" name="float_val_{{ i }}" class="hidden-float">
+
+                <div class="slot-empty">
+                    <span class="text-muted small mb-2">Slot {{ forloop.counter }}</span>
+                    <input type="text" class="item-search" placeholder="Buscar..." disabled autocomplete="off">
+                    <div class="search-results"></div>
+                </div>
+
+                <div class="slot-filled">
+                    <div class="slot-actions" style="display: flex;">
+                        <button type="button" class="btn-action btn-replicate" onclick="replicateItem({{ i }})" title="Replicar para próximo slot">
+                            <i class="fas fa-clone"></i> ❐
+                        </button>
+                        <button type="button" class="btn-action btn-remove" onclick="clearSlot({{ i }})" title="Remover">
+                            ×
+                        </button>
+                    </div>
+                    
+                    <img src="" class="item-img">
+                    <div class="item-name"></div>
+
+                    <div class="float-controls">
+                        <label class="small text-muted mb-0" style="font-size: 0.65rem;">Float</label>
+                        <input type="number" step="0.000000000000001" class="float-input" onchange="updateHiddenFloat({{ i }}, this.value)">
+                        <span class="btn-reroll" onclick="rerollFloat({{ i }})">Gerar Novo Float</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-success btn-lg btn-block font-weight-bold shadow">CALCULAR CONTRATO</button>
+    </form>
+
+    {% if result %}
+    <div class="mt-5 p-4 bg-dark rounded border border-secondary shadow-lg">
+        <h3 class="border-bottom border-secondary pb-2 mb-4">Resultado</h3>
+        
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="card bg-secondary text-white p-2">
+                    <small>Custo Entrada</small>
+                    <h4 class="mb-0">${{ result.input_price|floatformat:2 }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-secondary text-white p-2">
+                    <small>Retorno Esperado</small>
+                    <h4 class="mb-0 text-success">${{ result.expected_output_value|floatformat:2 }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-secondary text-white p-2">
+                    <small>ROI</small>
+                    <h4 class="mb-0 {% if result.roi > 0 %}text-success{% else %}text-danger{% endif %}">{{ result.roi|floatformat:2 }}%</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info py-2 text-center small">
+            Média Float: <strong>{{ result.avg_normalized_float|floatformat:5 }}</strong>
+            {% if result.is_stattrak %} | <span class="stattrak-text font-weight-bold">STATTRAK™ ATIVO</span>{% endif %}
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-dark table-striped mt-2">
+                <thead>
+                    <tr><th>Item</th><th>Chance</th><th>Float</th><th>Valor</th></tr>
+                </thead>
+                <tbody>
+                    {% for out in result.outcomes %}
+                    <tr>
+                        <td>
+                            <img src="{{ out.image }}" height="30" class="mr-2 rounded">
+                            <span class="{% if out.stattrak %}stattrak-text{% endif %}">{{ out.item.name }}</span>
+                            <small class="text-muted">({{ out.condition }})</small>
+                        </td>
+                        <td>{{ out.probability|floatformat:1 }}%</td>
+                        <td>{{ out.float|floatformat:5 }}</td>
+                        <td>${{ out.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger mt-4 text-center">{{ error }}</div>
+    {% endif %}
+</div>
+
+<script>
+    const slotData = {}; // Cache dos dados dos itens
+
+    // Estado do modo StatTrak (null = livre, true = só ST, false = só Normal)
+    let lockedStattrak = null;
+
+    // 1. Mudança de Raridade Global
+    document.getElementById('global-rarity').addEventListener('change', function() {
+        document.querySelectorAll('.item-search').forEach(input => {
+            input.disabled = false;
+            input.placeholder = "Digite o nome...";
+            input.value = '';
+        });
+        // Limpa tudo ao trocar raridade para evitar conflitos
+        for(let i=0; i<10; i++) clearSlot(i);
+        lockedStattrak = null; // Destrava modo ST
+    });
+
+    // 2. Lógica de Busca Dinâmica
+    document.querySelectorAll('.item-search').forEach(input => {
+        input.addEventListener('input', function(e) {
+            const slot = this.closest('.trade-slot');
+            const resultsDiv = slot.querySelector('.search-results');
+            const query = e.target.value;
+            const rarity = document.getElementById('global-rarity').value;
+
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            // Define parâmetro ST para filtrar no backend
+            let stParam = '';
+            if (lockedStattrak === true) stParam = 'true';
+            if (lockedStattrak === false) stParam = 'false';
+
+            const url = `/tradeup/search/?q=${encodeURIComponent(query)}&rarity=${encodeURIComponent(rarity)}&stattrak=${stParam}`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    if (data.length > 0) {
+                        resultsDiv.style.display = 'block';
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'search-item';
+                            div.innerHTML = `<img src="${item.image}" height="20"> <span>${item.name}</span>`;
+                            
+                            if (item.stattrak) {
+                                div.style.color = '#cf6a32'; // Laranja ST
+                            }
+
+                            div.onclick = () => selectItem(slot.id.split('-')[1], item);
+                            resultsDiv.appendChild(div);
+                        });
+                    } else {
+                        resultsDiv.style.display = 'none';
+                    }
+                });
+        });
+    });
+
+    // 3. Selecionar Item
+    function selectItem(slotIndex, item, specificFloat = null) {
+        // Validação e Travamento de StatTrak
+        if (lockedStattrak === null) {
+            lockedStattrak = item.stattrak;
+            updateSearchPlaceholders();
+        } else if (lockedStattrak !== item.stattrak) {
+            // Caso de borda: usuário tenta forçar via console ou erro de UI
+            alert("Não é possível misturar itens StatTrak e Normais!");
+            return;
+        }
+
+        slotData[slotIndex] = item;
+        const slot = document.getElementById(`slot-${slotIndex}`);
+        
+        // Atualiza UI
+        slot.querySelector('.item-img').src = item.image || '';
+        const nameEl = slot.querySelector('.item-name');
+        nameEl.innerText = item.name;
+        
+        if (item.stattrak) nameEl.classList.add('stattrak-text');
+        else nameEl.classList.remove('stattrak-text');
+
+        slot.querySelector('.hidden-id').value = item.id;
+        
+        // Troca estado visual
+        slot.querySelector('.slot-empty').style.display = 'none';
+        slot.querySelector('.slot-filled').style.display = 'flex';
+
+        // Lógica de Float
+        if (specificFloat !== null) {
+            setFloat(slotIndex, specificFloat);
+        } else {
+            rerollFloat(slotIndex);
+        }
+    }
+
+    // 4. Replicar Item
+    function replicateItem(sourceIndex) {
+        const item = slotData[sourceIndex];
+        if (!item) return;
+
+        const sourceFloat = document.querySelector(`#slot-${sourceIndex} .float-input`).value;
+        let targetIndex = -1;
+
+        // Procura próximo vazio (depois do atual)
+        for (let i = parseInt(sourceIndex) + 1; i < 10; i++) {
+            if (!slotData[i]) {
+                targetIndex = i;
+                break;
+            }
+        }
+        // Se não achou, procura do início
+        if (targetIndex === -1) {
+            for (let i = 0; i < 10; i++) {
+                if (!slotData[i]) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (targetIndex !== -1) {
+            // Copia item e float exato
+            selectItem(targetIndex, item, parseFloat(sourceFloat));
+        } else {
+            alert("Todos os slots estão cheios!");
+        }
+    }
+
+    // 5. Gerar Float Aleatório
+    function rerollFloat(slotIndex) {
+        const item = slotData[slotIndex];
+        if (!item) return;
+
+        const minFloat = item.real_min_float;// || 0.0;
+        const maxFloat = item.real_max_float;// || 1.0;
+
+        const finalFloat = Math.random() * (maxFloat - minFloat) + minFloat;
+        setFloat(slotIndex, finalFloat);
+    }
+
+    function setFloat(slotIndex, floatVal) {
+        const item = slotData[slotIndex];
+        if (!item) return;
+
+        // Use real_min_float and real_max_float from API
+        const minFloat = item.real_min_float;// || 0.0;
+        const maxFloat = item.real_max_float;// || 1.0;
+
+        // Set min/max on input
+        const inputEl = document.querySelector(`#slot-${slotIndex} .float-input`);
+        inputEl.min = minFloat;
+        inputEl.max = maxFloat;
+
+        const strVal = typeof floatVal === 'string' ? floatVal : floatVal.toFixed(15);
+        inputEl.value = strVal;
+        document.querySelector(`#slot-${slotIndex} .hidden-float`).value = strVal;
+    }
+
+    function updateHiddenFloat(slotIndex, value) {
+        document.querySelector(`#slot-${slotIndex} .hidden-float`).value = value;
+    }
+
+    // 6. Limpar Slot
+    function clearSlot(slotIndex) {
+        const slot = document.getElementById(`slot-${slotIndex}`);
+        slot.querySelector('.hidden-id').value = '';
+        slot.querySelector('.hidden-float').value = '';
+        
+        slot.querySelector('.slot-empty').style.display = 'flex';
+        slot.querySelector('.slot-filled').style.display = 'none';
+        
+        delete slotData[slotIndex];
+
+        // Se não sobrar nenhum item, destrava o modo StatTrak
+        if (Object.keys(slotData).length === 0) {
+            lockedStattrak = null;
+            updateSearchPlaceholders();
+        }
+    }
+
+    function updateSearchPlaceholders() {
+        const placeholders = document.querySelectorAll('.item-search');
+        if (lockedStattrak === true) {
+            placeholders.forEach(p => p.placeholder = "Busca (Apenas StatTrak)...");
+        } else if (lockedStattrak === false) {
+            placeholders.forEach(p => p.placeholder = "Busca (Apenas Normal)...");
+        } else {
+            placeholders.forEach(p => p.placeholder = "Buscar skin...");
+        }
+    }
+
+    // Fecha dropdown ao clicar fora
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.trade-slot')) {
+            document.querySelectorAll('.search-results').forEach(el => el.style.display = 'none');
+        }
+    });
+</script>
+{% endblock %}

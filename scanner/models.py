@@ -60,6 +60,14 @@ class Crate(models.Model):
     def __str__(self):
         return self.name
 
+WEAR_RANGES = {
+    'Factory New': (0.00, 0.07),
+    'Minimal Wear': (0.07, 0.15),
+    'Field-Tested': (0.15, 0.38),
+    'Well-Worn': (0.38, 0.45),
+    'Battle-Scarred': (0.45, 1.00),
+}
+
 class Item(models.Model):
     """Modelo para armazenar todos os itens do jogo (skins, facas, luvas, etc.)."""
     id = models.CharField(primary_key=True, max_length=255)
@@ -84,3 +92,19 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def real_min_float(self):
+        item_min = self.min_float if self.min_float is not None else 0.0
+        for wear, (min_w, _) in WEAR_RANGES.items():
+            if wear in self.market_hash_name:
+                return max(item_min, min_w)
+        return item_min
+
+    @property
+    def real_max_float(self):
+        item_max = self.max_float if self.max_float is not None else 1.0
+        for wear, (_, max_w) in WEAR_RANGES.items():
+            if wear in self.market_hash_name:
+                return min(item_max, max_w)
+        return item_max

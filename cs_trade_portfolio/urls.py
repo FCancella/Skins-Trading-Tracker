@@ -56,6 +56,8 @@ urlpatterns = [
     path("scanner/", scanner_views.scanner_view, name="scanner_list"),
     path("scanner/logs/", scanner_views.scheduler_logs_view, name="scheduler_logs"),
     path("scanner/api/logs/", scanner_views.log_scheduler_event, name="scanner_api_logs"),
+
+    path('tradeup/', include('tradeup.urls')),
     
     # Endpoints da API do Scanner
     path("scanner/api/add-items/", scanner_views.scanner_api_add_items, name="scanner_api_add_items"),
