@@ -259,17 +259,23 @@ def get_items_for_pricing(request):
             return JsonResponse({"error": f"Não foi possível carregar o dicionário de IDs: {e}"}, status=500)
 
         # Define um timeout para itens que provavelmente "ficaram presos"/falharam
-        timeout_period = timezone.now() - timedelta(minutes=30)
+        timeout_period = timezone.now() - timedelta(hours=6)
 
-        # 2. Busca 50 itens que:
-        #    - Ainda não têm preço (price__isnull=True)
-        #    - E (OU estão "novos" (price_time__isnull=True)
-        #    - OU o "bloqueio" expirou (price_time__lte=timeout_period))
+        # # 2. Busca 50 itens que:
+        # #    - Ainda não têm preço (price__isnull=True)
+        # #    - E (OU estão "novos" (price_time__isnull=True)
+        # #    - OU o "bloqueio" expirou (price_time__lte=timeout_period))
+        # items_to_process = Item.objects.filter(
+        #     price__isnull=True
+        # ).filter(
+        #     Q(price_time__isnull=True) | Q(price_time__lte=timeout_period)
+        # ).select_for_update(skip_locked=True)[:50]
+
+        # 2. Busca 100 itens que:
+        #    - Foram precificados há mais de 6 horas (price_time__lte=...)
         items_to_process = Item.objects.filter(
-            price__isnull=True
-        ).filter(
             Q(price_time__isnull=True) | Q(price_time__lte=timeout_period)
-        ).select_for_update(skip_locked=True)[:50]
+        ).select_for_update(skip_locked=True)[:100]
 
         if not items_to_process:
             return JsonResponse({"items_to_price": [], "cny_brl_rate": cny_brl_rate})
