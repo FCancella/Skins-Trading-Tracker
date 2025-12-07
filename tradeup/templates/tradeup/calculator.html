@@ -40,24 +40,52 @@
 
     .slot-actions {
         position: absolute;
-        top: 5px;
-        right: 5px;
+        top: 8px;
+        right: 8px;
         display: flex;
         gap: 6px;
         z-index: 10;
     }
 
     .btn-action {
-        background: none;
-        border: none;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(20, 20, 20, 0.85);
+        border: 1px solid rgba(68, 68, 68, 0.6);
+        border-radius: 4px;
         padding: 0;
         cursor: pointer;
         line-height: 1;
-        transition: transform 0.2s;
+        transition: all 0.2s;
+        backdrop-filter: blur(5px);
     }
-    .btn-action:hover { transform: scale(1.2); }
-    .btn-remove { color: #ff5555; font-size: 1.2rem; font-weight: bold; }
-    .btn-replicate { color: #4facfe; font-size: 1rem; margin-top: 2px; }
+    .btn-action:hover { 
+        transform: scale(1.15);
+        background: rgba(30, 30, 30, 0.95);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .btn-remove { 
+        color: #ff5555; 
+        font-size: 1.3rem; 
+        font-weight: bold;
+        border-color: rgba(255, 85, 85, 0.3);
+    }
+    .btn-remove:hover {
+        background: rgba(255, 85, 85, 0.15);
+        border-color: rgba(255, 85, 85, 0.5);
+    }
+    .btn-replicate { 
+        color: #4facfe; 
+        font-size: 1.1rem;
+        border-color: rgba(79, 172, 254, 0.3);
+    }
+    .btn-replicate:hover {
+        background: rgba(79, 172, 254, 0.15);
+        border-color: rgba(79, 172, 254, 0.5);
+    }
 
     .slot-empty, .slot-filled {
         width: 100%;
@@ -136,13 +164,34 @@
     .stattrak-text { color: #cf6a32 !important; }
     .item-name { display: none; }
 
-    .rarity-consumer { border-color: #b0c3d9 !important; }
-    .rarity-industrial { border-color: #5e98d9 !important; }
-    .rarity-milspec { border-color: #4b69ff !important; }
-    .rarity-restricted { border-color: #8847ff !important; }
-    .rarity-classified { border-color: #d32ce6 !important; }
-    .rarity-covert { border-color: #eb4b4b !important; }
-    .rarity-gold { border-color: #e4ae39 !important; }
+    .rarity-consumer { 
+        border-color: #b0c3d9 !important;
+        box-shadow: 0 0 12px rgba(176, 195, 217, 0.4), inset 0 0 8px rgba(176, 195, 217, 0.1);
+    }
+    .rarity-industrial { 
+        border-color: #5e98d9 !important;
+        box-shadow: 0 0 12px rgba(94, 152, 217, 0.4), inset 0 0 8px rgba(94, 152, 217, 0.1);
+    }
+    .rarity-milspec { 
+        border-color: #4b69ff !important;
+        box-shadow: 0 0 12px rgba(75, 105, 255, 0.5), inset 0 0 8px rgba(75, 105, 255, 0.15);
+    }
+    .rarity-restricted { 
+        border-color: #8847ff !important;
+        box-shadow: 0 0 14px rgba(136, 71, 255, 0.5), inset 0 0 10px rgba(136, 71, 255, 0.15);
+    }
+    .rarity-classified { 
+        border-color: #d32ce6 !important;
+        box-shadow: 0 0 14px rgba(211, 44, 230, 0.5), inset 0 0 10px rgba(211, 44, 230, 0.15);
+    }
+    .rarity-covert { 
+        border-color: #eb4b4b !important;
+        box-shadow: 0 0 16px rgba(235, 75, 75, 0.5), inset 0 0 10px rgba(235, 75, 75, 0.15);
+    }
+    .rarity-gold { 
+        border-color: #e4ae39 !important;
+        box-shadow: 0 0 16px rgba(228, 174, 57, 0.6), inset 0 0 12px rgba(228, 174, 57, 0.2);
+    }
 
     .float-controls {
         position: relative;
@@ -242,7 +291,7 @@
                     <button type="button" class="btn-action btn-replicate" onclick="replicateItem({{ i }})" title="Replicar para próximo slot">
                         ❐
                     </button>
-                    <button type="button" class="btn-action btn-remove" onclick="clearSlot({{ i }})" title="Remover">
+                    <button type="button" class="btn-action btn-remove" onclick="removeItem({{ i }})" title="Remover">
                         ×
                     </button>
                 </div>
@@ -321,7 +370,7 @@
             }
         });
         
-        for(let i=0; i<10; i++) clearSlot(i);
+        for(let i=0; i<10; i++) clearSlotUI(i);
         lockedStattrak = null;
     });
 
@@ -373,7 +422,20 @@
         });
     });
 
-    function selectItem(slotIndex, item, specificFloat = null) {
+    function selectItem(ignoredIndex, item, specificFloat = null) {
+        const rarity = document.getElementById('global-rarity').value;
+        const isCovert = rarity === 'Covert';
+        const maxSlots = isCovert ? 5 : 10;
+        const currentCount = Object.keys(slotData).length;
+
+        if (currentCount >= maxSlots) {
+            // Should not happen normally as search boxes are hidden/disabled
+            return;
+        }
+
+        // Always append to the end
+        const slotIndex = currentCount;
+
         if (lockedStattrak === null) {
             lockedStattrak = item.stattrak;
             updateSearchPlaceholders();
@@ -429,31 +491,8 @@
         const item = slotData[sourceIndex];
         if (!item) return;
 
-        const rarity = document.getElementById('global-rarity').value;
-        const isCovert = rarity === 'Covert';
-        const maxSlots = isCovert ? 5 : 10;
-
         const sourceFloat = document.querySelector(`#slot-${sourceIndex} .float-input`).value;
-        let targetIndex = -1;
-
-        for (let i = parseInt(sourceIndex) + 1; i < maxSlots; i++) {
-            if (!slotData[i]) {
-                targetIndex = i;
-                break;
-            }
-        }
-        if (targetIndex === -1) {
-            for (let i = 0; i < maxSlots; i++) {
-                if (!slotData[i]) {
-                    targetIndex = i;
-                    break;
-                }
-            }
-        }
-
-        if (targetIndex !== -1) {
-            selectItem(targetIndex, item, parseFloat(sourceFloat));
-        }
+        selectItem(null, item, parseFloat(sourceFloat));
     }
 
     function rerollFloat(slotIndex) {
@@ -481,7 +520,24 @@
         inputEl.value = strVal;
     }
 
-    function clearSlot(slotIndex) {
+    function removeItem(index) {
+        const itemsToKeep = [];
+        // Iterate 0 to 9 to preserve order
+        for(let i=0; i<10; i++) {
+            if (slotData[i] && i != index) {
+                    const floatVal = document.querySelector(`#slot-${i} .float-input`).value;
+                    itemsToKeep.push({item: slotData[i], float: parseFloat(floatVal)});
+            }
+        }
+        
+        // Clear all
+        for(let i=0; i<10; i++) clearSlotUI(i);
+        
+        // Re-add
+        itemsToKeep.forEach(data => selectItem(null, data.item, data.float));
+    }
+
+    function clearSlotUI(slotIndex) {
         const slot = document.getElementById(`slot-${slotIndex}`);
         slot.className = 'trade-slot';
         slot.querySelector('.slot-empty').style.display = 'flex';
@@ -551,7 +607,7 @@
     
     function resetAll() {
         for(let i = 0; i < 10; i++) {
-            clearSlot(i);
+            clearSlotUI(i);
         }
         document.getElementById('global-rarity').value = '';
         
@@ -648,7 +704,7 @@
         roiEl.textContent = data.roi.toFixed(2) + '%';
         roiEl.className = 'mb-0 ' + (data.roi > 0 ? 'text-success' : 'text-danger');
         
-        let infoText = `Média Float: <strong>${data.avg_normalized_float.toFixed(5)}</strong>`;
+        let infoText = `Chance de profit: <strong>${data.profit_chance.toFixed(2)}%</strong>`;
         if (data.is_stattrak) {
             infoText += ' | <span class="stattrak-text font-weight-bold">STATTRAK™ ATIVO</span>';
         }

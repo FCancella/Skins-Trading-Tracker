@@ -144,10 +144,14 @@ class TradeUpCalculator:
         expected_value = sum((d['price'] * Decimal(d['probability']/100)) for d in outcomes)
         roi = ((expected_value - total_price) / total_price) * 100 if total_price > 0 else 0
 
+        # Calculate chance of profit
+        profit_chance = sum(d['probability'] for d in outcomes if d['price'] > total_price)
+
         return {
             'input_price': total_price,
             'expected_output_value': expected_value,
             'roi': roi,
+            'profit_chance': profit_chance,
             'avg_normalized_float': avg_normalized_float,
             'is_stattrak': first_is_stt, # Informa se o contrato foi ST
             'outcomes': sorted(outcomes, key=lambda x: x['probability'], reverse=True)

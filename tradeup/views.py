@@ -113,6 +113,7 @@ def calculate_contract_api(request):
             'input_price': input_price,
             'expected_output_value': float(result['expected_output_value']),
             'roi': float(result['roi']),
+            'profit_chance': float(result['profit_chance']),
             'avg_normalized_float': result['avg_normalized_float'],
             'is_stattrak': result['is_stattrak'],
             'outcomes': [
