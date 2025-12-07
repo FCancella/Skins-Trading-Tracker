@@ -2,33 +2,42 @@
 
 {% block content %}
 <style>
-    /* Grid 5x5 Layout */
     .tradeup-grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 12px;
         margin-bottom: 30px;
+        max-width: 100%;
     }
 
-    /* Slot Card */
+    @media (min-width: 992px) {
+        .tradeup-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+
     .trade-slot {
-        background: #2b2b2b;
-        border: 2px solid #444;
-        border-radius: 6px;
-        height: 210px;
         position: relative;
-        padding: 8px;
+        padding: 12px;
+        background: rgba(30, 30, 30, 0.4);
+        border: 2px solid rgba(68, 68, 68, 0.6);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: border-color 0.2s;
+        transition: all 0.3s ease;
+        z-index: 1;
     }
-
+    
+    .trade-slot.search-active { z-index: 1001; }
     .trade-slot:hover {
-        border-color: #777;
+        background: rgba(40, 40, 40, 0.5);
+        border-color: rgba(119, 119, 119, 0.8);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
-    /* Botões de Ação (Topo Direita) */
     .slot-actions {
         position: absolute;
         top: 5px;
@@ -36,139 +45,169 @@
         display: flex;
         gap: 6px;
         z-index: 10;
-        display: none; /* Só mostra quando preenchido */
     }
 
     .btn-action {
         background: none;
         border: none;
+        padding: 0;
         cursor: pointer;
         line-height: 1;
-        padding: 0;
         transition: transform 0.2s;
     }
-    
     .btn-action:hover { transform: scale(1.2); }
-    
-    .btn-remove { 
-        color: #ff5555; 
-        font-size: 1.2rem; 
-        font-weight: bold;
-    }
-    
-    .btn-replicate { 
-        color: #4facfe; 
-        font-size: 1rem; 
-        margin-top: 2px; /* Pequeno ajuste visual */
-    }
+    .btn-remove { color: #ff5555; font-size: 1.2rem; font-weight: bold; }
+    .btn-replicate { color: #4facfe; font-size: 1rem; margin-top: 2px; }
 
-    /* Estado Vazio */
-    .slot-empty {
+    .slot-empty, .slot-filled {
         width: 100%;
         height: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
     }
+    .slot-empty { justify-content: center; }
+    .slot-filled { display: none; }
 
-    .slot-empty input {
+    .slot-empty input, .float-input {
         width: 100%;
-        text-align: center;
-        background: #1e1e1e;
-        border: 1px solid #555;
+        padding: 8px;
+        background: rgba(20, 20, 20, 0.5);
+        border: 1px solid rgba(68, 68, 68, 0.5);
+        border-radius: 6px;
+        backdrop-filter: blur(5px);
         color: white;
-        padding: 6px;
-        border-radius: 4px;
         font-size: 0.85rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    .slot-empty input:focus, .float-input:focus {
+        background: rgba(30, 30, 30, 0.7);
+        border-color: rgba(79, 172, 254, 0.8);
+        outline: none;
     }
 
-    /* Estado Preenchido */
-    .slot-filled {
-        display: none;
-        width: 100%;
-        height: 100%;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-    }
+    .float-input { font-size: 0.8rem; padding: 5px 30px 5px 5px; }
 
     .item-img {
-        width: 90%;
-        height: 70px;
+        width: 100%;
+        height: 100px;
+        min-height: 100px;
+        margin: 10px 0 8px;
         object-fit: contain;
-        margin-top: 20px;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+        flex-shrink: 0;
     }
-    
-    .item-name {
-        font-size: 0.7rem;
-        text-align: center;
+
+    .item-name-top {
         width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin: 5px 0;
-        font-weight: 600;
         padding: 0 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 4px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.3;
+        max-height: 3.9em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
     }
 
-    /* Estilo StatTrak */
-    .stattrak-text {
-        color: #cf6a32 !important;
+    .item-price {
+        color: #4ade80;
+        font-size: 0.85rem;
+        font-weight: bold;
+        margin: 2px 0 6px;
+        flex-shrink: 0;
     }
 
-    /* Controles de Float */
+    .item-profitability {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 2px 0;
+        flex-shrink: 0;
+    }
+    .profit-positive { color: #4ade80; }
+    .profit-negative { color: #ff5555; }
+
+    .stattrak-text { color: #cf6a32 !important; }
+    .item-name { display: none; }
+
+    .rarity-consumer { border-color: #b0c3d9 !important; }
+    .rarity-industrial { border-color: #5e98d9 !important; }
+    .rarity-milspec { border-color: #4b69ff !important; }
+    .rarity-restricted { border-color: #8847ff !important; }
+    .rarity-classified { border-color: #d32ce6 !important; }
+    .rarity-covert { border-color: #eb4b4b !important; }
+    .rarity-gold { border-color: #e4ae39 !important; }
+
     .float-controls {
+        position: relative;
         width: 100%;
-        text-align: center;
-    }
-
-    .float-input {
-        background: #111;
-        border: 1px solid #444;
-        color: #ddd;
-        font-size: 0.8rem;
-        width: 100%;
-        text-align: center;
-        padding: 4px;
-        border-radius: 3px;
+        margin-top: auto;
     }
 
     .btn-reroll {
-        font-size: 0.65rem;
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 2px 5px;
         color: #aaa;
+        font-size: 1rem;
         cursor: pointer;
-        text-decoration: underline;
-        display: block;
-        margin-top: 4px;
+        transition: color 0.2s;
     }
     .btn-reroll:hover { color: #fff; }
 
-    /* Dropdown de Busca */
     .search-results {
         position: absolute;
         top: 65%;
         left: 0;
         width: 100%;
-        max-height: 180px;
+        max-height: 240px;
+        background: rgba(40, 40, 40, 0.95);
+        border: 1px solid rgba(85, 85, 85, 0.6);
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
         overflow-y: auto;
-        background: #333;
         z-index: 1000;
-        border: 1px solid #555;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         display: none;
     }
-    
+
     .search-item {
         padding: 8px;
-        cursor: pointer;
-        border-bottom: 1px solid #444;
+        border-bottom: 1px solid rgba(68, 68, 68, 0.5);
         font-size: 0.75rem;
+        cursor: pointer;
         display: flex;
         align-items: center;
+        transition: background 0.2s;
     }
-    .search-item:hover { background: #444; }
+    .search-item:hover { background: rgba(68, 68, 68, 0.6); }
     .search-item img { margin-right: 8px; }
+
+    .btn-reset {
+        margin-top: 10px;
+        padding: 8px 24px;
+        background: rgba(220, 38, 38, 0.8);
+        border: 1px solid rgba(220, 38, 38, 0.6);
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-reset:hover {
+        background: rgba(220, 38, 38, 1);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+    }
 </style>
 
 <div class="container mt-4">
@@ -182,128 +221,111 @@
                 <option value="{{ r }}">{{ r }}</option>
                 {% endfor %}
             </select>
+            <div class="text-center">
+                <button type="button" id="add-random-btn" class="btn-reset" onclick="addRandomItem()" style="background: rgba(79, 172, 254, 0.8); border-color: rgba(79, 172, 254, 0.6); margin-right: 10px;">Adicionar Aleatório</button>
+                <button type="button" id="reset-btn" class="btn-reset" onclick="resetAll()">Resetar Tudo</button>
+            </div>
         </div>
     </div>
 
-    <form method="post" id="tradeup-form">
-        {% csrf_token %}
-        
-        <div class="tradeup-grid">
-            {% for i in range_10 %}
-            <div class="trade-slot" id="slot-{{ i }}">
-                <input type="hidden" name="item_id_{{ i }}" class="hidden-id">
-                <input type="hidden" name="float_val_{{ i }}" class="hidden-float">
+    <div class="tradeup-grid" id="tradeup-grid">
+        {% for i in "0123456789" %}
+        <div class="trade-slot" id="slot-{{ i }}" data-slot-index="{{ i }}">
+            <div class="slot-empty">
+                <span class="text-muted small mb-2">Item {{ forloop.counter }}</span>
+                <input type="text" class="item-search" placeholder="Buscar..." disabled autocomplete="off">
+                <div class="search-results"></div>
+            </div>
 
-                <div class="slot-empty">
-                    <span class="text-muted small mb-2">Slot {{ forloop.counter }}</span>
-                    <input type="text" class="item-search" placeholder="Buscar..." disabled autocomplete="off">
-                    <div class="search-results"></div>
+            <div class="slot-filled">
+                <div class="slot-actions">
+                    <button type="button" class="btn-action btn-replicate" onclick="replicateItem({{ i }})" title="Replicar para próximo slot">
+                        ❐
+                    </button>
+                    <button type="button" class="btn-action btn-remove" onclick="clearSlot({{ i }})" title="Remover">
+                        ×
+                    </button>
                 </div>
+                
+                <img src="" class="item-img">
+                <div class="item-name-top"></div>
+                <div class="item-price"></div>
 
-                <div class="slot-filled">
-                    <div class="slot-actions" style="display: flex;">
-                        <button type="button" class="btn-action btn-replicate" onclick="replicateItem({{ i }})" title="Replicar para próximo slot">
-                            <i class="fas fa-clone"></i> ❐
-                        </button>
-                        <button type="button" class="btn-action btn-remove" onclick="clearSlot({{ i }})" title="Remover">
-                            ×
-                        </button>
-                    </div>
-                    
-                    <img src="" class="item-img">
-                    <div class="item-name"></div>
-
-                    <div class="float-controls">
-                        <label class="small text-muted mb-0" style="font-size: 0.65rem;">Float</label>
-                        <input type="number" step="0.000000000000001" class="float-input" onchange="updateHiddenFloat({{ i }}, this.value)">
-                        <span class="btn-reroll" onclick="rerollFloat({{ i }})">Gerar Novo Float</span>
-                    </div>
+                <div class="float-controls">
+                    <input type="number" step="0.01" class="float-input">
+                    <span class="btn-reroll" onclick="rerollFloat({{ i }})" title="Gerar Novo Float">🔄</span>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
+    </div>
 
-        <button type="submit" class="btn btn-success btn-lg btn-block font-weight-bold shadow">CALCULAR CONTRATO</button>
-    </form>
+    <button type="button" id="calculate-btn" class="btn btn-success btn-lg btn-block font-weight-bold shadow">CALCULAR CONTRATO</button>
 
-    {% if result %}
-    <div class="mt-5 p-4 bg-dark rounded border border-secondary shadow-lg">
-        <h3 class="border-bottom border-secondary pb-2 mb-4">Resultado</h3>
+    <div id="result-container" style="display: none;" class="mt-5">
+        <h3 class="text-center mb-4">Resultado</h3>
         
         <div class="row text-center mb-4">
             <div class="col-md-4">
                 <div class="card bg-secondary text-white p-2">
                     <small>Custo Entrada</small>
-                    <h4 class="mb-0">${{ result.input_price|floatformat:2 }}</h4>
+                    <h4 class="mb-0" id="result-input-price">R$0.00</h4>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card bg-secondary text-white p-2">
                     <small>Retorno Esperado</small>
-                    <h4 class="mb-0 text-success">${{ result.expected_output_value|floatformat:2 }}</h4>
+                    <h4 class="mb-0 text-success" id="result-expected-value">R$0.00</h4>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card bg-secondary text-white p-2">
                     <small>ROI</small>
-                    <h4 class="mb-0 {% if result.roi > 0 %}text-success{% else %}text-danger{% endif %}">{{ result.roi|floatformat:2 }}%</h4>
+                    <h4 class="mb-0" id="result-roi">0.00%</h4>
                 </div>
             </div>
         </div>
 
-        <div class="alert alert-info py-2 text-center small">
-            Média Float: <strong>{{ result.avg_normalized_float|floatformat:5 }}</strong>
-            {% if result.is_stattrak %} | <span class="stattrak-text font-weight-bold">STATTRAK™ ATIVO</span>{% endif %}
-        </div>
+        <div class="alert alert-info py-2 text-center small mb-4" id="result-info"></div>
         
-        <div class="table-responsive">
-            <table class="table table-dark table-striped mt-2">
-                <thead>
-                    <tr><th>Item</th><th>Chance</th><th>Float</th><th>Valor</th></tr>
-                </thead>
-                <tbody>
-                    {% for out in result.outcomes %}
-                    <tr>
-                        <td>
-                            <img src="{{ out.image }}" height="30" class="mr-2 rounded">
-                            <span class="{% if out.stattrak %}stattrak-text{% endif %}">{{ out.item.name }}</span>
-                            <small class="text-muted">({{ out.condition }})</small>
-                        </td>
-                        <td>{{ out.probability|floatformat:1 }}%</td>
-                        <td>{{ out.float|floatformat:5 }}</td>
-                        <td>${{ out.price }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <div class="tradeup-grid" id="result-outcomes"></div>
     </div>
-    {% endif %}
 
-    {% if error %}
-    <div class="alert alert-danger mt-4 text-center">{{ error }}</div>
-    {% endif %}
+    <div id="error-container" style="display: none;" class="alert alert-danger mt-4 text-center"></div>
 </div>
 
 <script>
-    const slotData = {}; // Cache dos dados dos itens
-
-    // Estado do modo StatTrak (null = livre, true = só ST, false = só Normal)
+    const slotData = {};
     let lockedStattrak = null;
 
-    // 1. Mudança de Raridade Global
+    // Enable search when rarity is selected
     document.getElementById('global-rarity').addEventListener('change', function() {
-        document.querySelectorAll('.item-search').forEach(input => {
-            input.disabled = false;
-            input.placeholder = "Digite o nome...";
-            input.value = '';
+        const selectedRarity = this.value;
+        const isCovert = selectedRarity === 'Covert';
+        const maxSlots = isCovert ? 5 : 10;
+        
+        // Show/hide slots based on rarity
+        document.querySelectorAll('.trade-slot').forEach((slot, index) => {
+            if (index < maxSlots) {
+                slot.style.display = 'flex';
+            } else {
+                slot.style.display = 'none';
+            }
         });
-        // Limpa tudo ao trocar raridade para evitar conflitos
+        
+        document.querySelectorAll('.item-search').forEach((input, index) => {
+            if (index < maxSlots) {
+                input.disabled = false;
+                input.placeholder = "Digite o nome...";
+                input.value = '';
+            }
+        });
+        
         for(let i=0; i<10; i++) clearSlot(i);
-        lockedStattrak = null; // Destrava modo ST
+        lockedStattrak = null;
     });
 
-    // 2. Lógica de Busca Dinâmica
+    // Search functionality
     document.querySelectorAll('.item-search').forEach(input => {
         input.addEventListener('input', function(e) {
             const slot = this.closest('.trade-slot');
@@ -313,10 +335,12 @@
 
             if (query.length < 2) {
                 resultsDiv.style.display = 'none';
+                slot.classList.remove('search-active');
                 return;
             }
 
-            // Define parâmetro ST para filtrar no backend
+            slot.classList.add('search-active');
+
             let stParam = '';
             if (lockedStattrak === true) stParam = 'true';
             if (lockedStattrak === false) stParam = 'false';
@@ -335,7 +359,7 @@
                             div.innerHTML = `<img src="${item.image}" height="20"> <span>${item.name}</span>`;
                             
                             if (item.stattrak) {
-                                div.style.color = '#cf6a32'; // Laranja ST
+                                div.style.color = '#cf6a32';
                             }
 
                             div.onclick = () => selectItem(slot.id.split('-')[1], item);
@@ -343,19 +367,17 @@
                         });
                     } else {
                         resultsDiv.style.display = 'none';
+                        slot.classList.remove('search-active');
                     }
                 });
         });
     });
 
-    // 3. Selecionar Item
     function selectItem(slotIndex, item, specificFloat = null) {
-        // Validação e Travamento de StatTrak
         if (lockedStattrak === null) {
             lockedStattrak = item.stattrak;
             updateSearchPlaceholders();
         } else if (lockedStattrak !== item.stattrak) {
-            // Caso de borda: usuário tenta forçar via console ou erro de UI
             alert("Não é possível misturar itens StatTrak e Normais!");
             return;
         }
@@ -363,21 +385,26 @@
         slotData[slotIndex] = item;
         const slot = document.getElementById(`slot-${slotIndex}`);
         
-        // Atualiza UI
+        // Add rarity class
+        slot.className = 'trade-slot';
+        const rarityClass = getRarityClass(item.rarity);
+        if (rarityClass) slot.classList.add(rarityClass);
+        
         slot.querySelector('.item-img').src = item.image || '';
-        const nameEl = slot.querySelector('.item-name');
+        const nameEl = slot.querySelector('.item-name-top');
+        console.log(nameEl);
         nameEl.innerText = item.name;
         
         if (item.stattrak) nameEl.classList.add('stattrak-text');
         else nameEl.classList.remove('stattrak-text');
-
-        slot.querySelector('.hidden-id').value = item.id;
         
-        // Troca estado visual
+        const priceEl = slot.querySelector('.item-price');
+        priceEl.innerText = item.price ? `R$${parseFloat(item.price).toFixed(2)}` : 'R$0.00';
+
         slot.querySelector('.slot-empty').style.display = 'none';
         slot.querySelector('.slot-filled').style.display = 'flex';
+        slot.classList.remove('search-active');
 
-        // Lógica de Float
         if (specificFloat !== null) {
             setFloat(slotIndex, specificFloat);
         } else {
@@ -385,24 +412,38 @@
         }
     }
 
-    // 4. Replicar Item
+    function getRarityClass(rarity) {
+        const rarityMap = {
+            'Consumer Grade': 'rarity-consumer',
+            'Industrial Grade': 'rarity-industrial',
+            'Mil-Spec Grade': 'rarity-milspec',
+            'Restricted': 'rarity-restricted',
+            'Classified': 'rarity-classified',
+            'Covert': 'rarity-covert',
+            'Gold': 'rarity-gold'
+        };
+        return rarityMap[rarity] || '';
+    }
+
     function replicateItem(sourceIndex) {
         const item = slotData[sourceIndex];
         if (!item) return;
 
+        const rarity = document.getElementById('global-rarity').value;
+        const isCovert = rarity === 'Covert';
+        const maxSlots = isCovert ? 5 : 10;
+
         const sourceFloat = document.querySelector(`#slot-${sourceIndex} .float-input`).value;
         let targetIndex = -1;
 
-        // Procura próximo vazio (depois do atual)
-        for (let i = parseInt(sourceIndex) + 1; i < 10; i++) {
+        for (let i = parseInt(sourceIndex) + 1; i < maxSlots; i++) {
             if (!slotData[i]) {
                 targetIndex = i;
                 break;
             }
         }
-        // Se não achou, procura do início
         if (targetIndex === -1) {
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < maxSlots; i++) {
                 if (!slotData[i]) {
                     targetIndex = i;
                     break;
@@ -411,21 +452,16 @@
         }
 
         if (targetIndex !== -1) {
-            // Copia item e float exato
             selectItem(targetIndex, item, parseFloat(sourceFloat));
-        } else {
-            alert("Todos os slots estão cheios!");
         }
     }
 
-    // 5. Gerar Float Aleatório
     function rerollFloat(slotIndex) {
         const item = slotData[slotIndex];
         if (!item) return;
 
-        const minFloat = item.real_min_float;// || 0.0;
-        const maxFloat = item.real_max_float;// || 1.0;
-
+        const minFloat = item.real_min_float;
+        const maxFloat = item.real_max_float;
         const finalFloat = Math.random() * (maxFloat - minFloat) + minFloat;
         setFloat(slotIndex, finalFloat);
     }
@@ -434,36 +470,24 @@
         const item = slotData[slotIndex];
         if (!item) return;
 
-        // Use real_min_float and real_max_float from API
-        const minFloat = item.real_min_float;// || 0.0;
-        const maxFloat = item.real_max_float;// || 1.0;
+        const minFloat = item.real_min_float;
+        const maxFloat = item.real_max_float;
 
-        // Set min/max on input
         const inputEl = document.querySelector(`#slot-${slotIndex} .float-input`);
         inputEl.min = minFloat;
         inputEl.max = maxFloat;
 
         const strVal = typeof floatVal === 'string' ? floatVal : floatVal.toFixed(15);
         inputEl.value = strVal;
-        document.querySelector(`#slot-${slotIndex} .hidden-float`).value = strVal;
     }
 
-    function updateHiddenFloat(slotIndex, value) {
-        document.querySelector(`#slot-${slotIndex} .hidden-float`).value = value;
-    }
-
-    // 6. Limpar Slot
     function clearSlot(slotIndex) {
         const slot = document.getElementById(`slot-${slotIndex}`);
-        slot.querySelector('.hidden-id').value = '';
-        slot.querySelector('.hidden-float').value = '';
-        
+        slot.className = 'trade-slot';
         slot.querySelector('.slot-empty').style.display = 'flex';
         slot.querySelector('.slot-filled').style.display = 'none';
-        
         delete slotData[slotIndex];
 
-        // Se não sobrar nenhum item, destrava o modo StatTrak
         if (Object.keys(slotData).length === 0) {
             lockedStattrak = null;
             updateSearchPlaceholders();
@@ -481,10 +505,194 @@
         }
     }
 
-    // Fecha dropdown ao clicar fora
+    function addRandomItem() {
+        const rarity = document.getElementById('global-rarity').value;
+        if (!rarity) {
+            alert('Por favor, selecione uma raridade primeiro!');
+            return;
+        }
+
+        const isCovert = rarity === 'Covert';
+        const maxSlots = isCovert ? 5 : 10;
+
+        // Find first empty slot within the allowed range
+        let emptySlot = -1;
+        for (let i = 0; i < maxSlots; i++) {
+            if (!slotData[i]) {
+                emptySlot = i;
+                break;
+            }
+        }
+
+        if (emptySlot === -1) {
+            return;
+        }
+
+        // Build URL with filters
+        let stParam = '';
+        if (lockedStattrak === true) stParam = 'true';
+        if (lockedStattrak === false) stParam = 'false';
+
+        const url = `/tradeup/random/?rarity=${encodeURIComponent(rarity)}&stattrak=${stParam}`;
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    selectItem(emptySlot, data);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao buscar item aleatório: ' + error.message);
+            });
+    }
+    
+    function resetAll() {
+        for(let i = 0; i < 10; i++) {
+            clearSlot(i);
+        }
+        document.getElementById('global-rarity').value = '';
+        
+        // Show all slots again
+        document.querySelectorAll('.trade-slot').forEach(slot => {
+            slot.style.display = 'flex';
+        });
+        
+        document.querySelectorAll('.item-search').forEach(input => {
+            input.disabled = true;
+            input.placeholder = 'Buscar...';
+            input.value = '';
+        });
+        lockedStattrak = null;
+        document.getElementById('result-container').style.display = 'none';
+        document.getElementById('error-container').style.display = 'none';
+    }
+
+    // Calculate button handler
+    document.getElementById('calculate-btn').addEventListener('click', function() {
+        const items = [];
+        
+        for (let i = 0; i < 10; i++) {
+            const item = slotData[i];
+            if (item) {
+                const floatInput = document.querySelector(`#slot-${i} .float-input`);
+                items.push({
+                    item_id: item.id,
+                    float_val: parseFloat(floatInput.value)
+                });
+            }
+        }
+        
+        if (items.length === 0) {
+            showError('Por favor, preencha pelo menos 5 slots.');
+            return;
+        }
+        
+        // Check if it's a valid contract (5 for Covert, 10 for others)
+        const firstRarity = items.length > 0 ? slotData[Object.keys(slotData)[0]].rarity : null;
+        
+        if (firstRarity === 'Covert') {
+            if (items.length !== 5) {
+                showError('Contratos Covert → Gold requerem exatamente 5 itens.');
+                return;
+            }
+        } else {
+            if (items.length !== 10) {
+                showError('Por favor, preencha todos os 10 slots para este tipo de contrato.');
+                return;
+            }
+        }
+
+        // Call API
+        fetch('/tradeup/calculate/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ items: items })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                showResult(data);
+            }
+        })
+        .catch(error => {
+            showError('Erro ao calcular contrato: ' + error.message);
+        });
+    });
+
+    function showError(message) {
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+        document.getElementById('result-container').style.display = 'none';
+        
+        setTimeout(() => {
+            errorContainer.style.display = 'none';
+        }, 5000);
+    }
+
+    function showResult(data) {
+        document.getElementById('error-container').style.display = 'none';
+        
+        document.getElementById('result-input-price').textContent = 'R$' + data.input_price.toFixed(2);
+        document.getElementById('result-expected-value').textContent = 'R$' + data.expected_output_value.toFixed(2);
+        
+        const roiEl = document.getElementById('result-roi');
+        roiEl.textContent = data.roi.toFixed(2) + '%';
+        roiEl.className = 'mb-0 ' + (data.roi > 0 ? 'text-success' : 'text-danger');
+        
+        let infoText = `Média Float: <strong>${data.avg_normalized_float.toFixed(5)}</strong>`;
+        if (data.is_stattrak) {
+            infoText += ' | <span class="stattrak-text font-weight-bold">STATTRAK™ ATIVO</span>';
+        }
+        document.getElementById('result-info').innerHTML = infoText;
+        
+        const outcomesGrid = document.getElementById('result-outcomes');
+        outcomesGrid.innerHTML = '';
+        
+        // Sort outcomes by profitability (descending)
+        const sortedOutcomes = [...data.outcomes].sort((a, b) => b.profitability - a.profitability);
+        
+        sortedOutcomes.forEach(out => {
+            const slot = document.createElement('div');
+            slot.className = 'trade-slot';
+            const rarityClass = getRarityClass(out.rarity);
+            if (rarityClass) slot.classList.add(rarityClass);
+            
+            const nameClass = out.stattrak ? 'stattrak-text' : '';
+            const profitClass = out.profitability >= 0 ? 'profit-positive' : 'profit-negative';
+            const profitSign = out.profitability >= 0 ? '+' : '';
+            
+            slot.innerHTML = `
+                <div class="slot-filled" style="display: flex;">
+                    <img src="${out.image}" class="item-img">
+                    <div class="item-name-top ${nameClass}">${out.item_name}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; margin-top: auto;">
+                        <div class="${profitClass}" style="font-size: 0.85rem; font-weight: bold; text-align: center;">R$${out.price.toFixed(2)}</div>
+                        <div class="${profitClass}" style="font-size: 0.75rem; font-weight: 600; text-align: center;">${profitSign}${out.profitability.toFixed(2)}%</div>
+                        <div style="font-size: 0.75rem; color: #aaa; text-align: center;">${String(out.float).substring(0, 8)}</div>
+                        <div style="font-size: 0.75rem; font-weight: bold; color: #aaa; text-align: center;">${out.probability.toFixed(2)}%</div>
+                    </div>
+                </div>
+            `;
+            outcomesGrid.appendChild(slot);
+        });
+        
+        document.getElementById('result-container').style.display = 'block';
+    }
+
+    // Close dropdown when clicking outside
     document.addEventListener('click', e => {
         if (!e.target.closest('.trade-slot')) {
             document.querySelectorAll('.search-results').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.trade-slot').forEach(slot => slot.classList.remove('search-active'));
         }
     });
 </script>

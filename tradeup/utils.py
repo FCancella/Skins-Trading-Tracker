@@ -44,9 +44,11 @@ class TradeUpCalculator:
         return (avg_normalized_float * (out_max - out_min)) + out_min
 
     def calculate_contract(self, inputs: List[dict[Item, float]]):
-        if not inputs or len(inputs) != 10:
-            return {"error": "É necessário exatamente 10 itens."}
+        if not inputs or len(inputs) not in [5, 10]:
+            return {"error": "É necessário exatamente 5 ou 10 itens."}
 
+        # Determine if it's a 5-item or 10-item contract
+        num_items = len(inputs)
         total_price = sum(item['item'].price or 0 for item in inputs)
         
         # --- NOVO: Validação de StatTrak ---
@@ -61,6 +63,12 @@ class TradeUpCalculator:
             target_rarity = self.RARITY_ORDER[current_idx + 1]
         except ValueError:
             return {"error": f"Raridade desconhecida: {input_rarity}"}
+        
+        # Validate contract size based on rarity
+        if input_rarity == 'Covert' and num_items != 5:
+            return {"error": "Contratos Covert → Gold requerem exatamente 5 itens."}
+        if input_rarity != 'Covert' and num_items != 10:
+            return {"error": "Contratos deste nível requerem exatamente 10 itens."}
 
         sum_normalized = 0
         potential_collections = [] 
@@ -79,22 +87,23 @@ class TradeUpCalculator:
 
             norm = self.normalize_float(val_float, item.min_float, item.max_float)
             sum_normalized += norm
-            if item.crates.exists():
-                potential_collections.extend(list(item.crates.all()))
+            if item.crates.exclude(name__icontains='Souvenir').exists():
+                potential_collections.extend(list(item.crates.exclude(name__icontains='Souvenir')))
             else:
                 potential_collections.extend(list(item.collections.all()))
 
-        avg_normalized_float = sum_normalized / 10
+        avg_normalized_float = sum_normalized / num_items
 
         outcomes = []
         unique_sources = set(potential_collections)
         
         for source in unique_sources:
             count_source = potential_collections.count(source)
-            source_probability = count_source / 10.0
+            source_probability = count_source / num_items
             
             if hasattr(source, 'items'):
                 possible_items = source.items.filter(
+                    souvenir=False,
                     real_rarity=target_rarity,
                     stattrak=first_is_stt 
                 ).distinct('name')
