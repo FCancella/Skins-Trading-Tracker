@@ -315,22 +315,28 @@
         <h3 class="text-center mb-4">Resultado</h3>
         
         <div class="row text-center mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-secondary text-white p-2">
                     <small>Custo Entrada</small>
                     <h4 class="mb-0" id="result-input-price">R$0.00</h4>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-secondary text-white p-2">
                     <small>Retorno Esperado</small>
                     <h4 class="mb-0 text-success" id="result-expected-value">R$0.00</h4>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-secondary text-white p-2">
                     <small>ROI</small>
                     <h4 class="mb-0" id="result-roi">0.00%</h4>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white p-2">
+                    <small>Chance de Profit</small>
+                    <h4 class="mb-0" id="result-profit-chance">0.00%</h4>
                 </div>
             </div>
         </div>
@@ -704,11 +710,15 @@
         roiEl.textContent = data.roi.toFixed(2) + '%';
         roiEl.className = 'mb-0 ' + (data.roi > 0 ? 'text-success' : 'text-danger');
         
-        let infoText = `Chance de profit: <strong>${data.profit_chance.toFixed(2)}%</strong>`;
-        if (data.is_stattrak) {
-            infoText += ' | <span class="stattrak-text font-weight-bold">STATTRAK™ ATIVO</span>';
-        }
+        const profitChanceEl = document.getElementById('result-profit-chance');
+        profitChanceEl.textContent = data.profit_chance.toFixed(2) + '%';
+        profitChanceEl.className = 'mb-0';
+
+        let infoText = '';
+
         document.getElementById('result-info').innerHTML = infoText;
+        // Hide info box if empty
+        document.getElementById('result-info').style.display = infoText ? 'block' : 'none';
         
         const outcomesGrid = document.getElementById('result-outcomes');
         outcomesGrid.innerHTML = '';
