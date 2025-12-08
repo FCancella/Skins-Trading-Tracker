@@ -27,6 +27,106 @@ def api_key_required(view_func):
     return _wrapped_view
 
 @api_key_required
+def get_all_items(request):
+    """
+    API endpoint to fetch all items data for genetic algorithm.
+    Returns optimized data structure with all necessary fields.
+    Supports merge_duplicates parameter to combine items with identical names.
+    """
+    try:
+        # Check if merge_duplicates parameter is set
+        merge_duplicates = request.GET.get('merge_duplicates', '').lower() == 'true'
+        
+        # Fetch all items excluding souvenirs with prefetch
+        if merge_duplicates:
+            # Use distinct to get only one item per name (keeps first occurrence)
+            items = Item.objects.filter(souvenir=False).order_by('name', '-offers').distinct('name').prefetch_related('crates', 'collections')
+        else:
+            items = Item.objects.filter(souvenir=False).prefetch_related('crates', 'collections')
+        
+        # Build items list
+        items_list = []
+        for item in items:
+            # Get sources (crates/collections)
+            crates = [f"crate_{c.id}" for c in item.crates.all() if 'Souvenir' not in c.name]
+            collections = [f"collection_{c.id}" for c in item.collections.all()]
+            sources = crates if crates else collections
+            
+            items_list.append({
+                'id': item.id,
+                'name': item.name,
+                'min_float': item.min_float or 0.0,
+                'max_float': item.max_float or 1.0,
+                'real_min_float': item.real_min_float,
+                'real_max_float': item.real_max_float,
+                'price': float(item.price) if item.price else 0.0,
+                'offers': item.offers or 0,
+                'real_rarity': item.real_rarity,
+                'stattrak': item.stattrak,
+                'sources': sources
+            })
+        
+        return JsonResponse({
+            'count': len(items_list),
+            'items': items_list
+        }, status=200)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@api_key_required
+def get_sources_relations(request):
+    """
+    API endpoint to fetch crates/collections and their related items.
+    Returns mapping of sources to item IDs for genetic algorithm.
+    Supports merge_duplicates parameter to only include one item per name.
+    """
+    try:
+        from .models import Crate, Collection
+        
+        # Check if merge_duplicates parameter is set
+        merge_duplicates = request.GET.get('merge_duplicates', '').lower() == 'true'
+        
+        sources = {}
+        
+        # Get all crates with their items
+        crates = Crate.objects.prefetch_related('items').all()
+        for crate in crates:
+            if 'Souvenir' not in crate.name:
+                items_query = crate.items.filter(souvenir=False)
+                if merge_duplicates:
+                    items_query = items_query.order_by('name', '-offers').distinct('name')
+                item_ids = list(items_query.values_list('id', flat=True))
+                if item_ids:
+                    sources[f"crate_{crate.id}"] = {
+                        'type': 'crate',
+                        'name': crate.name,
+                        'items': item_ids
+                    }
+        
+        # Get all collections with their items
+        collections = Collection.objects.prefetch_related('items').all()
+        for collection in collections:
+            items_query = collection.items.filter(souvenir=False)
+            if merge_duplicates:
+                items_query = items_query.order_by('name', '-offers').distinct('name')
+            item_ids = list(items_query.values_list('id', flat=True))
+            if item_ids:
+                sources[f"collection_{collection.id}"] = {
+                    'type': 'collection',
+                    'name': collection.name,
+                    'items': item_ids
+                }
+        
+        return JsonResponse({
+            'count': len(sources),
+            'sources': sources
+        }, status=200)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@api_key_required
 @require_POST
 def log_scheduler_event(request):
     """
@@ -259,17 +359,23 @@ def get_items_for_pricing(request):
             return JsonResponse({"error": f"Não foi possível carregar o dicionário de IDs: {e}"}, status=500)
 
         # Define um timeout para itens que provavelmente "ficaram presos"/falharam
-        timeout_period = timezone.now() - timedelta(minutes=30)
+        timeout_period = timezone.now() - timedelta(hours=6)
 
-        # 2. Busca 50 itens que:
-        #    - Ainda não têm preço (price__isnull=True)
-        #    - E (OU estão "novos" (price_time__isnull=True)
-        #    - OU o "bloqueio" expirou (price_time__lte=timeout_period))
+        # # 2. Busca 50 itens que:
+        # #    - Ainda não têm preço (price__isnull=True)
+        # #    - E (OU estão "novos" (price_time__isnull=True)
+        # #    - OU o "bloqueio" expirou (price_time__lte=timeout_period))
+        # items_to_process = Item.objects.filter(
+        #     price__isnull=True
+        # ).filter(
+        #     Q(price_time__isnull=True) | Q(price_time__lte=timeout_period)
+        # ).select_for_update(skip_locked=True)[:50]
+
+        # 2. Busca 100 itens que:
+        #    - Foram precificados há mais de 6 horas (price_time__lte=...)
         items_to_process = Item.objects.filter(
-            price__isnull=True
-        ).filter(
             Q(price_time__isnull=True) | Q(price_time__lte=timeout_period)
-        ).select_for_update(skip_locked=True)[:50]
+        ).select_for_update(skip_locked=True)[:100]
 
         if not items_to_process:
             return JsonResponse({"items_to_price": [], "cny_brl_rate": cny_brl_rate})

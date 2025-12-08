@@ -81,8 +81,9 @@ def calculate_contract_api(request):
         if len(items) not in [5, 10]:
             return JsonResponse({'error': 'Exactly 5 or 10 items are required'}, status=400)
         
-        calc = TradeUpCalculator()
-        inputs = []
+        # Extract item IDs and float values
+        item_ids = []
+        float_values = []
         
         for item_data in items:
             item_id = item_data.get('item_id')
@@ -92,17 +93,14 @@ def calculate_contract_api(request):
                 return JsonResponse({'error': 'Missing item_id or float_val'}, status=400)
             
             try:
-                item_obj = Item.objects.get(id=item_id)
-                inputs.append({
-                    'item': item_obj,
-                    'float': float(float_val)
-                })
-            except Item.DoesNotExist:
-                return JsonResponse({'error': f'Item with id {item_id} not found'}, status=404)
+                item_ids.append(item_id)
+                float_values.append(float(float_val))
             except ValueError:
                 return JsonResponse({'error': 'Invalid float value'}, status=400)
         
-        result = calc.calculate_contract(inputs)
+        # Use optimized calculator
+        calc = TradeUpCalculator()
+        result = calc.calculate_contract_fast(item_ids, float_values)
         
         if 'error' in result:
             return JsonResponse(result, status=400)

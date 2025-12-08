@@ -48,6 +48,10 @@ urlpatterns = [
     path("portfolio/", trade_views.index, name="index"),
     path("observer/", trade_views.observer, name="observer"),
     path("profile/toggle/", trade_views.toggle_profile_public, name="toggle_profile_public"),
+    
+    # Scanner API endpoints
+    path('api/scanner/items/', scanner_views.get_all_items, name='get_all_items'),
+    path('api/scanner/sources/', scanner_views.get_sources_relations, name='get_sources_relations'),
     path("profile/change-username/", trade_views.change_username, name="change_username"), # <-- ADICIONE ESTA LINHA
     path("export/", trade_views.export_portfolio, name="export_portfolio"),
     path("price-history/<int:trade_id>/", trade_views.price_history, name="price_history"),
