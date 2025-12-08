@@ -20,6 +20,7 @@ if __name__ == '__main__':
     precompute_outcomes()
     
     # Select input rarity
+    # selected_inputs = load_input_items('Industrial Grade', stattrak=False)
     # selected_inputs = load_input_items('Mil-Spec Grade', stattrak=False)
     # selected_inputs = load_input_items('Restricted', stattrak=False)
     selected_inputs = load_input_items('Classified', stattrak=False)
@@ -34,10 +35,24 @@ if __name__ == '__main__':
     print(f"\nContract configuration: {num_items} items per contract")
     print(f"Available input items: {len(selected_inputs)}")
     
-    # Run genetic algorithm
-    best_contract, best_roi, elapsed_time = run_genetic_algorithm(
-        selected_inputs, ITEMS, PRECOMPUTED_OUTCOMES, num_items,
-        population_size=10_000_000, generations=20, elite_size=100, keep_top_percentage=0.8
+    # # Run genetic algorithm
+    # best_contract, best_roi, elapsed_time = run_genetic_algorithm(
+    #     selected_inputs, ITEMS, PRECOMPUTED_OUTCOMES, num_items,
+    #     population_size=100_000, generations=100, elite_size=100, keep_top_percentage=.5
+    # )
+
+    # Run island model genetic algorithm
+    from genetic_island import run_island_genetic_algorithm
+    best_contract, best_roi, time = run_island_genetic_algorithm(
+        selected_inputs=selected_inputs,
+        items=ITEMS,
+        precomputed_outcomes=PRECOMPUTED_OUTCOMES,
+        num_items=num_items,
+        num_islands=10,
+        population_per_island=100_000,
+        total_generations=1000,
+        migration_interval=10,
+        migration_size=5
     )
     
     print("\n" + "="*60)
