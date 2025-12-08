@@ -20,13 +20,18 @@ RARITY_ORDER = [
 ]
 
 
-def generate_float_values(real_min: float, real_max: float) -> Tuple[float, float, float]:
-    """Generate three float values at 25%, 50%, and 80% of the range."""
+def generate_float_values(real_min: float, real_max: float) -> Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]:
+    """
+    Generate three float values at 30%, 50%, and 90% of the range.
+    Returns tuples of (float_value, price_multiplier) for each position.
+    Lower float items have higher price multipliers.
+    """
     float_range = real_max - real_min
     return (
-        round(real_min + float_range * 0.25, 3),
-        round(real_min + float_range * 0.50, 3),
-        round(real_min + float_range * 0.80, 3)
+        (round(real_min + float_range * 0.30, 3), 2.0),  # Low float: 2x price
+        (round(real_min + float_range * 0.50, 3), 1.4),  # Mid-Low float: 1.4x price
+        (round(real_min + float_range * 0.90, 3), 1.2),   # Mid-High float: 1.2x price
+        (round(real_min + float_range * 0.99, 3), 1.0)   # Normal float: base price
     )
 
 
@@ -236,23 +241,15 @@ def load_input_items(rarity: str, stattrak: bool = False) -> List[Dict]:
         real_min = item['real_min_float']
         real_max = item['real_max_float']
         
-        float_low, float_mid, float_high = generate_float_values(real_min, real_max)
+        float_price_tuples = generate_float_values(real_min, real_max)
+        base_price = item.get('price', 0.0) or 0.0
         
         # Return items with structure needed for fast calculation
-        result.append({
-            'id': item_id,
-            'float': float_low,
-            'price': item.get('price', 0.0) or 0.0
-        })
-        result.append({
-            'id': item_id,
-            'float': float_mid,
-            'price': item.get('price', 0.0) or 0.0
-        })
-        result.append({
-            'id': item_id,
-            'float': float_high,
-            'price': item.get('price', 0.0) or 0.0
-        })
+        for float_val, price_mult in float_price_tuples:
+            result.append({
+                'id': item_id,
+                'float': float_val,
+                'price': base_price * price_mult
+            })
     
     return result

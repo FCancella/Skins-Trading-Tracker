@@ -143,16 +143,17 @@ class GeneticAlgorithm:
             item_id = item['id']
             item_data = self.items[item_id]
             
-            float_values = generate_float_values(
+            float_price_tuples = generate_float_values(
                 item_data['real_min_float'],
                 item_data['real_max_float']
             )
-            new_float = choice(float_values)
+            new_float, price_mult = choice(float_price_tuples)
+            base_price = item_data.get('price', 0.0) or 0.0
             
             mutated[item_idx] = {
                 'id': item['id'],
                 'float': new_float,
-                'price': item['price']
+                'price': base_price * price_mult
             }
         
         return mutated
@@ -293,7 +294,12 @@ def run_genetic_algorithm(selected_inputs: List[Dict], items: Dict[str, Dict],
                     positions_to_substitute = sample(range(num_items), k=num_to_substitute)
                     
                     for pos in positions_to_substitute:
-                        base_contract[pos] = choice(selected_inputs)
+                        if random() < 0.5:
+                            # 50%: Insert random item from selected_inputs
+                            base_contract[pos] = choice(selected_inputs)
+                        else:
+                            # 50%: Insert random item from current contract
+                            base_contract[pos] = choice(base_contract)
                     
                     new_contract = base_contract
                 else:

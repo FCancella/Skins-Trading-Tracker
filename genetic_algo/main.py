@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # Run genetic algorithm
     best_contract, best_roi, elapsed_time = run_genetic_algorithm(
         selected_inputs, ITEMS, PRECOMPUTED_OUTCOMES, num_items,
-        population_size=1_000_000, generations=10, elite_size=10, keep_top_percentage=0.5
+        population_size=10_000_000, generations=20, elite_size=100, keep_top_percentage=0.8
     )
     
     print("\n" + "="*60)
