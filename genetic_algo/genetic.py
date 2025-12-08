@@ -121,7 +121,7 @@ class GeneticAlgorithm:
         return [contract for contract, _ in contracts_with_scores[:top_n]]
     
     def crossover(self, parent1: List[Dict], parent2: List[Dict]) -> List[Dict]:
-        num_from_parent1 = randint(1, self.num_items - 1)
+        num_from_parent1 = randint(1, self.num_items//2 - 1)
         num_from_parent2 = self.num_items - num_from_parent1
         
         items_from_parent1 = sample(parent1, k=num_from_parent1)
@@ -132,15 +132,17 @@ class GeneticAlgorithm:
     def mutate(self, contract: List[Dict], input_items: List[Dict]) -> List[Dict]:
         mutated = contract.copy()
         
-        if random() < 0.4:
-            random_item = choice(input_items)
-            replace_idx = randint(0, len(mutated) - 1)
-            mutated[replace_idx] = random_item
+        # Mutation 1: Replace 1 - 1/3 items (50% from input_items, 50% from within contract)
+        if random() < 0.5:
+            num_to_replace = randint(1, len(contract)//3)
+            for _ in range(num_to_replace):
+                pos = randint(0, self.num_items - 1)
+                mutated[pos] = choice(input_items) if random() < 0.5 else choice(mutated)
         
-        if random() < 0.4:
-            item_idx = randint(0, len(mutated) - 1)
-            item = mutated[item_idx]
-            item_id = item['id']
+        # Mutation 2: Change float value of 1 item
+        if random() < 0.5:
+            pos = randint(0, self.num_items - 1)
+            item_id = mutated[pos]['id']
             item_data = self.items[item_id]
             
             float_price_tuples = generate_float_values(
@@ -150,8 +152,8 @@ class GeneticAlgorithm:
             new_float, price_mult = choice(float_price_tuples)
             base_price = item_data.get('price', 0.0) or 0.0
             
-            mutated[item_idx] = {
-                'id': item['id'],
+            mutated[pos] = {
+                'id': item_id,
                 'float': new_float,
                 'price': base_price * price_mult
             }
@@ -217,9 +219,13 @@ def remove_duplicate_contracts(contracts: List[List[Dict]]) -> List[List[Dict]]:
 
 
 def calculate_diversity(current_top: List[List[Dict]], previous_top: List[List[Dict]]) -> float:
-    contract_sig = lambda c: tuple(sorted(item['id'] for item in c))
-    prev_sigs = {contract_sig(c) for c in previous_top}
-    curr_sigs = {contract_sig(c) for c in current_top}
+    # contract_sig = lambda c: tuple(sorted(item['id'] for item in c))
+    # prev_sigs = {contract_sig(c) for c in previous_top}
+    # curr_sigs = {contract_sig(c) for c in current_top}
+    # common = len(prev_sigs & curr_sigs)
+    """Calculate diversity by comparing contracts including both item IDs and float values."""
+    prev_sigs = {normalize_contract(c) for c in previous_top}
+    curr_sigs = {normalize_contract(c) for c in current_top}
     common = len(prev_sigs & curr_sigs)
     return ((len(current_top) - common) / len(current_top)) * 100
 
@@ -242,15 +248,17 @@ def run_genetic_algorithm(selected_inputs: List[Dict], items: Dict[str, Dict],
     best_overall_contract = None
     best_overall_roi = -float('inf')
     previous_top_contracts = None
-    
+    print("-" * 30, "Initializing Population", "-" * 30)
     population = ga.initialize_population(selected_inputs, population_size)
     initial_unique = len(population)
     print(f"Initial population: {initial_unique} unique contracts")
     
     for generation in range(generations):
+        print(".", end="", flush=True)
         fitness_scores = evaluate_population_parallel(
             population, items, precomputed_outcomes, num_items, num_processes
         )
+        print("-", end=" ", flush=True)
         
         best_idx = fitness_scores.index(max(fitness_scores))
         best_roi = fitness_scores[best_idx]
@@ -269,7 +277,7 @@ def run_genetic_algorithm(selected_inputs: List[Dict], items: Dict[str, Dict],
         if generation == 0:
             print(f"Generation {generation + 1}/{generations}: Best ROI = {best_roi:.2f}% | Avg ROI = {avg_roi:.2f}% | Overall Best = {best_overall_roi:.2f}%")
         else:
-            print(f"Generation {generation + 1}/{generations}: Best ROI = {best_roi:.2f}% | Avg ROI = {avg_roi:.2f}% | Overall Best = {best_overall_roi:.2f}% | Diversity = {diversity_metric:.1f}%")
+            print(f"Generation {generation + 1}/{generations}: Best ROI = {best_roi:.2f}% | Avg ROI = {avg_roi:.2f}% | Overall Best = {best_overall_roi:.2f}% | New Contracts = {diversity_metric:.1f}%")
         
         if generation < generations - 1:
             top_contracts = ga.select_top_contracts(population, fitness_scores, elite_size)
@@ -286,27 +294,18 @@ def run_genetic_algorithm(selected_inputs: List[Dict], items: Dict[str, Dict],
             for _ in range(num_to_generate):
                 rand_value = random()
                 
-                if rand_value < 0.3:
+                if rand_value < 0.4:
+                    # 40%: Random contract
                     new_contract = ga.create_random_contract(selected_inputs)
-                elif rand_value < 0.6:
-                    base_contract = choice(top_contracts).copy()
-                    num_to_substitute = randint(1, num_items // 2)
-                    positions_to_substitute = sample(range(num_items), k=num_to_substitute)
-                    
-                    for pos in positions_to_substitute:
-                        if random() < 0.5:
-                            # 50%: Insert random item from selected_inputs
-                            base_contract[pos] = choice(selected_inputs)
-                        else:
-                            # 50%: Insert random item from current contract
-                            base_contract[pos] = choice(base_contract)
-                    
-                    new_contract = base_contract
-                else:
+                elif rand_value < 0.7:
+                    # 30%: Crossover
                     parent1 = choice(top_contracts)
                     parent2 = choice(top_contracts)
-                    offspring = ga.crossover(parent1, parent2)
-                    new_contract = ga.mutate(offspring, selected_inputs)
+                    new_contract = ga.crossover(parent1, parent2)
+                else:
+                    # 30%: Mutation
+                    base_contract = choice(top_contracts)
+                    new_contract = ga.mutate(base_contract, selected_inputs)
                 
                 new_population.append(new_contract)
             
